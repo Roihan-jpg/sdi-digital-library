@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.angular
+.git
+supabase/.branches
+supabase/.temp
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+*.min.js
+*.min.css

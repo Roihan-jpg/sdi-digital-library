@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "Angular.ng-template",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "EditorConfig.EditorConfig",
+    "Supabase.postgrestools",
+    "humao.rest-client",
+    "usernamehw.errorlens",
+    "eamodio.gitlens",
+    "ms-azuretools.vscode-containers"
+  ],
+  "unwantedRecommendations": [
+    "eg2.tslint",
+    "ms-vscode.vscode-typescript-tslint-plugin"
+  ]
+}

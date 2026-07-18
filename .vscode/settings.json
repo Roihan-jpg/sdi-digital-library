@@ -1,0 +1,125 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "editor.renderWhitespace": "boundary",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.guides.indentation": true,
+
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.autoSave": "afterDelay",
+
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": true,
+
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "html"],
+
+  "eslint.workingDirectories": [
+    {
+      "directory": "frontend",
+      "changeProcessCWD": true
+    },
+    {
+      "directory": "backend",
+      "changeProcessCWD": true
+    }
+  ],
+
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.preferences.importModuleSpecifier": "shortest",
+  "javascript.preferences.importModuleSpecifier": "shortest",
+
+  "html.format.wrapLineLength": 100,
+  "html.format.wrapAttributes": "auto",
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "files.trimTrailingWhitespace": false
+  },
+
+  "[sql]": {
+    "editor.formatOnSave": false
+  },
+
+  "files.exclude": {
+    "**/.git": true,
+    "**/.angular/cache": true,
+    "**/dist": true,
+    "**/coverage": true
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.angular": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/supabase/.temp": true
+  },
+
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.angular/cache/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/supabase/.temp/**": true
+  },
+
+  "npm.packageManager": "npm",
+
+  "rest-client.previewResponseInUntitledDocument": true,
+  "rest-client.environmentVariables": {
+    "$shared": {
+      "frontendUrl": "http://localhost:4200",
+      "backendUrl": "http://localhost:3000",
+      "supabaseUrl": "http://127.0.0.1:54321"
+    },
+    "local": {
+      "apiUrl": "http://localhost:3000/api"
+    }
+  }
+}

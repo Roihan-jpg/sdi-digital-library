@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.angular/
+
+.env
+.env.*
+!.env.example
+frontend/src/environments/environment.local.ts
+
+supabase/.branches/
+supabase/.temp/
+
+*.log
+.DS_Store
+Thumbs.db
+

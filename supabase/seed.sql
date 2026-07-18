@@ -1,0 +1,2 @@
+-- Seed data demo sengaja belum ditambahkan pada tahap fondasi.
+-- Data referensi awal sudah dibuat oleh migration pertama.
