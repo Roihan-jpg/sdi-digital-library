@@ -164,4 +164,40 @@ Endpoint utama:
 
 Nilai barcode dan QR selalu sama persis dengan `inventory_code`; UUID database tidak pernah dijadikan payload label.
 
-Autentikasi, role, master data, member, katalog fisik, label, dan import dasar sudah aktif. Modul transaksi sirkulasi, reservasi, dan koleksi digital merupakan tahap berikutnya.
+## Sirkulasi, reservasi, kunjungan, dan denda
+
+Prompt 4 menyediakan meja layanan petugas di `/dashboard/circulation` dan portal anggota di `/dashboard/member`. Seluruh perubahan status kritis menggunakan RPC database dengan konteks JWT pengguna; Angular hanya melakukan validasi awal untuk UX.
+
+Alur yang tersedia:
+
+- lookup dan scan kartu member serta kode inventaris;
+- checkout maksimal tiga eksemplar dengan jatuh tempo dari pengaturan database;
+- return baik/rusak/hilang, denda terlambat, dan biaya penggantian;
+- satu kali perpanjangan serta penolakan ketika judul direservasi anggota lain;
+- reservasi member, approval/rejection/cancellation, dan konversi ke loan;
+- pembayaran denda penuh/sebagian beserta sisa tagihan dan receipt;
+- kunjungan individual dan rombongan;
+- histori pinjaman, jatuh tempo, reservasi, dan denda pada portal member.
+
+Endpoint utama:
+
+| Endpoint | Akses | Fungsi |
+|---|---|---|
+| `/api/circulation/lookup/*` | Master/petugas | Lookup scanner member dan eksemplar |
+| `POST /api/circulation/checkout` | Master/petugas | Checkout transaksional |
+| `POST /api/circulation/return` | Master/petugas | Return dan penetapan denda |
+| `POST /api/circulation/renew` | Master/petugas | Perpanjangan satu item |
+| `/api/reservations` | Member/staf sesuai aksi | Buat, daftar, approve, reject, cancel, convert |
+| `/api/circulation/fines` | Member/staf sesuai RLS | Daftar dan pembayaran denda |
+| `/api/visits` | Staf | Kunjungan individual/rombongan |
+| `POST /api/circulation/maintenance` | Master/petugas | Tandai overdue dan akhiri reservasi expired |
+
+Untuk scheduler production, jalankan command idempoten berikut melalui cron/Task Scheduler menggunakan environment backend. Jangan mencatat isi secret pada log scheduler.
+
+```powershell
+npm run maintenance
+```
+
+Database remote memiliki migrasi `complete_library_operations_rpcs` dan `restrict_library_operations_rpcs_to_authenticated`. File lokal dengan timestamp remote yang sama harus ikut diterapkan pada database baru melalui `npm run db:reset` atau alur `supabase db push` yang terdokumentasi di atas.
+
+Autentikasi, role, master data, member, katalog fisik, label, import, dan sirkulasi inti sudah aktif. Koleksi digital merupakan tahap berikutnya.

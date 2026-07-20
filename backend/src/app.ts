@@ -19,6 +19,12 @@ import { createCatalogRouter } from './modules/catalog/catalog.routes.js';
 import { CatalogService } from './modules/catalog/catalog.service.js';
 import { createImportRouter } from './modules/imports/import.routes.js';
 import { ImportService } from './modules/imports/import.service.js';
+import {
+  createCirculationRouter,
+  createReservationRouter,
+  createVisitRouter,
+} from './modules/circulation/circulation.routes.js';
+import { CirculationService } from './modules/circulation/circulation.service.js';
 
 export interface AppDependencies {
   authService: AuthServicePort;
@@ -34,6 +40,7 @@ export function createApp(
   const repository = new AuthRepository(config);
   const authService = dependencyOverrides.authService ?? new AuthService(repository);
   const profileService = dependencyOverrides.profileService ?? new ProfileService(repository);
+  const circulationService = new CirculationService(config);
 
   app.disable('x-powered-by');
   app.use(requestId);
@@ -63,6 +70,9 @@ export function createApp(
   app.use(`${config.API_BASE_PATH}/members`, createMemberRouter(authService, new MemberService(config)));
   app.use(`${config.API_BASE_PATH}/catalog`, createCatalogRouter(authService, new CatalogService(config)));
   app.use(`${config.API_BASE_PATH}/imports`, createImportRouter(authService, new ImportService(config)));
+  app.use(`${config.API_BASE_PATH}/circulation`, createCirculationRouter(authService, circulationService));
+  app.use(`${config.API_BASE_PATH}/reservations`, createReservationRouter(authService, circulationService));
+  app.use(`${config.API_BASE_PATH}/visits`, createVisitRouter(authService, circulationService));
   app.use(notFoundHandler());
   app.use(errorHandler(logger));
 

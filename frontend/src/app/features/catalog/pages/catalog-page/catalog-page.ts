@@ -1,6 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CatalogApiService, type CatalogBook } from '../../data-access/catalog-api.service';
+import { AuthStore } from '../../../../core/auth/auth.store';
+import { CirculationApiService } from '../../../circulation/data-access/circulation-api.service';
 
 @Component({
   selector: 'sdi-catalog-page',
@@ -38,6 +40,16 @@ import { CatalogApiService, type CatalogBook } from '../../data-access/catalog-a
               {{ book.publishers?.name ?? 'Penerbit tidak dicatat' }}
             </p>
             <small>ISBN {{ book.isbn ?? '—' }}</small>
+            @if (authStore.currentRole() === 'member') {
+              <button
+                class="button reserve"
+                type="button"
+                [disabled]="book.stock.available === 0 || reservingId() === book.id"
+                (click)="reserve(book)"
+              >
+                {{ reservingId() === book.id ? 'Memproses…' : 'Reservasi buku' }}
+              </button>
+            }
           </article>
         }
       </div>
@@ -80,20 +92,35 @@ import { CatalogApiService, type CatalogBook } from '../../data-access/catalog-a
     .error {
       color: #9b1c1c;
     }
+    .reserve {
+      width: 100%;
+      margin-top: 1rem;
+    }
   `,
 })
 export class CatalogPage {
   private readonly api = inject(CatalogApiService);
+  private readonly circulation = inject(CirculationApiService);
+  protected readonly authStore = inject(AuthStore);
   readonly query = new FormControl('', { nonNullable: true });
   protected readonly books = signal<CatalogBook[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
+  protected readonly reservingId = signal<string | null>(null);
   constructor() {
     this.load();
   }
   protected search(event: Event) {
     event.preventDefault();
     this.load();
+  }
+  protected reserve(book: CatalogBook) {
+    if (book.stock.available === 0 || this.reservingId()) return;
+    this.reservingId.set(book.id);
+    this.circulation.createReservation(book.id).subscribe({
+      next: () => this.reservingId.set(null),
+      error: () => this.reservingId.set(null),
+    });
   }
   private load() {
     this.loading.set(true);
