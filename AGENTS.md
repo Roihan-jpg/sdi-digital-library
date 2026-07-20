@@ -8,6 +8,8 @@ Selalu periksa kondisi repository sebelum mengubah kode. Pertahankan kode yang s
 
 `AGENTS.md` yang berada di subfolder boleh menambahkan atau mengganti aturan khusus untuk folder tersebut.
 
+Akses .agents\skills\supabase dan .agents\skills\supabase-postgres-best-practices\ jika membutuhkan pengetahuan tentang yang berhubungan dengan supabase
+
 ---
 
 ## Project Context

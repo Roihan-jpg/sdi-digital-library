@@ -28,6 +28,42 @@ export const routes: Routes = [
       dashboardRoute('admin', ['master_admin'], 'Dashboard Master Admin'),
       dashboardRoute('monitoring', ['master_admin', 'head_librarian'], 'Monitoring Perpustakaan'),
       dashboardRoute('operasional', ['master_admin', 'librarian'], 'Operasional Perpustakaan'),
+      {
+        path: 'members',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        loadComponent: () =>
+          import('./features/members/pages/member-management-page/member-management-page').then(
+            (module) => module.MemberManagementPage,
+          ),
+      },
+      {
+        path: 'imports',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'librarian'] },
+        loadComponent: () =>
+          import('./features/imports/pages/import-page/import-page').then(
+            (module) => module.ImportPage,
+          ),
+      },
+      {
+        path: 'inventory',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        loadComponent: () =>
+          import('./features/inventory/pages/inventory-page/inventory-page').then(
+            (module) => module.InventoryPage,
+          ),
+      },
+      {
+        path: 'master-data',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        loadComponent: () =>
+          import('./features/master-data/pages/master-data-page/master-data-page').then(
+            (module) => module.MasterDataPage,
+          ),
+      },
       dashboardRoute('member', ['member'], 'Portal Anggota'),
       dashboardRoute('guest', ['guest'], 'Portal Tamu'),
       {

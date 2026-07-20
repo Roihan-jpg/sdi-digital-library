@@ -1,0 +1,3 @@
+import assert from 'node:assert/strict';import test from 'node:test';import { findFileDuplicates } from './import.service.js';
+test('import detects member duplicate values case-insensitively inside a file',()=>{const duplicates=findFileDuplicates([{rowNumber:2,data:{nis:'123',member_code:'M-1'}},{rowNumber:3,data:{nis:'123',member_code:'m-2'}}],'members');assert.match(duplicates.get(3)??'',/nis duplikat/);});
+test('import detects duplicate inventory_code inside a file',()=>{const duplicates=findFileDuplicates([{rowNumber:2,data:{inventory_code:'INV-1'}},{rowNumber:5,data:{inventory_code:'inv-1'}}],'books');assert.match(duplicates.get(5)??'',/inventory_code duplikat/);});

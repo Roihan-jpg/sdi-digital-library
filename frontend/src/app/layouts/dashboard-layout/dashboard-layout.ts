@@ -16,6 +16,10 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Ringkasan', path: '/dashboard/admin', section: null },
     { label: 'Pengguna & role', path: '/dashboard/admin', section: 'pengguna' },
     { label: 'Konfigurasi', path: '/dashboard/admin', section: 'konfigurasi' },
+    { label: 'Master data', path: '/dashboard/master-data', section: null },
+    { label: 'Member', path: '/dashboard/members', section: null },
+    { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
+    { label: 'Import data', path: '/dashboard/imports', section: null },
     { label: 'Audit', path: '/dashboard/admin', section: 'audit' },
   ],
   head_librarian: [
@@ -28,6 +32,10 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Peminjaman', path: '/dashboard/operasional', section: 'peminjaman' },
     { label: 'Pengembalian', path: '/dashboard/operasional', section: 'pengembalian' },
     { label: 'Member & buku', path: '/dashboard/operasional', section: 'data' },
+    { label: 'Master data', path: '/dashboard/master-data', section: null },
+    { label: 'Member', path: '/dashboard/members', section: null },
+    { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
+    { label: 'Import data', path: '/dashboard/imports', section: null },
   ],
   member: [
     { label: 'Portal anggota', path: '/dashboard/member', section: null },

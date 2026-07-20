@@ -127,4 +127,41 @@ supabase/   konfigurasi dan SQL migrations
 docs/       konsep, alur, struktur, dan prompt tahap pengerjaan
 ```
 
-Autentikasi dan role sudah aktif. Modul transaksi, master data, reservasi, dan koleksi digital masih merupakan tahap berikutnya.
+## Master data, member, katalog, dan import
+
+Migration `202607200001_master_data_import.sql` menambahkan nomor kartu pelajar unik, validasi identitas siswa yang lebih lengkap, index operasional, dan audit master data/import. Terapkan migration sebelum mencoba modul baru:
+
+```powershell
+npm run db:reset
+```
+
+Halaman operasional tersedia di dashboard untuk `master_admin`/`librarian`: Master data, Member, Buku & eksemplar, serta Import data. `head_librarian` memperoleh akses baca master/member/inventaris. Katalog publik tersedia di `/katalog`.
+
+Template import menerima `.xlsx` atau `.csv` maksimal 10 MB. Header member:
+
+```text
+member_code,nis,nisn,full_name,gender,class,study_group,student_card_number,library_card_number,is_active
+```
+
+Header buku:
+
+```text
+inventory_code,title,category,author,publisher,publication_year,isbn,shelf,condition,replacement_cost,status
+```
+
+Kategori, pengarang, penerbit, kelas/rombel, dan rak yang disebut file import harus sudah ada pada master data. Hasil gagal dapat diunduh sebagai CSV per import job.
+
+Endpoint utama:
+
+| Endpoint | Akses | Fungsi |
+|---|---|---|
+| `GET /api/catalog` dan `GET /api/catalog/:id` | Publik | Pencarian, pagination, detail stok katalog |
+| `/api/master-data/:kind` | Staf | CRUD delapan jenis master data |
+| `/api/members` | Staf | CRUD, filter, pagination member |
+| `/api/catalog/titles` dan `/api/catalog/copies` | Master/petugas | CRUD judul dan eksemplar |
+| `POST /api/catalog/labels/print` | Master/petugas | Label barcode/QR batch siap cetak |
+| `/api/imports` | Master/petugas | Template, upload, riwayat, dan CSV error |
+
+Nilai barcode dan QR selalu sama persis dengan `inventory_code`; UUID database tidak pernah dijadikan payload label.
+
+Autentikasi, role, master data, member, katalog fisik, label, dan import dasar sudah aktif. Modul transaksi sirkulasi, reservasi, dan koleksi digital merupakan tahap berikutnya.

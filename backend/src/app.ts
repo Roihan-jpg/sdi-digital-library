@@ -11,6 +11,14 @@ import { AuthRepository } from './modules/auth/auth.repository.js';
 import { createAuthRouter, createProfileRouter } from './modules/auth/auth.routes.js';
 import { AuthService, ProfileService } from './modules/auth/auth.service.js';
 import type { AuthServicePort, ProfileServicePort } from './modules/auth/auth.types.js';
+import { createMasterDataRouter } from './modules/master-data/master-data.routes.js';
+import { MasterDataService } from './modules/master-data/master-data.service.js';
+import { createMemberRouter } from './modules/members/member.routes.js';
+import { MemberService } from './modules/members/member.service.js';
+import { createCatalogRouter } from './modules/catalog/catalog.routes.js';
+import { CatalogService } from './modules/catalog/catalog.service.js';
+import { createImportRouter } from './modules/imports/import.routes.js';
+import { ImportService } from './modules/imports/import.service.js';
 
 export interface AppDependencies {
   authService: AuthServicePort;
@@ -51,6 +59,10 @@ export function createApp(
   app.use(`${config.API_BASE_PATH}/health`, createHealthRouter());
   app.use(`${config.API_BASE_PATH}/auth`, createAuthRouter(authService));
   app.use(`${config.API_BASE_PATH}/profiles`, createProfileRouter(authService, profileService));
+  app.use(`${config.API_BASE_PATH}/master-data`, createMasterDataRouter(authService, new MasterDataService(config)));
+  app.use(`${config.API_BASE_PATH}/members`, createMemberRouter(authService, new MemberService(config)));
+  app.use(`${config.API_BASE_PATH}/catalog`, createCatalogRouter(authService, new CatalogService(config)));
+  app.use(`${config.API_BASE_PATH}/imports`, createImportRouter(authService, new ImportService(config)));
   app.use(notFoundHandler());
   app.use(errorHandler(logger));
 
