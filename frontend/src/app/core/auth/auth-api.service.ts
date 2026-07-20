@@ -1,0 +1,25 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import type { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type { CurrentAuthContext } from './auth.models';
+
+interface ApiResponse<T> {
+  data: T;
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthApiService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = environment.apiBaseUrl;
+
+  getCurrentContext(accessToken: string): Observable<ApiResponse<CurrentAuthContext>> {
+    return this.http.get<ApiResponse<CurrentAuthContext>>(`${this.baseUrl}/auth/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/auth/logout`, null);
+  }
+}

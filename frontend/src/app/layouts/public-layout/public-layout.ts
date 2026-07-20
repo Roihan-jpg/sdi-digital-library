@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NotificationBanner } from '../../shared/components/notification-banner/notification-banner';
+import { roleHomePath } from '../../core/auth/auth.models';
+import { AuthStore } from '../../core/auth/auth.store';
 
 @Component({
   selector: 'sdi-public-layout',
@@ -15,7 +17,11 @@ import { NotificationBanner } from '../../shared/components/notification-banner/
             >Beranda</a
           >
           <a routerLink="/katalog" routerLinkActive="active">Katalog</a>
-          <a class="button" routerLink="/masuk">Masuk</a>
+          @if (authStore.currentRole(); as role) {
+            <a class="button" [routerLink]="roleHomePath(role)">Dashboard</a>
+          } @else {
+            <a class="button" routerLink="/masuk">Masuk</a>
+          }
         </div>
       </nav>
     </header>
@@ -85,4 +91,7 @@ import { NotificationBanner } from '../../shared/components/notification-banner/
     }
   `,
 })
-export class PublicLayout {}
+export class PublicLayout {
+  protected readonly authStore = inject(AuthStore);
+  protected readonly roleHomePath = roleHomePath;
+}

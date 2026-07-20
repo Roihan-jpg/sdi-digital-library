@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import type { Logger } from 'pino';
+import { ZodError } from 'zod';
 import { AppError } from '../errors/app-error.js';
 
 export function notFoundHandler(): RequestHandler {
@@ -18,6 +19,8 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
     const appError =
       error instanceof AppError
         ? error
+        : error instanceof ZodError
+          ? new AppError(400, 'VALIDATION_ERROR', 'Data yang dikirim tidak valid.')
         : malformedJson
           ? new AppError(400, 'INVALID_JSON', 'Body JSON tidak valid.')
           : new AppError(500, 'INTERNAL_ERROR', 'Terjadi kesalahan pada server.');
@@ -34,4 +37,3 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
     });
   };
 }
-

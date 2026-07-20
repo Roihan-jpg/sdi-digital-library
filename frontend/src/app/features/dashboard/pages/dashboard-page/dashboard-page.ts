@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
 @Component({
@@ -6,11 +8,12 @@ import { EmptyState } from '../../../../shared/components/empty-state/empty-stat
   imports: [EmptyState],
   template: `
     <section class="page">
-      <p class="eyebrow">Dashboard</p>
-      <h1>Ringkasan perpustakaan</h1>
+      <p class="eyebrow">{{ roleLabel() }}</p>
+      <h1>{{ heading }}</h1>
+      <p>Selamat datang, {{ authStore.displayName() }}.</p>
       <sdi-empty-state
-        title="Belum ada data operasional"
-        description="Statistik akan berasal dari transaksi nyata setelah modul terkait tersedia."
+        title="Modul siap dikembangkan"
+        description="Hak akses dan navigasi sudah aktif. Data operasional akan berasal dari modul transaksi pada tahap berikutnya."
       />
     </section>
   `,
@@ -21,4 +24,26 @@ import { EmptyState } from '../../../../shared/components/empty-state/empty-stat
     }
   `,
 })
-export class DashboardPage {}
+export class DashboardPage {
+  protected readonly authStore = inject(AuthStore);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly heading =
+    (this.route.snapshot.data['heading'] as string | undefined) ?? 'Dashboard';
+
+  protected roleLabel(): string {
+    switch (this.authStore.currentRole()) {
+      case 'master_admin':
+        return 'Master Admin';
+      case 'head_librarian':
+        return 'Kepala Perpustakaan';
+      case 'librarian':
+        return 'Petugas Perpustakaan';
+      case 'member':
+        return 'Anggota Perpustakaan';
+      case 'guest':
+        return 'Tamu';
+      default:
+        return 'Dashboard';
+    }
+  }
+}

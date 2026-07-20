@@ -1,26 +1,38 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-
-const accessTokenKey = 'sdi.access-token';
+import { Injectable, computed, signal } from '@angular/core';
+import type { Session } from '@supabase/supabase-js';
+import type { AuthStatus, CurrentAuthContext } from './auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly browser = isPlatformBrowser(this.platformId);
-  private readonly accessTokenState = signal<string | null>(
-    this.browser ? sessionStorage.getItem(accessTokenKey) : null,
+  private readonly statusState = signal<AuthStatus>('initializing');
+  private readonly sessionState = signal<Session | null>(null);
+  private readonly contextState = signal<CurrentAuthContext | null>(null);
+
+  readonly status = this.statusState.asReadonly();
+  readonly session = this.sessionState.asReadonly();
+  readonly context = this.contextState.asReadonly();
+  readonly accessToken = computed(() => this.sessionState()?.access_token ?? null);
+  readonly isAuthenticated = computed(
+    () => this.statusState() === 'authenticated' && this.contextState() !== null,
+  );
+  readonly currentRole = computed(() => this.contextState()?.profile.role ?? null);
+  readonly displayName = computed(
+    () =>
+      this.contextState()?.profile.fullName ??
+      this.contextState()?.member?.fullName ??
+      this.contextState()?.user.email ??
+      'Pengguna',
   );
 
-  readonly accessToken = this.accessTokenState.asReadonly();
-  readonly isAuthenticated = computed(() => this.accessTokenState() !== null);
-
-  setAccessToken(token: string): void {
-    this.accessTokenState.set(token);
-    if (this.browser) sessionStorage.setItem(accessTokenKey, token);
+  setSession(session: Session, context: CurrentAuthContext): void {
+    this.sessionState.set(session);
+    this.contextState.set(context);
+    this.statusState.set('authenticated');
   }
 
-  clearSession(): void {
-    this.accessTokenState.set(null);
-    if (this.browser) sessionStorage.removeItem(accessTokenKey);
+  setAnonymous(): void {
+    this.sessionState.set(null);
+    this.contextState.set(null);
+    this.statusState.set('anonymous');
   }
 }

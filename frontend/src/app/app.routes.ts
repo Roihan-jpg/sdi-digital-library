@@ -1,5 +1,11 @@
 import type { Routes } from '@angular/router';
-import { authGuard } from './core/auth/auth.guard';
+import {
+  anonymousGuard,
+  authGuard,
+  dashboardRedirectGuard,
+  roleGuard,
+} from './core/auth/auth.guard';
+import type { AppRole } from './core/auth/auth.models';
 
 export const routes: Routes = [
   {
@@ -12,10 +18,24 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Dashboard · SDI Digital Library',
+        pathMatch: 'full',
+        canActivate: [dashboardRedirectGuard],
         loadComponent: () =>
           import('./features/dashboard/pages/dashboard-page/dashboard-page').then(
             (module) => module.DashboardPage,
+          ),
+      },
+      dashboardRoute('admin', ['master_admin'], 'Dashboard Master Admin'),
+      dashboardRoute('monitoring', ['master_admin', 'head_librarian'], 'Monitoring Perpustakaan'),
+      dashboardRoute('operasional', ['master_admin', 'librarian'], 'Operasional Perpustakaan'),
+      dashboardRoute('member', ['member'], 'Portal Anggota'),
+      dashboardRoute('guest', ['guest'], 'Portal Tamu'),
+      {
+        path: 'forbidden',
+        title: 'Akses ditolak · SDI Digital Library',
+        loadComponent: () =>
+          import('./features/auth/pages/forbidden-page/forbidden-page').then(
+            (module) => module.ForbiddenPage,
           ),
       },
     ],
@@ -42,6 +62,7 @@ export const routes: Routes = [
       },
       {
         path: 'masuk',
+        canActivate: [anonymousGuard],
         title: 'Masuk · SDI Digital Library',
         loadComponent: () =>
           import('./features/auth/pages/login-page/login-page').then((module) => module.LoginPage),
@@ -57,3 +78,16 @@ export const routes: Routes = [
     ],
   },
 ];
+
+function dashboardRoute(path: string, roles: readonly AppRole[], heading: string): Routes[number] {
+  return {
+    path,
+    canActivate: [roleGuard],
+    data: { roles, heading },
+    title: `${heading} · SDI Digital Library`,
+    loadComponent: () =>
+      import('./features/dashboard/pages/dashboard-page/dashboard-page').then(
+        (module) => module.DashboardPage,
+      ),
+  };
+}

@@ -1,5 +1,11 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  inject,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
@@ -7,6 +13,7 @@ import { authInterceptor } from './core/http/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { requestIdInterceptor } from './core/http/request-id.interceptor';
 import { routes } from './app.routes';
+import { AuthService } from './core/auth/auth.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +21,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([requestIdInterceptor, authInterceptor, errorInterceptor])),
+    provideAppInitializer(() => inject(AuthService).initialize()),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
 };
