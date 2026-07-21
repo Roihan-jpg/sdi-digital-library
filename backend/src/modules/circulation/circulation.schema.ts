@@ -4,6 +4,7 @@ const uuid = z.uuid();
 const optionalNote = z.string().trim().max(500).optional();
 
 export const scanSchema = z.object({ code: z.string().trim().min(1).max(120) });
+export const idempotencyKeySchema = uuid;
 export const checkoutSchema = z.object({
   cardNumber: z.string().trim().min(1).max(120),
   inventoryCodes: z.array(z.string().trim().min(1).max(120)).min(1).max(3),

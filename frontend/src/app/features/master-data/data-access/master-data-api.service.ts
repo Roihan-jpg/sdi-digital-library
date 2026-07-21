@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 export type MasterKind =
@@ -24,7 +24,9 @@ export interface MasterRow {
 export class MasterDataApiService {
   private readonly http = inject(HttpClient);
   list(kind: MasterKind) {
-    return this.http.get<Response<MasterRow[]>>(`${environment.apiBaseUrl}/master-data/${kind}`);
+    return this.http.get<Response<MasterRow[]>>(`${environment.apiBaseUrl}/master-data/${kind}`, {
+      params: new HttpParams().set('limit', 100),
+    });
   }
   create(kind: MasterKind, body: Record<string, unknown>) {
     return this.http.post<Response<MasterRow>>(

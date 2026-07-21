@@ -16,7 +16,7 @@ import {
   selector: 'sdi-operations-page',
   imports: [ReactiveFormsModule],
   template: `
-    <section class="operations">
+    <section class="operations" [attr.aria-busy]="busy()">
       <header>
         <div>
           <p class="eyebrow">Sirkulasi</p>
@@ -49,12 +49,13 @@ import {
               <h2>1. Scan kartu member</h2>
               <label for="member-scan">Nomor kartu, kartu pelajar, atau kode member</label>
               <div class="scan-row">
-                <input id="member-scan" [formControl]="memberCode" autocomplete="off" /><button
-                  class="button"
-                  [disabled]="busy()"
-                >
-                  Cari
-                </button>
+                <input
+                  #memberScan
+                  id="member-scan"
+                  [formControl]="memberCode"
+                  autocomplete="off"
+                  autofocus
+                /><button class="button" [disabled]="busy()">Cari</button>
               </div>
               @if (member()) {
                 <div class="summary" [class.warning]="!member()!.is_active">
@@ -130,6 +131,9 @@ import {
               <button class="button button--secondary" type="button" (click)="print()">
                 Cetak bukti
               </button>
+              <button class="button" type="button" (click)="startNextCheckout()">
+                Transaksi berikutnya
+              </button>
             </article>
           }
         }
@@ -137,7 +141,12 @@ import {
           <form class="panel compact" [formGroup]="returnForm" (ngSubmit)="returnBook()">
             <h2>Pengembalian</h2>
             <label for="return-code">Scan kode inventaris</label
-            ><input id="return-code" formControlName="inventoryCode" autocomplete="off" />
+            ><input
+              #returnScan
+              id="return-code"
+              formControlName="inventoryCode"
+              autocomplete="off"
+            />
             <label for="return-condition">Kondisi saat kembali</label
             ><select id="return-condition" formControlName="condition">
               <option value="good">Baik / tersedia</option>
@@ -262,12 +271,12 @@ import {
               <h2>Kunjungan individu</h2>
               <label for="visit-card">Scan kartu anggota</label>
               <div class="scan-row">
-                <input id="visit-card" [formControl]="visitCode" autocomplete="off" /><button
-                  class="button"
-                  [disabled]="busy()"
-                >
-                  Catat
-                </button>
+                <input
+                  #visitScan
+                  id="visit-card"
+                  [formControl]="visitCode"
+                  autocomplete="off"
+                /><button class="button" [disabled]="busy()">Catat</button>
               </div>
               <p>
                 Siswa individual wajib menggunakan kartu; input manual ini hanya fallback untuk kode
@@ -374,6 +383,13 @@ import {
       border: 1px solid #9dafa4;
       border-radius: 0.45rem;
     }
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid #f4b942;
+      outline-offset: 2px;
+    }
     .summary {
       display: grid;
       gap: 0.2rem;
@@ -453,7 +469,10 @@ import {
 })
 export class OperationsPage {
   private readonly api = inject(CirculationApiService);
+  private readonly memberInput = viewChild<ElementRef<HTMLInputElement>>('memberScan');
   private readonly bookInput = viewChild<ElementRef<HTMLInputElement>>('bookScan');
+  private readonly returnInput = viewChild<ElementRef<HTMLInputElement>>('returnScan');
+  private readonly visitInput = viewChild<ElementRef<HTMLInputElement>>('visitScan');
   protected readonly tabs = [
     { id: 'checkout', label: 'Peminjaman' },
     { id: 'return', label: 'Pengembalian' },
@@ -466,6 +485,8 @@ export class OperationsPage {
   protected readonly message = signal('');
   protected readonly member = signal<MemberLookup | null>(null);
   protected readonly copies = signal<CopyLookup[]>([]);
+  protected readonly checkoutKey = signal<string | null>(null);
+  protected readonly reservationCheckoutKeys = signal<Record<string, string>>({});
   protected readonly receipt = signal<LoanReceipt | null>(null);
   protected readonly returnResult = signal<ReturnResult | null>(null);
   protected readonly reservations = signal<Reservation[]>([]);
@@ -504,20 +525,30 @@ export class OperationsPage {
     this.message.set('');
     if (id === 'reservations') this.loadReservations();
     if (id === 'fines') this.loadFines();
+    queueMicrotask(() => {
+      if (id === 'checkout') this.memberInput()?.nativeElement.focus();
+      if (id === 'return') this.returnInput()?.nativeElement.focus();
+      if (id === 'visits') this.visitInput()?.nativeElement.focus();
+    });
   }
   protected scanMember() {
     const code = this.memberCode.value.trim();
     if (!code) return;
-    this.run(this.api.lookupMember(code), (r) => {
-      this.member.set(r.data);
-      this.copies.set([]);
-      this.message.set(
-        r.data.is_active
-          ? 'Member siap untuk transaksi.'
-          : 'Member tidak aktif dan tidak dapat meminjam.',
-      );
-      queueMicrotask(() => this.bookInput()?.nativeElement.focus());
-    });
+    this.run(
+      this.api.lookupMember(code),
+      (r) => {
+        this.member.set(r.data);
+        this.copies.set([]);
+        this.checkoutKey.set(null);
+        this.message.set(
+          r.data.is_active
+            ? 'Member siap untuk transaksi.'
+            : 'Member tidak aktif dan tidak dapat meminjam.',
+        );
+        queueMicrotask(() => this.bookInput()?.nativeElement.focus());
+      },
+      () => this.memberInput()?.nativeElement.focus(),
+    );
   }
   protected scanBook() {
     const code = this.bookCode.value.trim();
@@ -525,20 +556,28 @@ export class OperationsPage {
     if (this.copies().some((c) => c.inventory_code === code)) {
       this.message.set('Eksemplar sudah ada di daftar scan.');
       this.bookCode.reset();
+      queueMicrotask(() => this.bookInput()?.nativeElement.focus());
       return;
     }
-    this.run(this.api.lookupCopy(code), (r) => {
-      if (r.data.status !== 'available' || !r.data.is_active || r.data.is_reference_only) {
-        this.message.set('Eksemplar tidak tersedia atau tidak boleh dipinjam.');
-        return;
-      }
-      this.copies.update((items) => [...items, r.data]);
-      this.bookCode.reset();
-      queueMicrotask(() => this.bookInput()?.nativeElement.focus());
-    });
+    this.run(
+      this.api.lookupCopy(code),
+      (r) => {
+        if (r.data.status !== 'available' || !r.data.is_active || r.data.is_reference_only) {
+          this.message.set('Eksemplar tidak tersedia atau tidak boleh dipinjam.');
+          queueMicrotask(() => this.bookInput()?.nativeElement.focus());
+          return;
+        }
+        this.copies.update((items) => [...items, r.data]);
+        this.checkoutKey.set(null);
+        this.bookCode.reset();
+        queueMicrotask(() => this.bookInput()?.nativeElement.focus());
+      },
+      () => this.bookInput()?.nativeElement.focus(),
+    );
   }
   protected removeCopy(id: string) {
     this.copies.update((items) => items.filter((item) => item.id !== id));
+    this.checkoutKey.set(null);
   }
   protected canCheckout() {
     return (
@@ -550,25 +589,46 @@ export class OperationsPage {
   protected checkout() {
     const m = this.member();
     if (!m || !this.canCheckout()) return;
+    const idempotencyKey = this.checkoutKey() ?? crypto.randomUUID();
+    this.checkoutKey.set(idempotencyKey);
     this.run(
-      this.api.checkout({
-        cardNumber: m.card_number,
-        inventoryCodes: this.copies().map((c) => c.inventory_code),
-      }),
+      this.api.checkout(
+        {
+          cardNumber: m.card_number,
+          inventoryCodes: this.copies().map((c) => c.inventory_code),
+        },
+        idempotencyKey,
+      ),
       (r) => {
         this.receipt.set(r.data);
         this.message.set('Peminjaman berhasil. Jatuh tempo ditetapkan oleh database.');
         this.copies.set([]);
+        this.checkoutKey.set(null);
       },
     );
   }
+  protected startNextCheckout() {
+    this.member.set(null);
+    this.copies.set([]);
+    this.receipt.set(null);
+    this.checkoutKey.set(null);
+    this.memberCode.reset();
+    this.bookCode.reset();
+    this.message.set('Siap untuk transaksi berikutnya.');
+    queueMicrotask(() => this.memberInput()?.nativeElement.focus());
+  }
   protected returnBook() {
     if (this.returnForm.invalid) return;
-    this.run(this.api.returnBook(this.returnForm.getRawValue()), (r) => {
-      this.returnResult.set(r.data);
-      this.message.set('Pengembalian berhasil dicatat.');
-      this.returnForm.controls.inventoryCode.reset();
-    });
+    this.run(
+      this.api.returnBook(this.returnForm.getRawValue()),
+      (r) => {
+        this.returnResult.set(r.data);
+        this.message.set('Pengembalian berhasil dicatat.');
+        this.returnForm.controls.inventoryCode.reset();
+        queueMicrotask(() => this.returnInput()?.nativeElement.focus());
+      },
+      () => this.returnInput()?.nativeElement.focus(),
+    );
   }
   protected loadReservations() {
     this.run(this.api.reservations(), (r) => this.reservations.set(r.data));
@@ -587,9 +647,19 @@ export class OperationsPage {
       item.book_copies?.inventory_code ??
       window.prompt('Scan/masukkan kode inventaris untuk loan:')?.trim();
     if (!code) return;
-    this.run(this.api.convertReservation(item.id, code), (r) => {
+    const keys = this.reservationCheckoutKeys();
+    const idempotencyKey = keys[item.id] ?? crypto.randomUUID();
+    this.reservationCheckoutKeys.update((current) => ({
+      ...current,
+      [item.id]: idempotencyKey,
+    }));
+    this.run(this.api.convertReservation(item.id, code, idempotencyKey), (r) => {
       this.receipt.set(r.data);
       this.message.set('Reservasi dikonversi menjadi peminjaman.');
+      this.reservationCheckoutKeys.update((current) => {
+        const { [item.id]: _completed, ...pending } = current;
+        return pending;
+      });
       this.loadReservations();
     });
   }
@@ -623,10 +693,15 @@ export class OperationsPage {
   protected recordVisit() {
     const code = this.visitCode.value.trim();
     if (!code) return;
-    this.run(this.api.recordVisit(code), (r) => {
-      this.message.set(`Kunjungan ${r.data.member.full_name} tercatat.`);
-      this.visitCode.reset();
-    });
+    this.run(
+      this.api.recordVisit(code),
+      (r) => {
+        this.message.set(`Kunjungan ${r.data.member.full_name} tercatat.`);
+        this.visitCode.reset();
+        queueMicrotask(() => this.visitInput()?.nativeElement.focus());
+      },
+      () => this.visitInput()?.nativeElement.focus(),
+    );
   }
   protected recordGroupVisit() {
     if (this.groupVisitForm.invalid) return;
@@ -658,14 +733,20 @@ export class OperationsPage {
       new Date(value),
     );
   }
-  private run<T>(request: import('rxjs').Observable<T>, next: (value: T) => void) {
+  private run<T>(
+    request: import('rxjs').Observable<T>,
+    next: (value: T) => void,
+    focusAfterError?: () => void,
+  ) {
     if (this.busy()) return;
     this.busy.set(true);
     this.message.set('');
     request.pipe(finalize(() => this.busy.set(false))).subscribe({
       next,
-      error: () =>
-        this.message.set('Operasi gagal. Periksa pesan kesalahan di bagian atas halaman.'),
+      error: () => {
+        this.message.set('Operasi gagal. Input tetap tersimpan; periksa pesan lalu coba lagi.');
+        queueMicrotask(() => focusAfterError?.());
+      },
     });
   }
 }

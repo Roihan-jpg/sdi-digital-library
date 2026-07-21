@@ -111,13 +111,18 @@ export class CirculationApiService {
   lookupCopy(code: string) {
     return this.http.post<DataResponse<CopyLookup>>(`${this.base}/lookup/copy`, { code });
   }
-  checkout(body: {
-    cardNumber: string;
-    inventoryCodes: string[];
-    notes?: string;
-    reservationId?: string;
-  }) {
-    return this.http.post<DataResponse<LoanReceipt>>(`${this.base}/checkout`, body);
+  checkout(
+    body: {
+      cardNumber: string;
+      inventoryCodes: string[];
+      notes?: string;
+      reservationId?: string;
+    },
+    idempotencyKey: string,
+  ) {
+    return this.http.post<DataResponse<LoanReceipt>>(`${this.base}/checkout`, body, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
   }
   returnBook(body: {
     inventoryCode: string;
@@ -164,10 +169,11 @@ export class CirculationApiService {
       inventoryCode ? { inventoryCode } : {},
     );
   }
-  convertReservation(id: string, inventoryCode?: string) {
+  convertReservation(id: string, inventoryCode: string | undefined, idempotencyKey: string) {
     return this.http.post<DataResponse<LoanReceipt>>(
       `${environment.apiBaseUrl}/reservations/${id}/convert-to-loan`,
       inventoryCode ? { inventoryCode } : {},
+      { headers: { 'Idempotency-Key': idempotencyKey } },
     );
   }
   rejectReservation(id: string, reason: string) {

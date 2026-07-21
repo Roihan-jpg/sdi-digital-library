@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
 import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 import { pinoHttp } from 'pino-http';
 import type { Logger } from 'pino';
 import type { AppConfig } from './config/env.js';
@@ -27,6 +28,8 @@ import {
 import { CirculationService } from './modules/circulation/circulation.service.js';
 import { createDigitalLibraryRouter } from './modules/digital-library/digital-library.routes.js';
 import { DigitalLibraryService } from './modules/digital-library/digital-library.service.js';
+import { createReportRouter } from './modules/reports/report.routes.js';
+import { ReportService } from './modules/reports/report.service.js';
 
 export interface AppDependencies {
   authService: AuthServicePort;
@@ -45,6 +48,7 @@ export function createApp(
   const circulationService = new CirculationService(config);
 
   app.disable('x-powered-by');
+  app.set('trust proxy', config.TRUST_PROXY_HOPS);
   app.use(requestId);
   app.use(
     pinoHttp<Request, Response>({
@@ -57,10 +61,26 @@ export function createApp(
   app.use(
     cors({
       origin: config.APP_ORIGIN,
-      credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['authorization', 'content-type', 'x-request-id'],
+      allowedHeaders: ['authorization', 'content-type', 'idempotency-key', 'x-request-id'],
       exposedHeaders: ['x-request-id'],
+    }),
+  );
+  app.use(
+    rateLimit({
+      windowMs: config.RATE_LIMIT_WINDOW_MS,
+      limit: config.RATE_LIMIT_MAX,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      handler: (req, res) => {
+        res.status(429).json({
+          error: {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.',
+            requestId: req.id,
+          },
+        });
+      },
     }),
   );
   app.use(express.json({ limit: config.JSON_BODY_LIMIT }));
@@ -78,6 +98,10 @@ export function createApp(
   app.use(
     `${config.API_BASE_PATH}/digital-library`,
     createDigitalLibraryRouter(authService, new DigitalLibraryService(config)),
+  );
+  app.use(
+    `${config.API_BASE_PATH}/reports`,
+    createReportRouter(authService, new ReportService(config)),
   );
   app.use(notFoundHandler());
   app.use(errorHandler(logger));

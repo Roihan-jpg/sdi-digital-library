@@ -15,6 +15,12 @@ const config: AppConfig = {
   SUPABASE_SERVICE_ROLE_KEY: 'service-key-with-at-least-twenty-characters',
   LOG_LEVEL: 'silent',
   JSON_BODY_LIMIT: '1mb',
+  RATE_LIMIT_WINDOW_MS: 60_000,
+  RATE_LIMIT_MAX: 120,
+  TRUST_PROXY_HOPS: 0,
+  REQUEST_TIMEOUT_MS: 30_000,
+  HEADERS_TIMEOUT_MS: 15_000,
+  KEEP_ALIVE_TIMEOUT_MS: 5_000,
 };
 
 describe('HTTP foundation', () => {
@@ -53,5 +59,22 @@ describe('HTTP foundation', () => {
     assert.equal(response.status, 404);
     assert.equal(body.error.code, 'ROUTE_NOT_FOUND');
     assert.ok(body.error.requestId);
+  });
+
+  it('allows only configured origins without enabling cookie credentials', async () => {
+    const response = await fetch(`${baseUrl}/api/health`, {
+      headers: { origin: 'http://localhost:4200' },
+    });
+
+    assert.equal(response.headers.get('access-control-allow-origin'), 'http://localhost:4200');
+    assert.equal(response.headers.get('access-control-allow-credentials'), null);
+  });
+
+  it('rate limits repeated API requests from one client', async () => {
+    const responses = await Promise.all(
+      Array.from({ length: 130 }, () => fetch(`${baseUrl}/api/health`)),
+    );
+
+    assert.ok(responses.some((response) => response.status === 429));
   });
 });

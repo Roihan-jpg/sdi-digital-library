@@ -244,7 +244,7 @@ export class DigitalLibraryService {
 }
 
 export function validateMainFile(file: Express.Multer.File, mediaType: string) {
-  if (!mainMimeTypes.has(file.mimetype) || file.size > fileLimit || !safeName(file.originalname)) {
+  if (!mainMimeTypes.has(file.mimetype) || file.size > fileLimit || !safeName(file.originalname) || !hasExpectedSignature(file)) {
     throw new AppError(400, 'DIGITAL_FILE_INVALID', 'Format, nama, atau ukuran file utama tidak valid (maksimal 100 MB).');
   }
   const validForType =
@@ -255,8 +255,36 @@ export function validateMainFile(file: Express.Multer.File, mediaType: string) {
 }
 
 export function validateCover(file: Express.Multer.File) {
-  if (!coverMimeTypes.has(file.mimetype) || file.size > coverLimit || !safeName(file.originalname)) {
+  if (!coverMimeTypes.has(file.mimetype) || file.size > coverLimit || !safeName(file.originalname) || !hasExpectedSignature(file)) {
     throw new AppError(400, 'DIGITAL_COVER_INVALID', 'Cover harus JPG, PNG, atau WebP maksimal 5 MB.');
+  }
+}
+
+function hasExpectedSignature(file: Express.Multer.File): boolean {
+  const bytes = file.buffer;
+  const ascii = (start: number, end: number) => bytes.subarray(start, end).toString('ascii');
+  switch (file.mimetype) {
+    case 'application/pdf':
+      return ascii(0, 5) === '%PDF-';
+    case 'image/jpeg':
+      return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    case 'image/png':
+      return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    case 'image/webp':
+      return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP';
+    case 'video/mp4':
+    case 'audio/mp4':
+      return ascii(4, 8) === 'ftyp';
+    case 'video/webm':
+      return bytes.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
+    case 'audio/mpeg':
+      return ascii(0, 3) === 'ID3' || (bytes[0] === 0xff && (bytes[1] ?? 0) >= 0xe0);
+    case 'audio/ogg':
+      return ascii(0, 4) === 'OggS';
+    case 'audio/wav':
+      return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WAVE';
+    default:
+      return false;
   }
 }
 

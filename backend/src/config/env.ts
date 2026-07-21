@@ -14,6 +14,12 @@ const environmentSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   JSON_BODY_LIMIT: z.string().regex(/^\d+(b|kb|mb)$/i).default('1mb'),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1_000).max(3_600_000).default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().min(10).max(10_000).default(120),
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
+  REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(300_000).default(30_000),
+  HEADERS_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(15_000),
+  KEEP_ALIVE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(5_000),
 });
 
 export type AppConfig = z.infer<typeof environmentSchema>;
@@ -28,4 +34,3 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): AppCon
 
   return result.data;
 }
-

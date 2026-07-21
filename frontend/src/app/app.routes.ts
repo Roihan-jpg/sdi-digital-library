@@ -74,6 +74,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reports',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        loadComponent: () =>
+          import('./features/reports/pages/reports-page/reports-page').then(
+            (module) => module.ReportsPage,
+          ),
+      },
+      {
         path: 'master-data',
         canActivate: [roleGuard],
         data: { roles: ['master_admin', 'head_librarian', 'librarian'] },

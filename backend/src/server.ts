@@ -7,6 +7,9 @@ import { createLogger } from './config/logger.js';
 const config = loadEnvironment();
 const logger = createLogger(config);
 const server = createServer(createApp(config, logger));
+server.requestTimeout = config.REQUEST_TIMEOUT_MS;
+server.headersTimeout = config.HEADERS_TIMEOUT_MS;
+server.keepAliveTimeout = config.KEEP_ALIVE_TIMEOUT_MS;
 let isShuttingDown = false;
 
 server.listen(config.PORT, () => {
@@ -41,4 +44,3 @@ process.on('unhandledRejection', (error) => {
   logger.fatal({ err: error }, 'Unhandled promise rejection');
   process.exit(1);
 });
-

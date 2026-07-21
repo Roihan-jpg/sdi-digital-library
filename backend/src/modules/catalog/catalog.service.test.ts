@@ -1,2 +1,3 @@
-import assert from 'node:assert/strict';import test from 'node:test';import { inventoryPayload } from './catalog.service.js';
+import assert from 'node:assert/strict';import test from 'node:test';import { inventoryPayload, publicBook } from './catalog.service.js';
 test('barcode and QR payload is exactly inventory_code',()=>{assert.equal(inventoryPayload('INV-SDI/2026-001'),'INV-SDI/2026-001');});
+test('public catalog exposes stock totals without inventory identifiers',()=>{const book=publicBook({id:'book-1',title:'Demo',book_copies:[{id:'copy-1',inventory_code:'SECRET-INV-001',status:'available',condition:'good'}]});assert.deepEqual(book['stock'],{total:1,available:1});assert.equal('copies' in book,false);assert.doesNotMatch(JSON.stringify(book),/SECRET-INV-001|copy-1/);});

@@ -1,0 +1,4 @@
+# Sesuaikan path dan user deploy. Job memakai backend/.env production.
+*/15 * * * * cd /var/www/sdi-digital-library && /usr/bin/npm run maintenance >> logs/maintenance.log 2>&1
+# Backup database harian; DATABASE_URL dibaca dari file environment khusus root.
+15 1 * * * /var/www/sdi-digital-library/scripts/backup-database.sh >> /var/log/sdi-library-backup.log 2>&1
