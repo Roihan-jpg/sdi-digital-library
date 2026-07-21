@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import type { Logger } from 'pino';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import { AppError } from '../errors/app-error.js';
 
 export function notFoundHandler(): RequestHandler {
@@ -21,6 +22,8 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
         ? error
         : error instanceof ZodError
           ? new AppError(400, 'VALIDATION_ERROR', 'Data yang dikirim tidak valid.')
+          : error instanceof MulterError
+            ? new AppError(400, 'UPLOAD_LIMIT_EXCEEDED', 'Jumlah atau ukuran file melebihi batas.')
         : malformedJson
           ? new AppError(400, 'INVALID_JSON', 'Body JSON tidak valid.')
           : new AppError(500, 'INTERNAL_ERROR', 'Terjadi kesalahan pada server.');

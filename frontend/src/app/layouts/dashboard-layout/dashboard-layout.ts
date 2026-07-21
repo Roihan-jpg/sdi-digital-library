@@ -19,6 +19,7 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Master data', path: '/dashboard/master-data', section: null },
     { label: 'Member', path: '/dashboard/members', section: null },
     { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
+    { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
     { label: 'Import data', path: '/dashboard/imports', section: null },
     { label: 'Sirkulasi', path: '/dashboard/circulation', section: null },
     { label: 'Audit', path: '/dashboard/admin', section: 'audit' },
@@ -27,6 +28,7 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Monitoring', path: '/dashboard/monitoring', section: null },
     { label: 'Laporan', path: '/dashboard/monitoring', section: 'laporan' },
     { label: 'Keterlambatan', path: '/dashboard/monitoring', section: 'keterlambatan' },
+    { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
   ],
   librarian: [
     { label: 'Operasional', path: '/dashboard/operasional', section: null },
@@ -36,18 +38,19 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Master data', path: '/dashboard/master-data', section: null },
     { label: 'Member', path: '/dashboard/members', section: null },
     { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
+    { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
     { label: 'Import data', path: '/dashboard/imports', section: null },
   ],
   member: [
     { label: 'Portal anggota', path: '/dashboard/member', section: null },
     { label: 'Reservasi', path: '/dashboard/member', section: 'reservasi' },
     { label: 'Riwayat', path: '/dashboard/member', section: 'riwayat' },
-    { label: 'Koleksi digital', path: '/dashboard/member', section: 'digital' },
+    { label: 'Koleksi digital', path: '/koleksi-digital', section: null },
   ],
   guest: [
     { label: 'Portal tamu', path: '/dashboard/guest', section: null },
     { label: 'Katalog', path: '/katalog', section: null },
-    { label: 'Koleksi digital', path: '/dashboard/guest', section: 'digital' },
+    { label: 'Koleksi digital', path: '/koleksi-digital', section: null },
   ],
 };
 

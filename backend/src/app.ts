@@ -25,6 +25,8 @@ import {
   createVisitRouter,
 } from './modules/circulation/circulation.routes.js';
 import { CirculationService } from './modules/circulation/circulation.service.js';
+import { createDigitalLibraryRouter } from './modules/digital-library/digital-library.routes.js';
+import { DigitalLibraryService } from './modules/digital-library/digital-library.service.js';
 
 export interface AppDependencies {
   authService: AuthServicePort;
@@ -73,6 +75,10 @@ export function createApp(
   app.use(`${config.API_BASE_PATH}/circulation`, createCirculationRouter(authService, circulationService));
   app.use(`${config.API_BASE_PATH}/reservations`, createReservationRouter(authService, circulationService));
   app.use(`${config.API_BASE_PATH}/visits`, createVisitRouter(authService, circulationService));
+  app.use(
+    `${config.API_BASE_PATH}/digital-library`,
+    createDigitalLibraryRouter(authService, new DigitalLibraryService(config)),
+  );
   app.use(notFoundHandler());
   app.use(errorHandler(logger));
 

@@ -65,6 +65,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'digital-library',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        loadComponent: () =>
+          import('./features/digital-library/pages/digital-management-page/digital-management-page').then(
+            (module) => module.DigitalManagementPage,
+          ),
+      },
+      {
         path: 'master-data',
         canActivate: [roleGuard],
         data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
@@ -111,6 +120,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/catalog/pages/catalog-page/catalog-page').then(
             (module) => module.CatalogPage,
+          ),
+      },
+      {
+        path: 'koleksi-digital',
+        title: 'Koleksi Digital · SDI Digital Library',
+        loadComponent: () =>
+          import('./features/digital-library/pages/digital-catalog-page/digital-catalog-page').then(
+            (module) => module.DigitalCatalogPage,
+          ),
+      },
+      {
+        path: 'koleksi-digital/:slug',
+        title: 'Detail Koleksi Digital · SDI Digital Library',
+        loadComponent: () =>
+          import('./features/digital-library/pages/digital-detail-page/digital-detail-page').then(
+            (module) => module.DigitalDetailPage,
           ),
       },
       {
