@@ -17,6 +17,7 @@ import { AuthStore } from '../../core/auth/auth.store';
             >Beranda</a
           >
           <a routerLink="/katalog" routerLinkActive="active">Katalog</a>
+          <a routerLink="/koleksi-digital" routerLinkActive="active">Koleksi digital</a>
           @if (authStore.currentRole(); as role) {
             <a class="button" [routerLink]="roleHomePath(role)">Dashboard</a>
           } @else {

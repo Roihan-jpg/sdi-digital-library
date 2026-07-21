@@ -29,6 +29,15 @@ export const routes: Routes = [
       dashboardRoute('monitoring', ['master_admin', 'head_librarian'], 'Monitoring Perpustakaan'),
       dashboardRoute('operasional', ['master_admin', 'librarian'], 'Operasional Perpustakaan'),
       {
+        path: 'circulation',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'librarian'] },
+        loadComponent: () =>
+          import('./features/circulation/pages/operations-page/operations-page').then(
+            (module) => module.OperationsPage,
+          ),
+      },
+      {
         path: 'members',
         canActivate: [roleGuard],
         data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
@@ -56,6 +65,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'digital-library',
+        canActivate: [roleGuard],
+        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        loadComponent: () =>
+          import('./features/digital-library/pages/digital-management-page/digital-management-page').then(
+            (module) => module.DigitalManagementPage,
+          ),
+      },
+      {
         path: 'master-data',
         canActivate: [roleGuard],
         data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
@@ -64,7 +82,15 @@ export const routes: Routes = [
             (module) => module.MasterDataPage,
           ),
       },
-      dashboardRoute('member', ['member'], 'Portal Anggota'),
+      {
+        path: 'member',
+        canActivate: [roleGuard],
+        data: { roles: ['member'] },
+        loadComponent: () =>
+          import('./features/circulation/pages/member-portal-page/member-portal-page').then(
+            (module) => module.MemberPortalPage,
+          ),
+      },
       dashboardRoute('guest', ['guest'], 'Portal Tamu'),
       {
         path: 'forbidden',
@@ -94,6 +120,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/catalog/pages/catalog-page/catalog-page').then(
             (module) => module.CatalogPage,
+          ),
+      },
+      {
+        path: 'koleksi-digital',
+        title: 'Koleksi Digital · SDI Digital Library',
+        loadComponent: () =>
+          import('./features/digital-library/pages/digital-catalog-page/digital-catalog-page').then(
+            (module) => module.DigitalCatalogPage,
+          ),
+      },
+      {
+        path: 'koleksi-digital/:slug',
+        title: 'Detail Koleksi Digital · SDI Digital Library',
+        loadComponent: () =>
+          import('./features/digital-library/pages/digital-detail-page/digital-detail-page').then(
+            (module) => module.DigitalDetailPage,
           ),
       },
       {
