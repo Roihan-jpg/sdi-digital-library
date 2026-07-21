@@ -5,40 +5,58 @@ import { NotificationService } from '../../../core/notifications/notification.se
   selector: 'sdi-notification-banner',
   template: `
     @if (notifications.current(); as notification) {
-      <div class="banner" role="alert">
-        <div>
-          <strong>Terjadi kendala</strong>
+      <div class="notification alert alert--error" role="alert" aria-live="assertive">
+        <div class="notification__content">
+          <strong>Tindakan belum berhasil</strong>
           <p>{{ notification.message }}</p>
           @if (notification.requestId) {
-            <small>Referensi: {{ notification.requestId }}</small>
+            <small
+              >Referensi: <code>{{ notification.requestId }}</code></small
+            >
           }
         </div>
-        <button type="button" aria-label="Tutup pesan kesalahan" (click)="notifications.dismiss()">
+        <button
+          class="button button--tertiary notification__dismiss"
+          type="button"
+          aria-label="Tutup pesan kesalahan"
+          (click)="notifications.dismiss()"
+        >
           Tutup
         </button>
       </div>
     }
   `,
   styles: `
-    .banner {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 1rem;
-      background: #fff0ee;
-      border-bottom: 1px solid #b42318;
-      color: #7a271a;
+    .notification {
+      grid-template-columns: var(--border-width-accent) minmax(0, 1fr) auto;
+      border-inline: 0;
+      border-radius: 0;
+    }
+    .notification__content {
+      min-width: 0;
+    }
+    .notification__content strong {
+      font-family: var(--font-family-display);
     }
     p {
-      margin: 0.25rem 0;
+      margin: var(--space-1) 0;
     }
-    button {
+    code {
+      font-family: var(--font-family-data);
+      overflow-wrap: anywhere;
+    }
+    .notification__dismiss {
       align-self: start;
-      border: 0;
-      background: transparent;
       color: inherit;
-      font-weight: 700;
-      cursor: pointer;
+    }
+    @media (max-width: 36rem) {
+      .notification {
+        grid-template-columns: var(--border-width-accent) minmax(0, 1fr);
+      }
+      .notification__dismiss {
+        grid-column: 2;
+        justify-self: start;
+      }
     }
   `,
 })
