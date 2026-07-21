@@ -10,6 +10,8 @@ const config = {
   NODE_ENV: 'test', PORT: 3000, APP_ORIGIN: ['http://localhost:4200'], API_BASE_PATH: '/api',
   SUPABASE_URL: 'https://example.supabase.co', SUPABASE_ANON_KEY: 'a'.repeat(24),
   SUPABASE_SERVICE_ROLE_KEY: 's'.repeat(24), LOG_LEVEL: 'silent', JSON_BODY_LIMIT: '1mb',
+  RATE_LIMIT_WINDOW_MS: 60_000, RATE_LIMIT_MAX: 120, TRUST_PROXY_HOPS: 0,
+  REQUEST_TIMEOUT_MS: 30_000, HEADERS_TIMEOUT_MS: 15_000, KEEP_ALIVE_TIMEOUT_MS: 5_000,
 } satisfies AppConfig;
 const context = {
   accessToken: 'token', user: { id: '00000000-0000-4000-8000-000000000001', email: 'staff@example.test' },
@@ -29,12 +31,12 @@ test('checkout forwards scanner payload to transactional RPC and returns databas
   const service = new CirculationService(config, () => client, client);
   const receipt = await service.checkout(context, {
     cardNumber: 'CARD-001', inventoryCodes: ['INV-001'], notes: 'Tes',
-  }) as { loan_number: string };
+  }, '10000000-0000-4000-8000-000000000001') as { loan_number: string };
 
   assert.equal(receipt.loan_number, 'LOAN-TEST');
   assert.deepEqual(calls[0], {
     name: 'create_loan_by_codes',
-    args: { p_card_number: 'CARD-001', p_inventory_codes: ['INV-001'], p_notes: 'Tes', p_reservation_id: null },
+    args: { p_card_number: 'CARD-001', p_inventory_codes: ['INV-001'], p_notes: 'Tes', p_reservation_id: null, p_idempotency_key: '10000000-0000-4000-8000-000000000001' },
   });
   assert.equal(calls[1]?.name, 'get_loan_receipt');
 });
@@ -50,9 +52,9 @@ test('a competing duplicate checkout is mapped to HTTP 409 without leaking datab
     },
   } as unknown as SupabaseClient;
   const service = new CirculationService(config, () => client, client);
-  await service.checkout(context, { cardNumber: 'CARD-001', inventoryCodes: ['INV-001'] });
+  await service.checkout(context, { cardNumber: 'CARD-001', inventoryCodes: ['INV-001'] }, '10000000-0000-4000-8000-000000000002');
   await assert.rejects(
-    () => service.checkout(context, { cardNumber: 'CARD-001', inventoryCodes: ['INV-001'] }),
+    () => service.checkout(context, { cardNumber: 'CARD-001', inventoryCodes: ['INV-001'] }, '10000000-0000-4000-8000-000000000003'),
     (error: unknown) => typeof error === 'object' && error !== null && 'statusCode' in error && error.statusCode === 409,
   );
 });

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../auth/auth.middleware.js';
 import type { AuthServicePort } from '../auth/auth.types.js';
 import {
-  checkoutSchema, finePaymentSchema, groupVisitSchema, idSchema, listSchema,
+  checkoutSchema, finePaymentSchema, groupVisitSchema, idempotencyKeySchema, idSchema, listSchema,
   renewSchema, reservationActionSchema, reservationCreateSchema, reservationRejectSchema,
   returnSchema, scanSchema,
 } from './circulation.schema.js';
@@ -22,7 +22,10 @@ export function createCirculationRouter(authService: AuthServicePort, service: C
     res.json({ data: await service.lookupCopy(req.auth!, code) });
   });
   router.post('/checkout', authorize(...staff), async (req, res) => {
-    res.status(201).json({ data: await service.checkout(req.auth!, checkoutSchema.parse(req.body)) });
+    const idempotencyKey = idempotencyKeySchema.parse(req.header('idempotency-key'));
+    res.status(201).json({
+      data: await service.checkout(req.auth!, checkoutSchema.parse(req.body), idempotencyKey),
+    });
   });
   router.post('/return', authorize(...staff), async (req, res) => {
     res.json({ data: await service.returnBook(req.auth!, returnSchema.parse(req.body)) });
@@ -74,7 +77,8 @@ export function createReservationRouter(authService: AuthServicePort, service: C
   });
   router.post('/:id/convert-to-loan', authorize(...staff), async (req, res) => {
     const input = reservationActionSchema.parse(req.body);
-    res.status(201).json({ data: await service.convertReservation(req.auth!, idSchema.parse(req.params['id']), input.inventoryCode) });
+    const idempotencyKey = idempotencyKeySchema.parse(req.header('idempotency-key'));
+    res.status(201).json({ data: await service.convertReservation(req.auth!, idSchema.parse(req.params['id']), input.inventoryCode, idempotencyKey) });
   });
   router.post('/:id/reject', authorize(...staff), async (req, res) => {
     const input = reservationRejectSchema.parse(req.body);

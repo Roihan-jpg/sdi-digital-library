@@ -12,6 +12,12 @@ const validEnvironment: NodeJS.ProcessEnv = {
   SUPABASE_SERVICE_ROLE_KEY: 'service-key-with-at-least-twenty-characters',
   LOG_LEVEL: 'silent',
   JSON_BODY_LIMIT: '1mb',
+  RATE_LIMIT_WINDOW_MS: '60000',
+  RATE_LIMIT_MAX: '120',
+  TRUST_PROXY_HOPS: '0',
+  REQUEST_TIMEOUT_MS: '30000',
+  HEADERS_TIMEOUT_MS: '15000',
+  KEEP_ALIVE_TIMEOUT_MS: '5000',
 };
 
 describe('environment configuration', () => {
@@ -19,6 +25,7 @@ describe('environment configuration', () => {
     const config = loadEnvironment(validEnvironment);
 
     assert.equal(config.PORT, 3100);
+    assert.equal(config.RATE_LIMIT_MAX, 120);
     assert.deepEqual(config.APP_ORIGIN, [
       'http://localhost:4200',
       'https://library.example.sch.id',

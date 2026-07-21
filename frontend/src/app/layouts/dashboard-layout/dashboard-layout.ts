@@ -20,13 +20,14 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Member', path: '/dashboard/members', section: null },
     { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
     { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
+    { label: 'Laporan', path: '/dashboard/reports', section: null },
     { label: 'Import data', path: '/dashboard/imports', section: null },
     { label: 'Sirkulasi', path: '/dashboard/circulation', section: null },
     { label: 'Audit', path: '/dashboard/admin', section: 'audit' },
   ],
   head_librarian: [
     { label: 'Monitoring', path: '/dashboard/monitoring', section: null },
-    { label: 'Laporan', path: '/dashboard/monitoring', section: 'laporan' },
+    { label: 'Laporan', path: '/dashboard/reports', section: null },
     { label: 'Keterlambatan', path: '/dashboard/monitoring', section: 'keterlambatan' },
     { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
   ],
@@ -39,6 +40,7 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Member', path: '/dashboard/members', section: null },
     { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
     { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
+    { label: 'Laporan', path: '/dashboard/reports', section: null },
     { label: 'Import data', path: '/dashboard/imports', section: null },
   ],
   member: [

@@ -19,9 +19,11 @@
     "test:backend": "npm --prefix backend test",
     "db:start": "npx supabase start",
     "db:reset": "npx supabase db reset",
+    "db:test": "node scripts/run-db-tests.mjs",
     "db:push": "npx supabase db push",
     "db:types": "npx supabase gen types typescript --local > backend/src/generated/database.types.ts",
-    "maintenance": "npm --prefix backend run maintenance"
+    "maintenance": "npm --prefix backend run maintenance",
+    "smoke:uat": "node scripts/smoke-uat.mjs"
   },
   "version": "1.0.0",
   "description": "Paket ini berisi rancangan implementasi website digital library untuk perpustakaan sekolah dasar.",

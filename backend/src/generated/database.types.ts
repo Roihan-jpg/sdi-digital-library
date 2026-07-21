@@ -495,6 +495,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "digital_access_logs_digital_collection_id_fkey"
+            columns: ["digital_collection_id"]
+            isOneToOne: false
+            referencedRelation: "v_digital_activity_daily"
+            referencedColumns: ["digital_collection_id"]
+          },
+          {
             foreignKeyName: "digital_access_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -904,6 +911,11 @@ export type Database = {
           overdue_fine_per_day: number
           renewal_days: number
           reservation_hold_hours: number
+          school_address: string | null
+          school_email: string | null
+          school_logo_path: string | null
+          school_name: string
+          school_phone: string | null
           timezone_name: string
           updated_at: string
           updated_by: string | null
@@ -918,6 +930,11 @@ export type Database = {
           overdue_fine_per_day?: number
           renewal_days?: number
           reservation_hold_hours?: number
+          school_address?: string | null
+          school_email?: string | null
+          school_logo_path?: string | null
+          school_name?: string
+          school_phone?: string | null
           timezone_name?: string
           updated_at?: string
           updated_by?: string | null
@@ -932,6 +949,11 @@ export type Database = {
           overdue_fine_per_day?: number
           renewal_days?: number
           reservation_hold_hours?: number
+          school_address?: string | null
+          school_email?: string | null
+          school_logo_path?: string | null
+          school_name?: string
+          school_phone?: string | null
           timezone_name?: string
           updated_at?: string
           updated_by?: string | null
@@ -1089,6 +1111,8 @@ export type Database = {
       loans: {
         Row: {
           borrowed_at: string
+          checkout_idempotency_key: string | null
+          checkout_request_hash: string | null
           created_at: string
           created_by: string
           id: string
@@ -1101,6 +1125,8 @@ export type Database = {
         }
         Insert: {
           borrowed_at?: string
+          checkout_idempotency_key?: string | null
+          checkout_request_hash?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -1113,6 +1139,8 @@ export type Database = {
         }
         Update: {
           borrowed_at?: string
+          checkout_idempotency_key?: string | null
+          checkout_request_hash?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -1689,17 +1717,35 @@ export type Database = {
       v_active_members: {
         Row: {
           active_items: number | null
+          class_id: string | null
           class_name: string | null
           full_name: string | null
+          is_student: boolean | null
           last_borrowed_at: string | null
           member_code: string | null
           member_id: string | null
           nis: string | null
           nisn: string | null
+          study_group_id: string | null
           study_group_name: string | null
           total_items_borrowed: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_study_group_id_fkey"
+            columns: ["study_group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_catalog_availability: {
         Row: {
@@ -1719,6 +1765,14 @@ export type Database = {
         }
         Relationships: []
       }
+      v_daily_loans: {
+        Row: {
+          activity_date: string | null
+          items_borrowed: number | null
+          loan_transactions: number | null
+        }
+        Relationships: []
+      }
       v_daily_visits: {
         Row: {
           group_participants: number | null
@@ -1728,11 +1782,49 @@ export type Database = {
         }
         Relationships: []
       }
+      v_dashboard_kpis: {
+        Row: {
+          available_copies: number | null
+          damaged_copies: number | null
+          loaned_copies: number | null
+          lost_copies: number | null
+          outstanding_fines: number | null
+          overdue_items: number | null
+          pending_reservations: number | null
+          total_copies: number | null
+          total_titles: number | null
+          visits_today: number | null
+        }
+        Relationships: []
+      }
+      v_digital_activity_daily: {
+        Row: {
+          action: Database["public"]["Enums"]["digital_action_type"] | null
+          activity_date: string | null
+          category_id: string | null
+          category_name: string | null
+          digital_collection_id: string | null
+          media_type: Database["public"]["Enums"]["digital_media_type"] | null
+          title: string | null
+          total_actions: number | null
+          unique_users: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_collections_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_inventory_summary: {
         Row: {
           available: number | null
           book_title_id: string | null
           catalog_code: string | null
+          category_id: string | null
           category_name: string | null
           damaged: number | null
           inactive: number | null
@@ -1743,7 +1835,15 @@ export type Database = {
           title: string | null
           total_copies: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "book_titles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_overdue_loans: {
         Row: {
@@ -1808,15 +1908,26 @@ export type Database = {
         }
         Returns: string
       }
-      create_loan_by_codes: {
-        Args: {
-          p_card_number: string
-          p_inventory_codes: string[]
-          p_notes?: string
-          p_reservation_id?: string
-        }
-        Returns: string
-      }
+      create_loan_by_codes:
+        | {
+            Args: {
+              p_card_number: string
+              p_inventory_codes: string[]
+              p_notes?: string
+              p_reservation_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_card_number: string
+              p_idempotency_key: string
+              p_inventory_codes: string[]
+              p_notes: string
+              p_reservation_id: string
+            }
+            Returns: string
+          }
       create_reservation: {
         Args: { p_book_title_id: string; p_notes?: string }
         Returns: string

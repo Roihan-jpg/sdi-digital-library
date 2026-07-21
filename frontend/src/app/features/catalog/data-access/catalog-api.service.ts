@@ -11,13 +11,6 @@ export interface CatalogBook {
   categories: { name: string } | null;
   publishers: { name: string } | null;
   stock: { total: number; available: number };
-  copies: readonly {
-    id: string;
-    inventory_code: string;
-    status: string;
-    condition: string;
-    shelves: { code: string; name: string } | null;
-  }[];
 }
 interface CatalogResponse {
   data: CatalogBook[];

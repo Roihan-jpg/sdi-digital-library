@@ -28,6 +28,12 @@ const config: AppConfig = {
   SUPABASE_SERVICE_ROLE_KEY: 'service-key-with-at-least-twenty-characters',
   LOG_LEVEL: 'silent',
   JSON_BODY_LIMIT: '1mb',
+  RATE_LIMIT_WINDOW_MS: 60_000,
+  RATE_LIMIT_MAX: 120,
+  TRUST_PROXY_HOPS: 0,
+  REQUEST_TIMEOUT_MS: 30_000,
+  HEADERS_TIMEOUT_MS: 15_000,
+  KEEP_ALIVE_TIMEOUT_MS: 5_000,
 };
 
 class FakeAuthService implements AuthServicePort {

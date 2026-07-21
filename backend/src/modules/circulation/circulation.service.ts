@@ -26,12 +26,13 @@ export class CirculationService {
     return this.rpc(context, 'lookup_book_copy_by_code', { p_inventory_code: code }, 'COPY_LOOKUP_FAILED');
   }
 
-  async checkout(context: AuthContext, input: CheckoutInput) {
+  async checkout(context: AuthContext, input: CheckoutInput, idempotencyKey: string) {
     const loanId = await this.rpc<string>(context, 'create_loan_by_codes', {
       p_card_number: input.cardNumber,
       p_inventory_codes: input.inventoryCodes,
       p_notes: input.notes ?? null,
       p_reservation_id: input.reservationId ?? null,
+      p_idempotency_key: idempotencyKey,
     }, 'CHECKOUT_REJECTED');
     return this.loanReceipt(context, loanId);
   }
@@ -102,7 +103,12 @@ export class CirculationService {
     await this.rpc(context, 'cancel_reservation', { p_reservation_id: id }, 'RESERVATION_CANCELLATION_FAILED');
   }
 
-  async convertReservation(context: AuthContext, id: string, inventoryCode?: string) {
+  async convertReservation(
+    context: AuthContext,
+    id: string,
+    inventoryCode: string | undefined,
+    idempotencyKey: string,
+  ) {
     const client = this.clientFactory(context);
     const { data, error } = await client
       .from('reservations')
@@ -117,7 +123,11 @@ export class CirculationService {
     if (!code || !cardNumber) {
       throw new AppError(422, 'RESERVATION_COPY_REQUIRED', 'Pilih kode inventaris untuk mengonversi reservasi ini.');
     }
-    return this.checkout(context, { cardNumber, inventoryCodes: [code], reservationId: id });
+    return this.checkout(
+      context,
+      { cardNumber, inventoryCodes: [code], reservationId: id },
+      idempotencyKey,
+    );
   }
 
   async listFines(context: AuthContext, filters: ListInput) {

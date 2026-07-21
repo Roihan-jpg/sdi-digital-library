@@ -42,6 +42,11 @@ Backend membaca `backend/.env` dan memvalidasinya saat startup:
 | `SUPABASE_SERVICE_ROLE_KEY` | Secret backend untuk operasi administratif terkontrol |
 | `LOG_LEVEL` | Level structured log Pino |
 | `JSON_BODY_LIMIT` | Batas body JSON Express, default `1mb` |
+| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | Jendela dan maksimum request per IP |
+| `TRUST_PROXY_HOPS` | Jumlah reverse proxy tepercaya; production Nginx tunggal = `1` |
+| `REQUEST_TIMEOUT_MS` | Timeout request server |
+| `HEADERS_TIMEOUT_MS` | Timeout penerimaan header |
+| `KEEP_ALIVE_TIMEOUT_MS` | Timeout koneksi keep-alive |
 
 Konfigurasi frontend berada di:
 
@@ -89,6 +94,7 @@ Navigasi dan dashboard diarahkan berdasarkan role `master_admin`, `head_libraria
 ```powershell
 npm run db:start
 npm run db:reset
+npm run db:test
 ```
 
 Migration awal membuat schema, RLS, RPC sirkulasi, bucket, dan data referensi. Untuk project remote baru, link project dan periksa perubahan sebelum push:
@@ -115,6 +121,8 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+`npm run db:test` menjalankan seluruh assertion SQL di `supabase/tests` terhadap container database lokal. Data sintetis opsional tersedia di `supabase/demo/seed_demo.sql` dan tidak dijalankan otomatis.
 
 Perintah root meneruskan pemeriksaan ke frontend dan backend. Build Angular menghasilkan output SSR di `frontend/dist/frontend`, sedangkan backend dikompilasi ke `backend/dist`.
 
@@ -200,4 +208,12 @@ npm run maintenance
 
 Database remote memiliki migrasi `complete_library_operations_rpcs` dan `restrict_library_operations_rpcs_to_authenticated`. File lokal dengan timestamp remote yang sama harus ikut diterapkan pada database baru melalui `npm run db:reset` atau alur `supabase db push` yang terdokumentasi di atas.
 
-Autentikasi, role, master data, member, katalog fisik, label, import, dan sirkulasi inti sudah aktif. Koleksi digital merupakan tahap berikutnya.
+Autentikasi, role, master data, member, katalog fisik, label, import, sirkulasi, koleksi digital, dashboard, laporan, dan export sudah tersedia. Panduan final:
+
+- `docs/deployment.md`: deployment, environment, backup, restore, dan rollback;
+- `docs/user-guide.md`: panduan pengunjung, member, dan petugas;
+- `docs/admin-guide.md`: akun, data, Storage, laporan, dan operasional;
+- `docs/go-live-checklist.md`: uji terima dan checklist rilis;
+- `docs/security-audit.md`: temuan hardening serta risiko tersisa.
+
+Untuk production, jalankan dry-run migration, seluruh quality gate, lalu ikuti deployment berurutan. Template PM2, Nginx, logrotate, dan cron berada di `deploy/`. Jangan menjalankan `npm run smoke:uat` pada production; script sengaja hanya menerima `SMOKE_TARGET=local` atau `staging`.
