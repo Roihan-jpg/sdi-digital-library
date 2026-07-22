@@ -52,11 +52,12 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Import data', path: '/dashboard/imports', section: null },
   ],
   member: [
-    { label: 'Portal anggota', path: '/dashboard/member', section: null },
-    { label: 'Reservasi', path: '/dashboard/member', section: 'reservasi' },
-    { label: 'Riwayat', path: '/dashboard/member', section: 'riwayat' },
-    { label: 'Koleksi digital', path: '/koleksi-digital', section: null },
-  ],
+  { label: 'Portal anggota', path: '/dashboard/member', section: null },
+  { label: 'Reservasi', path: '/dashboard/member', section: 'reservasi' },
+  { label: 'Denda dan pembayaran', path: '/dashboard/member', section: 'denda' },
+  { label: 'Riwayat', path: '/dashboard/member', section: 'riwayat' },
+  { label: 'Koleksi digital', path: '/koleksi-digital', section: null },
+],
   guest: [
     { label: 'Portal tamu', path: '/dashboard/guest', section: null },
     { label: 'Katalog', path: '/katalog', section: null },
@@ -124,13 +125,19 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
         <nav aria-label="Navigasi dashboard">
           @for (item of navigation(); track item.label) {
             <a
-              [routerLink]="item.path"
-              [queryParams]="item.section ? { bagian: item.section } : null"
-              routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="closeNavigation()"
-              >{{ item.label }}</a
-            >
+  [routerLink]="item.path"
+  [fragment]="item.section ?? undefined"
+  routerLinkActive="active"
+  [routerLinkActiveOptions]="{
+    paths: 'exact',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'exact'
+  }"
+  (click)="closeNavigation()"
+>
+  {{ item.label }}
+</a>
           }
         </nav>
         <button class="logout" type="button" [disabled]="isLoggingOut()" (click)="logout()">

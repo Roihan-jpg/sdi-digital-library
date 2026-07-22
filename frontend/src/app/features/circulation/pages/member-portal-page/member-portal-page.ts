@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
@@ -64,7 +65,7 @@ import {
         }
       </section>
 
-      <section class="panel">
+      <section id="reservasi" class="panel">
         <h2>Reservasi</h2>
         <form (ngSubmit)="reserve()">
           <label for="book-title-id">ID judul buku</label>
@@ -108,7 +109,7 @@ import {
         </div>
       </section>
 
-      <section class="panel">
+      <section id="denda" class="panel">
         <h2>Denda dan pembayaran</h2>
         <div class="table-wrap">
           <table>
@@ -139,7 +140,7 @@ import {
         }
       </section>
 
-      <section class="panel">
+      <section id="riwayat" class="panel">
         <h2>Riwayat peminjaman</h2>
         <div class="table-wrap">
           <table>
@@ -264,6 +265,7 @@ import {
 })
 export class MemberPortalPage {
   private readonly api = inject(CirculationApiService);
+  private readonly route = inject(ActivatedRoute);
   protected readonly loans = signal<Loan[]>([]);
   protected readonly reservations = signal<Reservation[]>([]);
   protected readonly fines = signal<Fine[]>([]);
@@ -274,8 +276,27 @@ export class MemberPortalPage {
     validators: [Validators.required],
   });
   constructor() {
-    this.load();
-  }
+  this.load();
+
+  this.route.queryParamMap.subscribe((params) => {
+    const section = params.get('bagian');
+
+    if (
+      section !== 'reservasi' &&
+      section !== 'denda' &&
+      section !== 'riwayat'
+    ) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(section)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  });
+}
   protected load() {
     if (this.loading()) return;
     this.loading.set(true);
