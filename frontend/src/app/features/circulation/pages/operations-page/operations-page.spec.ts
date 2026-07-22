@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { CirculationApiService } from '../../data-access/circulation-api.service';
 import { OperationsPage } from './operations-page';
@@ -19,6 +20,7 @@ describe('OperationsPage scanner flow', () => {
     await TestBed.configureTestingModule({
       imports: [OperationsPage],
       providers: [
+        provideRouter([]),
         {
           provide: CirculationApiService,
           useValue: { lookupMember: () => of({ data: member }) },
@@ -47,6 +49,7 @@ describe('OperationsPage scanner flow', () => {
     await TestBed.configureTestingModule({
       imports: [OperationsPage],
       providers: [
+        provideRouter([]),
         {
           provide: CirculationApiService,
           useValue: { lookupMember: () => throwError(() => new Error('offline')) },
