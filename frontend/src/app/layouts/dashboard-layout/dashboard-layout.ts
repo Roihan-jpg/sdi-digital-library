@@ -42,7 +42,6 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
   librarian: [
     { label: 'Operasional', path: '/dashboard/operasional', section: null },
     { label: 'Peminjaman & return', path: '/dashboard/circulation', section: null },
-    { label: 'Reservasi & denda', path: '/dashboard/circulation', section: null },
     { label: 'Member & buku', path: '/dashboard/operasional', section: 'data' },
     { label: 'Master data', path: '/dashboard/master-data', section: null },
     { label: 'Member', path: '/dashboard/members', section: null },
@@ -52,7 +51,7 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
     { label: 'Import data', path: '/dashboard/imports', section: null },
   ],
   member: [
-  { label: 'Portal anggota', path: '/dashboard/member', section: null },
+  { label: 'Portal anggota', path: '/dashboard/member', section: 'portal-anggota' },
   { label: 'Reservasi', path: '/dashboard/member', section: 'reservasi' },
   { label: 'Denda dan pembayaran', path: '/dashboard/member', section: 'denda' },
   { label: 'Riwayat', path: '/dashboard/member', section: 'riwayat' },

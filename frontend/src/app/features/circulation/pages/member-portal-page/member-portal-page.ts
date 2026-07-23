@@ -13,7 +13,7 @@ import {
   selector: 'sdi-member-portal-page',
   imports: [ReactiveFormsModule],
   template: `
-    <section class="portal page page--wide">
+    <section class="portal page page--wide" id="portal-anggota">
       <header class="portal__header">
         <div>
           <p class="eyebrow">Portal anggota</p>
@@ -210,7 +210,7 @@ import {
       </section>
 
 
-      <section class="panel card">
+      <section class="panel card"  id="denda">
         <h2>Denda dan pembayaran</h2>
         <div class="table-wrap">
           <table>
