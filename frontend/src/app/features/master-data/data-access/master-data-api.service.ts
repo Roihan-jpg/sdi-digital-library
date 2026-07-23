@@ -18,6 +18,7 @@ export interface MasterRow {
   name: string;
   code?: string;
   grade_level?: number;
+  class_id?: string;
   is_active?: boolean;
 }
 @Injectable({ providedIn: 'root' })

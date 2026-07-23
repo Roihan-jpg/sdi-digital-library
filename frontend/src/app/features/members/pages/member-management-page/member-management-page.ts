@@ -1,160 +1,717 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import {
+  MasterDataApiService,
+  type MasterRow,
+} from '../../../master-data/data-access/master-data-api.service';
 import {
   MemberApiService,
   type Member,
   type MemberPayload,
 } from '../../data-access/member-api.service';
+
+type NoticeTone = 'success' | 'error' | 'info';
+
 @Component({
   selector: 'sdi-member-management-page',
   imports: [ReactiveFormsModule],
-  template: `<section>
-    <p class="eyebrow">Data utama</p>
-    <h1>Member</h1>
-    <form class="search" (submit)="search($event)">
-      <label for="member-search">Cari member</label>
-      <div>
-        <input
-          id="member-search"
-          [formControl]="searchControl"
-          placeholder="Nama, NIS, atau nomor kartu"
-        /><button class="button">Cari</button>
-      </div>
-    </form>
-    <button class="button button--secondary" type="button" (click)="startCreate()">
-      Tambah member
-    </button>
-    @if (showForm()) {
-      <form class="editor" [formGroup]="form" (ngSubmit)="save()">
-        <h2>{{ editingId() ? 'Ubah' : 'Tambah' }} member</h2>
-        <label>Kode member<input formControlName="memberCode" /></label
-        ><label>Nomor kartu perpustakaan<input formControlName="libraryCardNumber" /></label
-        ><label>Nama lengkap<input formControlName="fullName" /></label
-        ><label
-          >Jenis member<select formControlName="isStudent">
-            <option [ngValue]="true">Siswa</option>
-            <option [ngValue]="false">Non-siswa</option>
-          </select></label
-        ><label
-          >Jenis kelamin<select formControlName="gender">
-            <option value="unknown">Tidak dicatat</option>
-            <option value="male">Laki-laki</option>
-            <option value="female">Perempuan</option>
-          </select></label
-        >
-        @if (form.controls.isStudent.value) {
-          <label>NIS<input formControlName="nis" /></label
-          ><label>NISN<input formControlName="nisn" /></label
-          ><label>Nomor kartu pelajar<input formControlName="studentCardNumber" /></label
-          ><label
-            >ID kelas<input formControlName="classId" placeholder="Pilih dari master data" /></label
-          ><label>ID rombongan belajar<input formControlName="studyGroupId" /></label>
-        }
-        <label class="check"
-          ><input type="checkbox" formControlName="isActive" /> Member aktif</label
-        >
-        <div class="actions">
-          <button class="button" [disabled]="saving()">
-            {{ saving() ? 'Menyimpan…' : 'Simpan' }}</button
-          ><button type="button" class="button button--secondary" (click)="showForm.set(false)">
-            Batal
-          </button>
+  template: `
+    <section class="page page--wide member-page">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Data utama</p>
+          <h1>Manajemen member</h1>
+          <p>
+            Cari, tambah, dan ubah data siswa maupun non-siswa. Nomor identitas penting tetap
+            ditampilkan penuh agar mudah diverifikasi petugas.
+          </p>
         </div>
-      </form>
-    }
-    @if (message()) {
-      <p role="status">{{ message() }}</p>
-    }
-    <div class="table">
-      <table>
-        <thead>
-          <tr>
-            <th>Kode</th>
-            <th>Nama</th>
-            <th>NIS/NISN</th>
-            <th>Kartu</th>
-            <th>Status</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (member of members(); track member.id) {
-            <tr>
-              <td>{{ member.member_code }}</td>
-              <td>{{ member.full_name }}</td>
-              <td>{{ member.nis ?? '—' }} / {{ member.nisn ?? '—' }}</td>
-              <td>{{ member.card_number }}</td>
-              <td>{{ member.is_active ? 'Aktif' : 'Nonaktif' }}</td>
-              <td><button type="button" (click)="edit(member)">Ubah</button></td>
-            </tr>
+        <button class="button" type="button" (click)="startCreate()">Tambah member</button>
+      </header>
+
+      <section class="card toolbar-panel" aria-labelledby="member-filter-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="member-filter-title">Pencarian dan filter</h2>
+            <p>Gunakan nama, NIS, NISN, kode member, atau nomor kartu.</p>
+          </div>
+          @if (loading()) {
+            <span class="loading-state" role="status">Memperbarui daftar</span>
           }
-        </tbody>
-      </table>
-    </div>
-  </section>`,
+        </div>
+        <form class="filters" [formGroup]="filters" (ngSubmit)="search()">
+          <label class="field search-field" for="member-search">
+            <span class="field__label">Cari member</span>
+            <input
+              id="member-search"
+              name="member-search"
+              formControlName="search"
+              autocomplete="off"
+              placeholder="Nama, NIS, NISN, kode, atau kartu"
+            />
+          </label>
+          <label class="field" for="member-type-filter">
+            <span class="field__label">Jenis</span>
+            <select id="member-type-filter" formControlName="isStudent">
+              <option value="">Semua</option>
+              <option value="true">Siswa</option>
+              <option value="false">Non-siswa</option>
+            </select>
+          </label>
+          <label class="field" for="member-status-filter">
+            <span class="field__label">Status</span>
+            <select id="member-status-filter" formControlName="isActive">
+              <option value="">Semua</option>
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </label>
+          <label class="field" for="member-class-filter">
+            <span class="field__label">Kelas</span>
+            <select id="member-class-filter" formControlName="classId">
+              <option value="">Semua kelas</option>
+              @for (item of activeClasses(); track item.id) {
+                <option [value]="item.id">{{ classLabel(item) }}</option>
+              }
+            </select>
+          </label>
+          <div class="filter-actions">
+            <button class="button" type="submit" [disabled]="loading()">Cari</button>
+            <button
+              class="button button--secondary"
+              type="button"
+              [disabled]="loading()"
+              (click)="resetFilters()"
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+      </section>
+
+      @if (showForm()) {
+        <form
+          class="card card--indexed editor"
+          [formGroup]="form"
+          (ngSubmit)="save()"
+          aria-describedby="member-form-summary"
+          novalidate
+        >
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Editor member</p>
+              <h2>{{ editingId() ? 'Ubah data member' : 'Tambah member baru' }}</h2>
+              <p id="member-form-summary">
+                Field bertanda wajib harus diisi. Validasi akhir tetap dilakukan oleh server.
+              </p>
+            </div>
+            <button class="button button--secondary" type="button" (click)="closeForm()">
+              Tutup
+            </button>
+          </div>
+
+          @if (formSubmitted() && invalidFieldLabels().length) {
+            <div class="alert alert--error error-summary" role="alert" tabindex="-1">
+              <div>
+                <strong>Periksa {{ invalidFieldLabels().length }} field wajib.</strong>
+                <p>Lengkapi: {{ invalidFieldLabels().join(', ') }}.</p>
+              </div>
+            </div>
+          }
+
+          <div class="form-grid">
+            <label class="field" for="member-code">
+              <span class="field__label">Kode member <span aria-hidden="true">*</span></span>
+              <input
+                id="member-code"
+                name="memberCode"
+                formControlName="memberCode"
+                autocomplete="off"
+                spellcheck="false"
+                [attr.aria-invalid]="isInvalid('memberCode')"
+                aria-describedby="member-code-hint member-code-error"
+              />
+              <span id="member-code-hint" class="field__hint"
+                >Kode unik anggota, gunakan persis sesuai data sekolah.</span
+              >
+              @if (isInvalid('memberCode')) {
+                <p id="member-code-error" class="validation-message">Kode member wajib diisi.</p>
+              }
+            </label>
+
+            <label class="field" for="library-card-number">
+              <span class="field__label"
+                >Nomor kartu perpustakaan <span aria-hidden="true">*</span></span
+              >
+              <input
+                id="library-card-number"
+                name="libraryCardNumber"
+                formControlName="libraryCardNumber"
+                autocomplete="off"
+                spellcheck="false"
+                [attr.aria-invalid]="isInvalid('libraryCardNumber')"
+                aria-describedby="library-card-hint library-card-error"
+              />
+              <span id="library-card-hint" class="field__hint"
+                >Nomor pada kartu anggota perpustakaan.</span
+              >
+              @if (isInvalid('libraryCardNumber')) {
+                <p id="library-card-error" class="validation-message">
+                  Nomor kartu perpustakaan wajib diisi.
+                </p>
+              }
+            </label>
+
+            <label class="field field--wide" for="full-name">
+              <span class="field__label">Nama lengkap <span aria-hidden="true">*</span></span>
+              <input
+                id="full-name"
+                name="fullName"
+                formControlName="fullName"
+                autocomplete="name"
+                [attr.aria-invalid]="isInvalid('fullName')"
+                aria-describedby="full-name-hint full-name-error"
+              />
+              <span id="full-name-hint" class="field__hint"
+                >Tulis nama sesuai kartu pelajar atau identitas resmi.</span
+              >
+              @if (isInvalid('fullName')) {
+                <p id="full-name-error" class="validation-message">Nama lengkap wajib diisi.</p>
+              }
+            </label>
+
+            <label class="field" for="member-kind">
+              <span class="field__label">Jenis member <span aria-hidden="true">*</span></span>
+              <select id="member-kind" name="isStudent" formControlName="isStudent">
+                <option [ngValue]="true">Siswa</option>
+                <option [ngValue]="false">Non-siswa</option>
+              </select>
+              <span class="field__hint"
+                >Siswa membutuhkan NIS, NISN, kelas, rombel, dan kartu.</span
+              >
+            </label>
+
+            <label class="field" for="gender">
+              <span class="field__label">Jenis kelamin</span>
+              <select id="gender" name="gender" formControlName="gender">
+                <option value="unknown">Tidak dicatat</option>
+                <option value="male">Laki-laki</option>
+                <option value="female">Perempuan</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset class="student-section">
+            <legend>Identitas siswa</legend>
+            <p>
+              Untuk siswa, seluruh field di bagian ini wajib diisi. Untuk non-siswa, bagian ini
+              tetap terlihat sebagai pembanding tetapi tidak dipakai saat disimpan.
+            </p>
+            <div class="form-grid">
+              <label class="field" for="nis">
+                <span class="field__label"
+                  >NIS
+                  @if (form.controls.isStudent.value) {
+                    <span aria-hidden="true">*</span>
+                  }
+                </span>
+                <input
+                  id="nis"
+                  name="nis"
+                  formControlName="nis"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  spellcheck="false"
+                  [attr.aria-invalid]="isInvalid('nis')"
+                  aria-describedby="nis-hint nis-error"
+                />
+                <span id="nis-hint" class="field__hint">Nomor induk siswa dari sekolah.</span>
+                @if (isInvalid('nis')) {
+                  <p id="nis-error" class="validation-message">NIS wajib diisi untuk siswa.</p>
+                }
+              </label>
+
+              <label class="field" for="nisn">
+                <span class="field__label"
+                  >NISN
+                  @if (form.controls.isStudent.value) {
+                    <span aria-hidden="true">*</span>
+                  }
+                </span>
+                <input
+                  id="nisn"
+                  name="nisn"
+                  formControlName="nisn"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  spellcheck="false"
+                  [attr.aria-invalid]="isInvalid('nisn')"
+                  aria-describedby="nisn-hint nisn-error"
+                />
+                <span id="nisn-hint" class="field__hint">Nomor induk siswa nasional.</span>
+                @if (isInvalid('nisn')) {
+                  <p id="nisn-error" class="validation-message">NISN wajib diisi untuk siswa.</p>
+                }
+              </label>
+
+              <label class="field" for="student-card-number">
+                <span class="field__label"
+                  >Nomor kartu pelajar
+                  @if (form.controls.isStudent.value) {
+                    <span aria-hidden="true">*</span>
+                  }
+                </span>
+                <input
+                  id="student-card-number"
+                  name="studentCardNumber"
+                  formControlName="studentCardNumber"
+                  autocomplete="off"
+                  spellcheck="false"
+                  [attr.aria-invalid]="isInvalid('studentCardNumber')"
+                  aria-describedby="student-card-hint student-card-error"
+                />
+                <span id="student-card-hint" class="field__hint"
+                  >Nomor pada kartu pelajar siswa.</span
+                >
+                @if (isInvalid('studentCardNumber')) {
+                  <p id="student-card-error" class="validation-message">
+                    Nomor kartu pelajar wajib diisi untuk siswa.
+                  </p>
+                }
+              </label>
+
+              <label class="field" for="class-id">
+                <span class="field__label"
+                  >Kelas
+                  @if (form.controls.isStudent.value) {
+                    <span aria-hidden="true">*</span>
+                  }
+                </span>
+                <select
+                  id="class-id"
+                  name="classId"
+                  formControlName="classId"
+                  [attr.aria-invalid]="isInvalid('classId')"
+                  aria-describedby="class-id-hint class-id-error"
+                >
+                  <option [ngValue]="null">Pilih kelas</option>
+                  @for (item of activeClasses(); track item.id) {
+                    <option [ngValue]="item.id">{{ classLabel(item) }}</option>
+                  }
+                </select>
+                <span id="class-id-hint" class="field__hint"
+                  >Diambil dari master data kelas aktif.</span
+                >
+                @if (isInvalid('classId')) {
+                  <p id="class-id-error" class="validation-message">
+                    Kelas wajib dipilih untuk siswa.
+                  </p>
+                }
+              </label>
+
+              <label class="field" for="study-group-id">
+                <span class="field__label"
+                  >Rombel
+                  @if (form.controls.isStudent.value) {
+                    <span aria-hidden="true">*</span>
+                  }
+                </span>
+                <select
+                  id="study-group-id"
+                  name="studyGroupId"
+                  formControlName="studyGroupId"
+                  [attr.aria-invalid]="isInvalid('studyGroupId')"
+                  aria-describedby="study-group-id-hint study-group-id-error"
+                >
+                  <option [ngValue]="null">Pilih rombel</option>
+                  @for (item of formStudyGroups(); track item.id) {
+                    <option [ngValue]="item.id">{{ studyGroupLabel(item) }}</option>
+                  }
+                </select>
+                <span id="study-group-id-hint" class="field__hint"
+                  >Pilih kelas terlebih dahulu untuk mempersempit daftar rombel.</span
+                >
+                @if (isInvalid('studyGroupId')) {
+                  <p id="study-group-id-error" class="validation-message">
+                    Rombel wajib dipilih untuk siswa.
+                  </p>
+                }
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="check-field" for="is-active">
+            <input id="is-active" type="checkbox" formControlName="isActive" />
+            <span>
+              <strong>Member aktif</strong>
+              <span class="field__hint">Member nonaktif tidak boleh melakukan transaksi baru.</span>
+            </span>
+          </label>
+
+          <div class="actions">
+            <button class="button" type="submit" [disabled]="saving()" [attr.aria-busy]="saving()">
+              {{ saving() ? 'Menyimpan data' : 'Simpan member' }}
+            </button>
+            <button
+              type="button"
+              class="button button--secondary"
+              [disabled]="saving()"
+              (click)="closeForm()"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (notice(); as currentNotice) {
+        <div
+          class="alert"
+          [class.alert--success]="currentNotice.tone === 'success'"
+          [class.alert--error]="currentNotice.tone === 'error'"
+          role="status"
+        >
+          <p>{{ currentNotice.message }}</p>
+        </div>
+      }
+
+      <section class="members-section" aria-labelledby="members-table-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="members-table-title">Daftar member</h2>
+            <p>
+              {{ totalMembers() }} data ditemukan. Tabel dapat digeser ke samping pada layar kecil.
+            </p>
+          </div>
+        </div>
+        <div class="table-wrap members-table" tabindex="0" aria-label="Tabel daftar member">
+          <table>
+            <caption>
+              Daftar member perpustakaan berisi kode, identitas siswa, nomor kartu, status, dan aksi
+              edit.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Kode member</th>
+                <th scope="col">Nama</th>
+                <th scope="col">Jenis</th>
+                <th scope="col">NIS / NISN</th>
+                <th scope="col">Kelas / Rombel</th>
+                <th scope="col">Kartu</th>
+                <th scope="col">Status</th>
+                <th scope="col">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                <tr>
+                  <td colspan="8">
+                    <span class="loading-state">Memuat daftar member</span>
+                  </td>
+                </tr>
+              } @else if (loadError()) {
+                <tr>
+                  <td colspan="8">
+                    <div class="table-state table-state--error">
+                      <strong>Daftar member belum dapat dimuat.</strong>
+                      <span>{{ loadError() }}</span>
+                      <button class="button button--secondary" type="button" (click)="load()">
+                        Coba lagi
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @else if (members().length === 0) {
+                <tr>
+                  <td colspan="8">
+                    <div class="table-state">
+                      <strong>Belum ada member yang cocok.</strong>
+                      <span>Ubah kata kunci atau filter, lalu cari kembali.</span>
+                    </div>
+                  </td>
+                </tr>
+              } @else {
+                @for (member of members(); track member.id) {
+                  <tr>
+                    <td>
+                      <span class="data-code">{{ member.member_code }}</span>
+                    </td>
+                    <td>
+                      <strong>{{ member.full_name }}</strong>
+                    </td>
+                    <td>{{ member.is_student ? 'Siswa' : 'Non-siswa' }}</td>
+                    <td>
+                      <span class="data-pair">
+                        <span>NIS: {{ valueOrDash(member.nis) }}</span>
+                        <span>NISN: {{ valueOrDash(member.nisn) }}</span>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="data-pair">
+                        <span>Kelas: {{ memberClass(member) }}</span>
+                        <span>Rombel: {{ memberStudyGroup(member) }}</span>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="data-pair">
+                        <span>Perpus: {{ valueOrDash(member.card_number) }}</span>
+                        <span>Pelajar: {{ valueOrDash(member.student_card_number) }}</span>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="status-badge" [class.status-badge--inactive]="!member.is_active">
+                        {{ member.is_active ? 'Aktif' : 'Nonaktif' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        class="button button--secondary table-action"
+                        type="button"
+                        (click)="edit(member)"
+                      >
+                        Ubah
+                      </button>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  `,
   styles: `
-    section {
-      padding: 2rem;
-    }
-    .search,
-    .editor {
+    .member-page {
       display: grid;
-      gap: 0.75rem;
-      margin: 1rem 0;
+      gap: var(--space-6);
     }
-    .search div,
+
+    .page-header,
+    .panel-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .page-header h1,
+    .panel-heading h2,
+    .page-header p,
+    .panel-heading p {
+      margin: 0;
+    }
+
+    .page-header p,
+    .panel-heading p {
+      max-width: var(--content-measure);
+      color: var(--color-text-muted);
+    }
+
+    .toolbar-panel,
+    .editor,
+    .members-section {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) repeat(3, minmax(9rem, 1fr)) auto;
+      gap: var(--space-3);
+      align-items: end;
+    }
+
+    .filter-actions,
     .actions {
       display: flex;
-      gap: 0.5rem;
+      flex-wrap: wrap;
+      gap: var(--space-2);
     }
-    .search input {
-      min-width: min(28rem, 70vw);
+
+    .filter-actions .button,
+    .actions .button {
+      min-width: 7.5rem;
     }
-    input,
-    select {
-      padding: 0.65rem;
-      border: 1px solid #aebdb4;
-      border-radius: 0.4rem;
-    }
+
     .editor {
-      max-width: 42rem;
-      padding: 1rem;
-      background: #fff;
-      border: 1px solid #d5dfd9;
-      border-radius: 0.7rem;
+      max-width: var(--container-content);
     }
-    .editor label {
+
+    .form-grid {
       display: grid;
-      gap: 0.3rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
     }
-    .check {
-      display: flex !important;
+
+    .field--wide {
+      grid-column: 1 / -1;
     }
-    .table {
-      overflow: auto;
-      margin-top: 1rem;
+
+    .student-section {
+      display: grid;
+      gap: var(--space-4);
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-4);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-brand-50);
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
+
+    .student-section legend {
+      padding-inline: var(--space-2);
+      color: var(--color-brand-950);
+      font-family: var(--font-family-display);
+      font-size: var(--text-xl);
+      font-weight: var(--weight-bold);
     }
-    th,
-    td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #d5dfd9;
+
+    .student-section p,
+    .error-summary p,
+    .alert p {
+      margin: 0;
+    }
+
+    .check-field span {
+      display: grid;
+      gap: var(--space-1);
+    }
+
+    .members-table table {
+      min-width: 76rem;
+    }
+
+    caption {
+      padding: var(--space-3) var(--space-4);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
       text-align: left;
+    }
+
+    .data-code,
+    .data-pair {
+      font-family: var(--font-family-data);
+      overflow-wrap: anywhere;
+    }
+
+    .data-pair {
+      display: grid;
+      gap: var(--space-1);
+      font-size: var(--text-sm);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2rem;
+      padding: var(--space-1) var(--space-3);
+      border: var(--border-width) solid var(--color-accent);
+      border-radius: var(--radius-pill);
+      background: var(--color-success-surface);
+      color: var(--color-success);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-bold);
+      white-space: nowrap;
+    }
+
+    .status-badge::before {
+      width: 0.5rem;
+      height: 0.5rem;
+      margin-inline-end: var(--space-2);
+      border-radius: var(--radius-pill);
+      background: currentColor;
+      content: '';
+    }
+
+    .status-badge--inactive {
+      border-color: var(--color-border);
+      background: var(--color-surface-subtle);
+      color: var(--color-text-muted);
+    }
+
+    .table-action {
+      min-width: 4.75rem;
+    }
+
+    .table-state {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      color: var(--color-text-muted);
+    }
+
+    .table-state strong {
+      color: var(--color-brand-950);
+    }
+
+    .table-state--error strong {
+      color: var(--color-danger-strong);
+    }
+
+    @media (max-width: 64rem) {
+      .page-header,
+      .panel-heading {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .search-field,
+      .filter-actions {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 36rem) {
+      .filters,
+      .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .filter-actions .button,
+      .actions .button,
+      .page-header .button {
+        width: 100%;
+      }
+
+      .student-section {
+        padding: var(--space-3);
+      }
     }
   `,
 })
 export class MemberManagementPage {
   private readonly api = inject(MemberApiService);
-  readonly searchControl = new FormControl('', { nonNullable: true });
+  private readonly master = inject(MasterDataApiService);
+
+  protected readonly filters = new FormGroup({
+    search: new FormControl('', { nonNullable: true }),
+    isStudent: new FormControl<'' | 'true' | 'false'>('', { nonNullable: true }),
+    isActive: new FormControl<'' | 'true' | 'false'>('', { nonNullable: true }),
+    classId: new FormControl('', { nonNullable: true }),
+  });
   protected readonly members = signal<Member[]>([]);
+  protected readonly classes = signal<MasterRow[]>([]);
+  protected readonly studyGroups = signal<MasterRow[]>([]);
+  protected readonly totalMembers = signal(0);
+  protected readonly loading = signal(false);
+  protected readonly saving = signal(false);
   protected readonly showForm = signal(false);
   protected readonly editingId = signal<string | null>(null);
-  protected readonly saving = signal(false);
-  protected readonly message = signal('');
+  protected readonly formSubmitted = signal(false);
+  protected readonly loadError = signal('');
+  protected readonly notice = signal<{ tone: NoticeTone; message: string } | null>(null);
   protected readonly form = new FormGroup({
     memberCode: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     libraryCardNumber: new FormControl('', {
@@ -171,59 +728,236 @@ export class MemberManagementPage {
     studyGroupId: new FormControl<string | null>(null),
     isActive: new FormControl(true, { nonNullable: true }),
   });
+
+  protected readonly activeClasses = computed(() =>
+    this.classes().filter((item) => item.is_active !== false),
+  );
+
   constructor() {
+    this.updateStudentValidators(this.form.controls.isStudent.value);
+    this.form.controls.isStudent.valueChanges.subscribe((isStudent) => {
+      this.updateStudentValidators(isStudent);
+    });
+    this.form.controls.classId.valueChanges.subscribe(() => {
+      const selectedGroup = this.form.controls.studyGroupId.value;
+      if (selectedGroup && !this.formStudyGroups().some((item) => item.id === selectedGroup)) {
+        this.form.controls.studyGroupId.setValue(null);
+      }
+    });
+    this.load();
+    this.master.list('classes').subscribe({
+      next: (response) => this.classes.set(response.data),
+    });
+    this.master.list('study-groups').subscribe({
+      next: (response) => this.studyGroups.set(response.data),
+    });
+  }
+
+  protected search() {
     this.load();
   }
-  protected search(e: Event) {
-    e.preventDefault();
+
+  protected resetFilters() {
+    this.filters.reset({ search: '', isStudent: '', isActive: '', classId: '' });
     this.load();
   }
+
   protected startCreate() {
     this.editingId.set(null);
-    this.form.reset({ isStudent: true, gender: 'unknown', isActive: true });
-    this.showForm.set(true);
-  }
-  protected edit(m: Member) {
-    this.editingId.set(m.id);
+    this.formSubmitted.set(false);
     this.form.reset({
-      memberCode: m.member_code,
-      libraryCardNumber: m.card_number,
-      studentCardNumber: m.student_card_number,
-      isStudent: m.is_student,
-      nis: m.nis,
-      nisn: m.nisn,
-      fullName: m.full_name,
-      gender: m.gender,
-      classId: m.class_id,
-      studyGroupId: m.study_group_id,
-      isActive: m.is_active,
+      memberCode: '',
+      libraryCardNumber: '',
+      studentCardNumber: null,
+      isStudent: true,
+      nis: null,
+      nisn: null,
+      fullName: '',
+      gender: 'unknown',
+      classId: null,
+      studyGroupId: null,
+      isActive: true,
     });
     this.showForm.set(true);
+    this.notice.set(null);
+    queueMicrotask(() => document.getElementById('member-code')?.focus());
   }
+
+  protected edit(member: Member) {
+    this.editingId.set(member.id);
+    this.formSubmitted.set(false);
+    this.form.reset({
+      memberCode: member.member_code,
+      libraryCardNumber: member.card_number,
+      studentCardNumber: member.student_card_number,
+      isStudent: member.is_student,
+      nis: member.nis,
+      nisn: member.nisn,
+      fullName: member.full_name,
+      gender: member.gender,
+      classId: member.class_id,
+      studyGroupId: member.study_group_id,
+      isActive: member.is_active,
+    });
+    this.showForm.set(true);
+    this.notice.set(null);
+    queueMicrotask(() => document.getElementById('member-code')?.focus());
+  }
+
+  protected closeForm() {
+    this.showForm.set(false);
+    this.formSubmitted.set(false);
+  }
+
   protected save() {
-    if (this.form.invalid) return;
+    this.formSubmitted.set(true);
+    this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      this.focusFirstInvalidField();
+      return;
+    }
+
     this.saving.set(true);
-    const payload = this.form.getRawValue() as MemberPayload;
+    this.notice.set(null);
+    const raw = this.form.getRawValue();
+    const payload: MemberPayload = {
+      ...raw,
+      nis: normalizeNullable(raw.nis),
+      nisn: normalizeNullable(raw.nisn),
+      studentCardNumber: normalizeNullable(raw.studentCardNumber),
+      classId: raw.classId,
+      studyGroupId: raw.studyGroupId,
+    };
     const request = this.editingId()
       ? this.api.update(this.editingId()!, payload)
       : this.api.create(payload);
     request.subscribe({
       next: () => {
-        this.message.set('Data member berhasil disimpan.');
+        this.notice.set({ tone: 'success', message: 'Data member berhasil disimpan.' });
         this.saving.set(false);
         this.showForm.set(false);
+        this.formSubmitted.set(false);
         this.load();
       },
       error: () => {
-        this.message.set('Data member tidak dapat disimpan. Periksa field wajib dan duplikasi.');
+        this.notice.set({
+          tone: 'error',
+          message:
+            'Data member tidak dapat disimpan. Periksa field wajib dan pastikan NIS, NISN, kode member, serta nomor kartu belum digunakan.',
+        });
         this.saving.set(false);
       },
     });
   }
-  private load() {
-    this.api.list(this.searchControl.value).subscribe({
-      next: (r) => this.members.set(r.data),
-      error: () => this.message.set('Daftar member belum dapat dimuat.'),
+
+  protected isInvalid(name: keyof typeof this.form.controls) {
+    const control = this.form.controls[name];
+    return control.invalid && (control.touched || this.formSubmitted()) ? 'true' : null;
+  }
+
+  protected formStudyGroups() {
+    return this.activeStudyGroups(this.form.controls.classId.value);
+  }
+
+  protected invalidFieldLabels() {
+    return fieldOrder
+      .filter(({ key }) => this.form.controls[key].invalid)
+      .map(({ label }) => label);
+  }
+
+  protected classLabel(item: MasterRow) {
+    return item.grade_level ? `${item.name} - tingkat ${item.grade_level}` : item.name;
+  }
+
+  protected studyGroupLabel(item: MasterRow) {
+    const className = this.classes().find((klass) => klass.id === item.class_id)?.name;
+    return className ? `${className} / ${item.name}` : item.name;
+  }
+
+  protected memberClass(member: Member) {
+    return (
+      member.classes?.name ??
+      this.classes().find((item) => item.id === member.class_id)?.name ??
+      '—'
+    );
+  }
+
+  protected memberStudyGroup(member: Member) {
+    return (
+      member.study_groups?.name ??
+      this.studyGroups().find((item) => item.id === member.study_group_id)?.name ??
+      '—'
+    );
+  }
+
+  protected valueOrDash(value: string | null | undefined) {
+    return value?.trim() ? value : '—';
+  }
+
+  protected load() {
+    this.loading.set(true);
+    this.loadError.set('');
+    const filters = this.filters.getRawValue();
+    this.api.list(filters).subscribe({
+      next: (response) => {
+        this.members.set(response.data);
+        this.totalMembers.set(response.pagination.total);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadError.set('Periksa koneksi atau coba ulang beberapa saat lagi.');
+        this.loading.set(false);
+      },
     });
   }
+
+  private activeStudyGroups(classId: string | null) {
+    return this.studyGroups().filter((item) => {
+      if (item.is_active === false) return false;
+      return !classId || item.class_id === classId;
+    });
+  }
+
+  private updateStudentValidators(isStudent: boolean) {
+    const studentControls: AbstractControl[] = [
+      this.form.controls.nis,
+      this.form.controls.nisn,
+      this.form.controls.studentCardNumber,
+      this.form.controls.classId,
+      this.form.controls.studyGroupId,
+    ];
+    for (const control of studentControls) {
+      control.setValidators(isStudent ? [Validators.required] : []);
+      control.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  private focusFirstInvalidField() {
+    const firstInvalid = fieldOrder.find(({ key }) => this.form.controls[key].invalid);
+    if (!firstInvalid) return;
+    queueMicrotask(() => {
+      const element = document.getElementById(firstInvalid.id);
+      if (element instanceof HTMLElement) element.focus();
+    });
+  }
+}
+
+const fieldOrder: {
+  key: keyof MemberManagementPage['form']['controls'];
+  id: string;
+  label: string;
+}[] = [
+  { key: 'memberCode', id: 'member-code', label: 'kode member' },
+  { key: 'libraryCardNumber', id: 'library-card-number', label: 'nomor kartu perpustakaan' },
+  { key: 'fullName', id: 'full-name', label: 'nama lengkap' },
+  { key: 'nis', id: 'nis', label: 'NIS' },
+  { key: 'nisn', id: 'nisn', label: 'NISN' },
+  { key: 'studentCardNumber', id: 'student-card-number', label: 'nomor kartu pelajar' },
+  { key: 'classId', id: 'class-id', label: 'kelas' },
+  { key: 'studyGroupId', id: 'study-group-id', label: 'rombel' },
+];
+
+function normalizeNullable(value: string | null) {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
 }
