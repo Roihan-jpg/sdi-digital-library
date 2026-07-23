@@ -13,6 +13,8 @@ export interface Member {
   gender: 'male' | 'female' | 'unknown';
   class_id: string | null;
   study_group_id: string | null;
+  classes?: { name: string | null } | null;
+  study_groups?: { name: string | null } | null;
   is_active: boolean;
 }
 export interface MemberPayload {
@@ -34,12 +36,24 @@ interface Response<T> {
 interface ListResponse extends Response<Member[]> {
   pagination: { total: number };
 }
+export interface MemberListFilters {
+  search?: string;
+  isStudent?: '' | 'true' | 'false';
+  isActive?: '' | 'true' | 'false';
+  classId?: string;
+}
 @Injectable({ providedIn: 'root' })
 export class MemberApiService {
   private readonly http = inject(HttpClient);
-  list(search = '') {
+  list(searchOrFilters: string | MemberListFilters = '') {
+    const filters =
+      typeof searchOrFilters === 'string' ? { search: searchOrFilters } : searchOrFilters;
+    let params = new HttpParams().set('search', filters.search ?? '');
+    if (filters.isStudent) params = params.set('isStudent', filters.isStudent);
+    if (filters.isActive) params = params.set('isActive', filters.isActive);
+    if (filters.classId) params = params.set('classId', filters.classId);
     return this.http.get<ListResponse>(`${environment.apiBaseUrl}/members`, {
-      params: new HttpParams().set('search', search),
+      params,
     });
   }
   create(payload: MemberPayload) {
