@@ -44,6 +44,12 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
+## HTTP data caching
+
+The app provides TanStack Query globally and caches cacheable JSON `GET` requests through the
+`queryCacheInterceptor`. Blob/text downloads are not cached, authenticated cache entries are scoped
+by user and role, and successful non-GET requests invalidate cached HTTP data.
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:

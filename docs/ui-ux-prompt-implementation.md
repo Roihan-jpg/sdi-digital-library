@@ -153,7 +153,7 @@ Implementasikan bertahap:
 Setelah setiap slice, jalankan test yang relevan. Setelah selesai penuh, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, keyboard-only pass, dan cek console browser.
 ```
 
-## Prompt: Manajemen member --->>>>
+## Prompt: Manajemen member
 
 Route: `/dashboard/members`
 
@@ -333,7 +333,7 @@ Jangan:
 Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji state tanpa file, file dipilih, upload gagal, history kosong, serta CSV error.
 ```
 
-## Prompt: Pengelolaan koleksi digital
+## Prompt: Pengelolaan koleksi digital ------------------------------------->>>>
 
 Route: `/dashboard/digital-library`
 
@@ -386,17 +386,18 @@ Route: `/dashboard/reports`
 File utama: `frontend/src/app/features/reports/pages/reports-page/reports-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX halaman laporan berdasarkan:
+Perbaiki UI/UX halaman laporan dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/reports/pages/reports-page/reports-page.ts;
-- data-access reports yang sudah ada.
+Baca konteks minimal:
+- bagian relevan laporan / dashboard / filter / tabel / export dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, table, form, badge, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama halaman laporan;
+- data-access/model reports yang dipakai langsung halaman ini.
 
-Scope hanya halaman laporan dan komponen khusus laporan.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -404,7 +405,7 @@ Karakter halaman:
 - filter periode dan jenis report penting untuk akreditasi;
 - tabel bisa lebar dan padat.
 
-Target:
+Target desain dan UX:
 
 - filter laporan mudah dipahami, tidak terlalu padat, dan dapat dipakai di mobile;
 - state filter penting tersimpan di URL bila aman dan tidak memicu request loop;
@@ -415,14 +416,27 @@ Target:
 - empty/no-result/error state menjelaskan periode dan filter yang sedang aktif;
 - konfigurasi identitas sekolah memiliki validasi dan feedback jelas.
 
-Jangan:
+Batasan keras:
 
-- mengubah perhitungan laporan, sumber data transaksi, export API, atau role access;
-- menyembunyikan kolom penting tanpa strategi responsive;
-- membuat report dummy;
-- membuat scroll horizontal page-level.
+- jangan mengubah perhitungan laporan, sumber data transaksi, export API, atau role access;
+- jangan menyembunyikan kolom penting tanpa strategi responsive;
+- jangan membuat report dummy;
+- jangan membuat scroll horizontal page-level.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji filter, no-result, export PDF/Excel bila environment mendukung, serta keyboard navigation tabel.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji keyboard untuk filter, no-result, export PDF/Excel bila environment mendukung, dan navigasi tabel.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Portal anggota
@@ -432,17 +446,18 @@ Route: `/dashboard/member`
 File utama: `frontend/src/app/features/circulation/pages/member-portal-page/member-portal-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX portal anggota berdasarkan:
+Perbaiki UI/UX portal anggota dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/circulation/pages/member-portal-page/member-portal-page.ts;
-- data-access circulation/reservation yang sudah ada.
+Baca konteks minimal:
+- bagian relevan portal anggota / reservasi / tabel / status dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, form, table, badge, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama portal anggota;
+- data-access/model circulation/reservation yang dipakai langsung halaman ini.
 
-Scope hanya portal anggota dan komponen khusus portal anggota.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -450,7 +465,7 @@ Karakter halaman:
 - reservasi harus terasa seperti alur katalog, bukan input ID internal;
 - user utama bisa siswa, jadi copy harus jelas dan tidak teknis.
 
-Target:
+Target desain dan UX:
 
 - ringkasan pinjaman aktif, jatuh tempo, dan denda mudah dipindai;
 - reservasi tidak meminta ID internal bila ada jalur dari katalog atau data buku yang dapat dipakai;
@@ -460,14 +475,27 @@ Target:
 - status reservasi, loan, dan pembayaran memakai label Bahasa Indonesia;
 - action target minimal 44 x 44 px.
 
-Jangan:
+Batasan keras:
 
-- mengubah aturan reservasi, denda, atau sumber data member;
-- membuat member bisa melakukan aksi yang bukan haknya;
-- membuat dummy pinjaman/reservasi;
-- menyembunyikan error cancel/reserve.
+- jangan mengubah aturan reservasi, denda, atau sumber data member;
+- jangan membuat member bisa melakukan aksi yang bukan haknya;
+- jangan membuat dummy pinjaman/reservasi;
+- jangan menyembunyikan error cancel/reserve.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji keyboard untuk refresh, reserve, cancel, dan tabel.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji keyboard untuk refresh, reserve, cancel, dan tabel.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Katalog publik
@@ -477,17 +505,18 @@ Route: `/katalog`
 File utama: `frontend/src/app/features/catalog/pages/catalog-page/catalog-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX katalog publik berdasarkan:
+Perbaiki UI/UX katalog publik dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/catalog/pages/catalog-page/catalog-page.ts;
-- data-access catalog dan reservation yang sudah ada.
+Baca konteks minimal:
+- bagian relevan katalog publik / search / card / reservasi dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, card, form, badge, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama katalog publik;
+- data-access/model catalog dan reservation yang dipakai langsung halaman ini.
 
-Scope hanya halaman katalog dan komponen khusus katalog.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -495,7 +524,7 @@ Karakter halaman:
 - member dapat melakukan reservasi bila role dan backend mengizinkan;
 - katalog harus menjelaskan ketersediaan tanpa membuka data internal eksemplar.
 
-Target:
+Target desain dan UX:
 
 - search terasa sebagai kontrol utama, usable pada mobile, dan dapat disimpan di URL query;
 - hasil katalog memakai card konsisten dengan judul, metadata, stok, dan aksi jelas;
@@ -505,14 +534,27 @@ Target:
 - empty/no-result state menjelaskan query yang dipakai dan cara memperbaiki;
 - stok/status memakai badge semantic Bahasa Indonesia.
 
-Jangan:
+Batasan keras:
 
-- mengekspos UUID/copy internal di UI publik;
-- mengubah kontrak API katalog/reservasi;
-- membuat dummy buku;
-- mengubah aturan guest tidak dapat meminjam/reservasi bila backend menolak.
+- jangan mengekspos UUID/copy internal di UI publik;
+- jangan mengubah kontrak API katalog/reservasi;
+- jangan membuat dummy buku;
+- jangan mengubah aturan guest tidak dapat meminjam/reservasi bila backend menolak.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji search, no-result, guest CTA, reservasi sukses/gagal, serta back/refresh query.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji search, no-result, guest CTA, reservasi sukses/gagal, serta back/refresh query.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Katalog koleksi digital
@@ -522,17 +564,18 @@ Route: `/koleksi-digital`
 File utama: `frontend/src/app/features/digital-library/pages/digital-catalog-page/digital-catalog-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX katalog koleksi digital berdasarkan:
+Perbaiki UI/UX katalog koleksi digital dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/digital-library/pages/digital-catalog-page/digital-catalog-page.ts;
-- data-access digital library yang sudah ada.
+Baca konteks minimal:
+- bagian relevan katalog digital / filter / cover / card dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, card, image, badge, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama katalog koleksi digital;
+- data-access/model digital library yang dipakai langsung halaman ini.
 
-Scope hanya halaman katalog digital dan komponen khusus katalog digital.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -540,7 +583,7 @@ Karakter halaman:
 - metadata published boleh tampil publik, tetapi akses penuh file membutuhkan login/backend;
 - cover image bisa berasal dari storage.
 
-Target:
+Target desain dan UX:
 
 - filter search, media type, dan sort mudah digunakan serta dapat disimpan di URL query;
 - card koleksi punya cover dengan aspect ratio stabil, dimensi/lazy loading, judul link jelas, metadata, dan badge media;
@@ -549,14 +592,27 @@ Target:
 - media type dan akses download memakai label Bahasa Indonesia;
 - layout mobile tidak overflow dan cover tidak menyebabkan CLS.
 
-Jangan:
+Batasan keras:
 
-- mengekspos private file URL;
-- mengubah aturan published/unpublished atau download;
-- membuat dummy koleksi;
-- menggunakan image tanpa reservasi dimensi/aspect ratio.
+- jangan mengekspos private file URL;
+- jangan mengubah aturan published/unpublished atau download;
+- jangan membuat dummy koleksi;
+- jangan menggunakan image tanpa reservasi dimensi/aspect ratio.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji filter, sort, no-result, gambar cover, serta navigasi ke detail.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji filter, sort, no-result, gambar cover, dan navigasi ke detail.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Detail koleksi digital
@@ -566,17 +622,18 @@ Route: `/koleksi-digital/:slug`
 File utama: `frontend/src/app/features/digital-library/pages/digital-detail-page/digital-detail-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX detail koleksi digital berdasarkan:
+Perbaiki UI/UX detail koleksi digital dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/digital-library/pages/digital-detail-page/digital-detail-page.ts;
-- data-access digital library yang sudah ada.
+Baca konteks minimal:
+- bagian relevan detail koleksi digital / media viewer / akses file dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, media, button, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama detail koleksi digital;
+- data-access/model digital library yang dipakai langsung halaman ini.
 
-Scope hanya halaman detail koleksi digital dan komponen khusus detail.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -584,7 +641,7 @@ Karakter halaman:
 - akses file memakai backend signed URL;
 - user yang belum login perlu memahami batas akses.
 
-Target:
+Target desain dan UX:
 
 - metadata utama jelas: judul, media type, penulis, penerbit, tahun, ukuran/durasi, status download;
 - cover memiliki dimensi/aspect ratio stabil;
@@ -595,14 +652,27 @@ Target:
 - label enum media dilokalkan ke Bahasa Indonesia;
 - tombol kembali dan breadcrumb/arah navigasi jelas bila diperlukan.
 
-Jangan:
+Batasan keras:
 
-- mengubah signed URL flow, authorization, atau aturan download;
-- memakai sanitizer untuk URL yang tidak berasal dari API aman yang sudah ada;
-- membuat file private menjadi public;
-- mengubah kontrak API detail.
+- jangan mengubah signed URL flow, authorization, atau aturan download;
+- jangan memakai sanitizer untuk URL yang tidak berasal dari API aman yang sudah ada;
+- jangan membuat file private menjadi public;
+- jangan mengubah kontrak API detail.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji loading, not found, guest, buka file, download, dan viewer.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji loading, not found, guest, buka file, download, dan viewer.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Login
@@ -612,17 +682,18 @@ Route: `/masuk`
 File utama: `frontend/src/app/features/auth/pages/login-page/login-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX halaman login berdasarkan:
+Perbaiki UI/UX halaman login dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/auth/pages/login-page/login-page.ts;
-- AuthService dan auth guard yang sudah ada.
+Baca konteks minimal:
+- bagian relevan login / auth error / form dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, form, button, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama login;
+- AuthService/auth guard/data-access yang dipakai langsung halaman ini.
 
-Scope hanya halaman login dan komponen khusus login.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -630,7 +701,7 @@ Karakter halaman:
 - harus aman, jelas, dan cepat digunakan di komputer perpustakaan;
 - sudah memakai reactive form.
 
-Target:
+Target desain dan UX:
 
 - form login memakai container reading, card/form global, label, helper, error per field, dan error summary yang dapat diakses;
 - submit invalid memindahkan fokus ke field invalid pertama;
@@ -640,14 +711,27 @@ Target:
 - autocomplete email/password benar;
 - mobile layout nyaman tanpa zoom/overflow.
 
-Jangan:
+Batasan keras:
 
-- mengubah alur Supabase Auth, AuthService, token handling, role redirect, atau guard;
-- menampilkan detail error sensitif;
-- membuat login demo/hardcoded credential;
-- menyimpan password di state yang tidak diperlukan.
+- jangan mengubah alur Supabase Auth, AuthService, token handling, role redirect, atau guard;
+- jangan menampilkan detail error sensitif;
+- jangan membuat login demo/hardcoded credential;
+- jangan menyimpan password di state yang tidak diperlukan.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji keyboard, submit invalid, login gagal, loading, dan redirect sukses.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji keyboard, submit invalid, login gagal, loading, dan redirect sukses bila environment mendukung.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Beranda publik
@@ -657,17 +741,18 @@ Route: `/`
 File utama: `frontend/src/app/features/public/pages/home-page/home-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX beranda publik berdasarkan:
+Perbaiki UI/UX beranda publik dengan scope hanya halaman ini dan komponen khususnya.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- file frontend/src/app/features/public/pages/home-page/home-page.ts;
-- public layout yang sudah memakai logo SDI.
+Baca konteks minimal:
+- bagian relevan beranda / public layout / copy publik dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, layout publik, button, feedback, dan accessibility dari `docs/design-system.md`;
+- file utama beranda;
+- public layout yang sudah memakai brand SDI.
 
-Scope hanya halaman beranda dan komponen khusus beranda.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global/layout publik yang sudah dipakai halaman ini.
 
 Karakter halaman:
 
@@ -675,7 +760,7 @@ Karakter halaman:
 - tugas utama: mengarahkan pengguna ke katalog, koleksi digital, atau login;
 - harus terasa seperti perpustakaan sekolah digital, bukan landing SaaS generik.
 
-Target:
+Target desain dan UX:
 
 - hero memakai brand SDI Digital Library sebagai sinyal first viewport yang jelas;
 - copy mencerminkan fitur yang sudah ada, bukan status fondasi tahap awal;
@@ -685,14 +770,27 @@ Target:
 - layout mobile tidak overflow dan tetap menunjukkan arah ke section berikutnya;
 - footer/public copy relevan dengan sekolah dan layanan.
 
-Jangan:
+Batasan keras:
 
-- membuat klaim fitur yang belum tersedia;
-- menambah dekorasi berat, gradient berlebihan, glassmorphism, atau animasi yang tidak perlu;
-- mengubah route publik;
-- membuat dummy statistik.
+- jangan membuat klaim fitur yang belum tersedia;
+- jangan menambah dekorasi berat, gradient berlebihan, glassmorphism, atau animasi yang tidak perlu;
+- jangan mengubah route publik;
+- jangan membuat dummy statistik.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji navigasi CTA.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji navigasi CTA.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
 
 ## Prompt: Forbidden dan not found
@@ -705,17 +803,18 @@ File utama:
 - `frontend/src/app/features/public/pages/not-found-page/not-found-page.ts`
 
 ```text
-Gunakan $frontend-design, $ui-ux-pro-max, dan $incremental-implementation.
+Gunakan $ui-ux-pro-max dan $incremental-implementation.
+Gunakan $frontend-design ringan untuk arahan visual, tanpa eksplorasi desain panjang.
 
-Perbaiki UI dan UX halaman akses ditolak dan halaman tidak ditemukan berdasarkan:
+Perbaiki UI/UX halaman akses ditolak dan tidak ditemukan dengan scope hanya dua halaman ini.
 
-- docs/ui-ux-audit.md;
-- docs/design-system.md;
-- komponen global yang sudah diperbaiki;
-- frontend/src/app/features/auth/pages/forbidden-page/forbidden-page.ts;
-- frontend/src/app/features/public/pages/not-found-page/not-found-page.ts.
+Baca konteks minimal:
+- bagian relevan forbidden / not found / route error dari `docs/ui-ux-audit.md`;
+- token, spacing, warna, typography, content state, button, feedback, dan accessibility dari `docs/design-system.md`;
+- file forbidden page dan not-found page;
+- route/guard yang dipakai langsung bila perlu memahami konteks CTA.
 
-Scope hanya forbidden page, not-found page, dan komponen kecil yang khusus dipakai keduanya bila benar-benar perlu.
+Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen global/layout yang sudah dipakai dua halaman ini.
 
 Karakter halaman:
 
@@ -723,7 +822,7 @@ Karakter halaman:
 - not-found membantu pengguna kembali ke jalur yang benar;
 - keduanya harus singkat, tidak menyalahkan user, dan memberi aksi berikutnya.
 
-Target:
+Target desain dan UX:
 
 - heading, pesan, dan CTA jelas;
 - CTA menyesuaikan konteks sebisa mungkin: dashboard sesuai role, katalog, beranda, atau login;
@@ -731,11 +830,24 @@ Target:
 - keyboard focus dan screen reader announcement benar;
 - mobile layout ringkas tanpa elemen terpotong.
 
-Jangan:
+Batasan keras:
 
-- mengubah role guard atau redirect logic tanpa alasan kuat;
-- membuka informasi role/data yang tidak perlu;
-- membuat copy terlalu teknis.
+- jangan mengubah role guard atau redirect logic tanpa alasan kuat;
+- jangan membuka informasi role/data yang tidak perlu;
+- jangan membuat copy terlalu teknis.
 
-Setelah selesai, jalankan lint, test, typecheck, build, inspeksi browser desktop/tablet/mobile, cek console, dan uji navigasi dari route tidak ditemukan serta akses role yang ditolak.
+Proses hemat token:
+1. Ringkas temuan maksimal 6 bullet sebelum edit.
+2. Buat rencana maksimal 5 langkah.
+3. Implementasikan perubahan kecil dan terarah.
+4. Jangan tampilkan diff besar; cukup sebut file yang berubah.
+5. Ringkas output command panjang.
+
+Verifikasi:
+- jalankan command yang tersedia dari `package.json`, prioritaskan lint, typecheck, test terkait, dan build;
+- inspeksi browser minimal desktop dan mobile;
+- cek console;
+- uji navigasi dari route tidak ditemukan dan akses role yang ditolak bila environment mendukung.
+
+Laporan akhir singkat: perubahan utama, file penting, command dan hasil, serta risiko/verifikasi yang belum selesai.
 ```
