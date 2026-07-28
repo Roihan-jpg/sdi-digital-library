@@ -1,0 +1,237 @@
+<section class="page">
+  <header class="catalog-hero">
+    <div class="hero-text">
+      <p class="eyebrow">Katalog publik</p>
+      <h1>Temukan buku fisik perpustakaan</h1>
+      <p>
+        Cari judul, ISBN, kategori, atau penerbit. Katalog menampilkan ketersediaan ringkas
+        tanpa membuka data eksemplar.
+      </p>
+    </div>
+    @if (!loading() && !error()) {
+      <div class="stat-pill">
+        <span class="stat-value">{{ filteredBooks().length }}</span>
+        <span class="stat-label">{{ hasActiveFilters() ? 'hasil ditemukan' : 'buku di katalog' }}</span>
+      </div>
+    }
+  </header>
+
+  <div class="search-dock">
+    <form class="search-glass" (submit)="search($event)" novalidate>
+      <div class="search-field">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          id="catalog-search"
+          name="q"
+          [formControl]="query"
+          type="search"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Contoh: cerita rakyat..."
+          aria-describedby="catalog-search-helper"
+        />
+      </div>
+
+      @if (categories().length > 0) {
+        <select
+          class="dock-select"
+          aria-label="Kategori"
+          [value]="selectedCategory() ?? ''"
+          (change)="setCategory($any($event.target).value)"
+        >
+          <option value="">Semua kategori</option>
+          @for (category of categories(); track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      }
+
+      @if (hasActiveFilters()) {
+        <button class="icon-btn" type="button" (click)="clearFilters()" aria-label="Hapus semua filter" title="Hapus semua filter">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      }
+
+      <button class="button" type="submit" [disabled]="loading()">Cari</button>
+    </form>
+  </div>
+
+  @if (categories().length > 0) {
+    <nav class="chip-row" aria-label="Filter cepat kategori">
+      <button class="chip" type="button" [class.active]="selectedCategory() === null" (click)="setCategory(null)">
+        Semua buku
+      </button>
+      @for (category of categories(); track category) {
+        <button
+          class="chip"
+          type="button"
+          [class.active]="selectedCategory() === category"
+          (click)="setCategory(category)"
+        >
+          {{ category }}
+        </button>
+      }
+    </nav>
+  }
+
+  @if (!loading() && !error() && filteredBooks().length > 0) {
+    <div class="toolbar">
+      <div class="result-count" role="status" aria-live="polite">
+        <strong>{{ filteredBooks().length }} buku ditemukan</strong>
+        @if (hasActiveSearch()) {
+          <span>untuk "{{ activeSearch() }}"</span>
+        }
+      </div>
+      <div class="view-toggle" role="group" aria-label="Ubah tampilan grid atau daftar">
+        <button type="button" [class.active]="viewMode() === 'grid'" (click)="setViewMode('grid')" aria-label="Tampilan grid">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        </button>
+        <button type="button" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')" aria-label="Tampilan daftar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="book-grid skeleton-grid" [class.list-view]="viewMode() === 'list'" role="status" aria-live="polite" aria-label="Memuat katalog">
+      @for (item of skeletonItems; track item) {
+        <article class="book-card skeleton-card" aria-hidden="true">
+          <div class="skeleton sk-cover"></div>
+          <div class="book-body">
+            <span class="skeleton sk-line w-40"></span>
+            <span class="skeleton sk-line w-80 sk-title"></span>
+            <span class="skeleton sk-line w-60"></span>
+            <span class="skeleton sk-btn"></span>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (error()) {
+    <div class="state-panel state-panel--error" role="alert">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <circle cx="12" cy="12" r="9.3" />
+        <path d="M12 7.5v5.5" stroke-width="1.8" stroke-linecap="round" />
+        <circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none" />
+      </svg>
+      <h2>Katalog belum dapat dimuat.</h2>
+      <p>{{ error() }}</p>
+      <button class="button" type="button" (click)="load()">Coba lagi</button>
+    </div>
+  }
+
+  @if (!loading() && !error() && filteredBooks().length > 0) {
+    <div class="book-grid" [class.list-view]="viewMode() === 'list'">
+      @for (book of filteredBooks(); track book.id) {
+        <article class="book-card">
+          <div class="book-cover" [class]="'cover-' + coverVariant(book)">
+            <span class="badge" [class.badge--available]="book.stock.available > 0">
+              {{ stockStatusLabel(book) }}
+            </span>
+          </div>
+
+          <div class="book-body">
+            <div class="book-info">
+              <div class="book-category">{{ book.categories?.name ?? 'Tanpa kategori' }}</div>
+              <h2 class="book-title">{{ book.title }}</h2>
+              @if (book.subtitle) {
+                <p class="book-subtitle">{{ book.subtitle }}</p>
+              }
+
+              <dl class="metadata">
+                <div>
+                  <dt>Penerbit</dt>
+                  <dd>{{ book.publishers?.name ?? 'Penerbit tidak dicatat' }}</dd>
+                </div>
+                <div>
+                  <dt>Tahun</dt>
+                  <dd>{{ book.publication_year ?? 'Tidak dicatat' }}</dd>
+                </div>
+                <div>
+                  <dt>ISBN</dt>
+                  <dd>{{ book.isbn ?? 'Tidak dicatat' }}</dd>
+                </div>
+              </dl>
+
+              <p class="copy-count">{{ stockCountLabel(book) }}</p>
+            </div>
+
+            <div class="book-actions">
+              @if (authStore.currentRole() === 'member') {
+                @if (reservationMessage(book.id); as message) {
+                  <p class="feedback-inline feedback-inline--success" role="status">
+                    {{ message }}
+                  </p>
+                }
+                @if (reservationError(book.id); as reserveError) {
+                  <p class="feedback-inline feedback-inline--error" role="alert">
+                    {{ reserveError }}
+                  </p>
+                }
+                <button
+                  class="button reserve"
+                  type="button"
+                  [disabled]="book.stock.available === 0 || isReserving(book.id)"
+                  [attr.aria-busy]="isReserving(book.id)"
+                  (click)="reserve(book)"
+                >
+                  {{ isReserving(book.id) ? 'Memproses...' : reserveButtonLabel(book) }}
+                </button>
+              } @else if (!authStore.isAuthenticated()) {
+                <p class="guest-note">Masuk sebagai member untuk mengajukan reservasi buku ini.</p>
+                <a
+                  class="button button--secondary reserve"
+                  routerLink="/masuk"
+                  [queryParams]="{ redirect: currentPath() }"
+                  >Masuk untuk reservasi</a
+                >
+              } @else {
+                <p class="guest-note">
+                  Reservasi hanya tersedia untuk akun member. Petugas tetap dapat membantu di
+                  perpustakaan.
+                </p>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (!loading() && !error() && filteredBooks().length === 0) {
+    <section class="state-panel" aria-labelledby="catalog-empty-title">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v16.5A2.5 2.5 0 0 0 9.5 22H4z" />
+        <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v16.5a2.5 2.5 0 0 1 2.5-2.5H20z" />
+        <path d="m9.5 10 2 2 3-3" />
+      </svg>
+      <h2 id="catalog-empty-title">
+        @if (hasActiveFilters()) {
+          Belum ada buku yang cocok dengan pencarian ini
+        } @else {
+          Katalog publik belum berisi buku
+        }
+      </h2>
+      <p>Periksa ejaan, coba kata yang lebih umum, atau cari berdasarkan ISBN/kategori buku.</p>
+      @if (hasActiveFilters()) {
+        <button class="button button--secondary" type="button" (click)="clearFilters()">
+          Lihat semua buku
+        </button>
+      }
+    </section>
+  }
+</section>
