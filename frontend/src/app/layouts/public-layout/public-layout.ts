@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
+import { Component, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { roleHomePath } from '../../core/auth/auth.models';
 import { AuthStore } from '../../core/auth/auth.store';
 import { NotificationBanner } from '../../shared/components/notification-banner/notification-banner';
@@ -7,150 +8,136 @@ import { NotificationBanner } from '../../shared/components/notification-banner/
 @Component({
   selector: 'sdi-public-layout',
   imports: [RouterLink, RouterLinkActive, RouterOutlet, NotificationBanner],
-  template: `
-    <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
-    <header class="site-header">
-      <nav class="site-nav" aria-label="Navigasi utama">
-        <a class="app-brand" routerLink="/" (click)="closeNavigation()">
-          <img class="app-brand__mark" src="/sdi_logo.png" alt="" aria-hidden="true" />
-          <span>SDI <small>Digital Library</small></span>
-        </a>
-        <button
-          class="menu-button button button--tertiary"
-          type="button"
-          aria-controls="public-navigation"
-          [attr.aria-expanded]="navigationOpen()"
-          (click)="toggleNavigation()"
-        >
-          <span class="menu-icon" aria-hidden="true"></span>
-          <span>{{ navigationOpen() ? 'Tutup' : 'Menu' }}</span>
-        </button>
-        <div id="public-navigation" class="links" [class.links--open]="navigationOpen()">
-          <a
-            routerLink="/"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavigation()"
-            >Beranda</a
-          >
-          <a routerLink="/katalog" routerLinkActive="active" (click)="closeNavigation()">Katalog</a>
-          <a routerLink="/koleksi-digital" routerLinkActive="active" (click)="closeNavigation()"
-            >Koleksi digital</a
-          >
-          @if (authStore.currentRole(); as role) {
-            <a class="button" [routerLink]="roleHomePath(role)" (click)="closeNavigation()"
-              >Dashboard</a
-            >
-          } @else {
-            <a class="button" routerLink="/masuk" (click)="closeNavigation()">Masuk</a>
-          }
-        </div>
-      </nav>
-    </header>
-    <sdi-notification-banner />
-    <main id="main-content" tabindex="-1"><router-outlet /></main>
-    <footer><p>SDI Digital Library · Akses pengetahuan untuk warga sekolah</p></footer>
-  `,
-  styles: `
-    :host {
-      display: grid;
-      min-height: 100dvh;
-      grid-template-rows: auto auto 1fr auto;
-    }
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: var(--z-header);
-      border-bottom: var(--border-width) solid var(--color-brand-divider);
-      background: var(--color-brand-950);
-      color: var(--color-text-inverse);
-    }
-    .site-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-4);
-      width: min(var(--container-content), calc(100% - 2 * var(--page-gutter)));
-      min-height: var(--header-height);
-      margin-inline: auto;
-    }
-    .links {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-    .links > a:not(.button) {
-      min-height: var(--control-height);
-      padding: var(--space-3);
-      border-radius: var(--radius-md);
-      font-weight: var(--weight-semibold);
-      text-decoration: none;
-    }
-    .links > a:not(.button):hover {
-      background: var(--color-brand-800);
-    }
-    .links > a.active:not(.button) {
-      background: var(--color-brand-800);
-      box-shadow: inset 0 calc(-1 * var(--border-width-accent)) 0 var(--color-brand-100);
-    }
-    .menu-button {
-      display: none;
-      color: var(--color-text-inverse);
-    }
-    footer {
-      padding: var(--space-4) var(--page-gutter);
-      border-top: var(--border-width) solid var(--color-border);
-      background: var(--color-surface);
-      color: var(--color-text-muted);
-      text-align: center;
-    }
-    footer p {
-      margin: 0;
-    }
-    @media (max-width: 36rem) {
-      .site-nav {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        padding-block: var(--space-2);
-      }
-      .menu-button {
-        display: inline-flex;
-      }
-      .links {
-        display: none;
-        grid-column: 1 / -1;
-        align-items: stretch;
-        grid-template-columns: 1fr;
-        gap: var(--space-1);
-        width: 100%;
-        padding-block: var(--space-2);
-      }
-      .links--open {
-        display: grid;
-      }
-      .links > a {
-        width: 100%;
-      }
-      .links > a:not(.button) {
-        display: flex;
-        align-items: center;
-      }
-      .links > a.active:not(.button) {
-        box-shadow: inset var(--border-width-accent) 0 0 var(--color-brand-100);
-      }
-    }
-  `,
+  templateUrl: './public-layout.html',
+  styleUrl: './public-layout.css',
 })
 export class PublicLayout {
   protected readonly authStore = inject(AuthStore);
   protected readonly roleHomePath = roleHomePath;
+
+  private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
+
+  @ViewChild('searchInput') private readonly searchInputRef?: ElementRef<HTMLInputElement>;
+
+  // Mobile off-canvas drawer
   protected readonly navigationOpen = signal(false);
+  // Katalog mega menu
+  protected readonly catalogOpen = signal(false);
+  // Expandable search overlay
+  protected readonly searchOpen = signal(false);
+  // Sticky header scroll state
+  protected readonly headerScrolled = signal(false);
+  protected readonly scrollProgress = signal(0);
+  protected readonly backToTopVisible = signal(false);
+  // Light/dark toggle (visual only)
+  protected readonly isDarkTheme = signal(false);
+  // Newsletter form
+  protected readonly newsletterSubmitted = signal(false);
+  // Nav indicator
+  protected readonly indicatorReady = signal(true);
+  protected readonly indicatorPosition = signal<{ width: string; transform: string } | null>(null);
+
+  @HostListener('window:scroll')
+  protected onWindowScroll(): void {
+    const scrollTop = window.scrollY || this.document.documentElement.scrollTop;
+    const docHeight = this.document.documentElement.scrollHeight - window.innerHeight;
+    this.scrollProgress.set(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
+    this.headerScrolled.set(scrollTop > 24);
+    this.backToTopVisible.set(scrollTop > 480);
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    this.closeCatalog();
+    this.closeSearch();
+    this.closeNavigation();
+  }
+
+  @HostListener('document:click')
+  protected onDocumentClick(): void {
+    // Clicks inside the mega menu / search overlay call stopPropagation()
+    // in the template, so this only fires for genuine outside clicks.
+    this.closeCatalog();
+    this.closeSearch();
+  }
+
+  protected stopPropagation(event: Event): void {
+    event.stopPropagation();
+  }
 
   protected toggleNavigation(): void {
-    this.navigationOpen.update((open) => !open);
+    const open = !this.navigationOpen();
+    this.navigationOpen.set(open);
+    this.document.body.style.overflow = open ? 'hidden' : '';
   }
 
   protected closeNavigation(): void {
     this.navigationOpen.set(false);
+    this.document.body.style.overflow = '';
+  }
+
+  protected toggleCatalog(event: Event): void {
+    event.stopPropagation();
+    this.searchOpen.set(false);
+    this.catalogOpen.update((open) => !open);
+  }
+
+  protected closeCatalog(): void {
+    this.catalogOpen.set(false);
+  }
+
+  protected toggleSearch(event: Event): void {
+    event.stopPropagation();
+    this.catalogOpen.set(false);
+    const open = !this.searchOpen();
+    this.searchOpen.set(open);
+    if (open) {
+      setTimeout(() => this.searchInputRef?.nativeElement.focus(), 260);
+    }
+  }
+
+  protected closeSearch(): void {
+    this.searchOpen.set(false);
+  }
+
+  protected moveIndicatorTo(element: EventTarget | null): void {
+    const el = element as HTMLElement | null;
+    if (!el) return;
+    this.indicatorPosition.set({
+      width: `${el.offsetWidth}px`,
+      transform: `translateX(${el.offsetLeft}px)`,
+    });
+  }
+
+  protected resetIndicatorToActive(): void {
+    const active = this.document.querySelector('.nav-link.active');
+    if (active) this.moveIndicatorTo(active);
+  }
+
+  protected submitSearch(event: Event, input: HTMLInputElement): void {
+    event.preventDefault();
+    const term = input.value.trim();
+    this.closeSearch();
+    this.router.navigate(['/katalog'], term ? { queryParams: { q: term } } : {});
+  }
+
+  protected toggleTheme(): void {
+    const dark = !this.isDarkTheme();
+    this.isDarkTheme.set(dark);
+    this.document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  }
+
+  protected submitNewsletter(event: Event, emailInput: HTMLInputElement): void {
+    event.preventDefault();
+    if (!emailInput.value) {
+      return;
+    }
+    this.newsletterSubmitted.set(true);
+    emailInput.value = '';
+  }
+
+  protected scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

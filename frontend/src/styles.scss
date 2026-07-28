@@ -1,5 +1,9 @@
 :root {
   color-scheme: light;
+  --color-nav-text: #374151;
+  --color-nav-active: #22745a;
+  --color-nav-hover: #e9f5ef;
+  --color-nav-hover-text: #185641;
   --color-brand-950: #1e1b4b;
   --color-brand-800: #3730a3;
   --color-brand-700: #4f46e5;
@@ -27,8 +31,8 @@
   --color-danger: #b91c1c;
   --color-danger-strong: #7f1d1d;
   --color-danger-surface: #fef2f2;
-  --color-action-primary: var(--color-brand-700);
-  --color-action-primary-hover: var(--color-brand-800);
+  --color-action-primary: #22745a;
+  --color-action-primary-hover: #185641;
   --color-action-secondary: var(--color-surface);
   --color-action-secondary-hover: var(--color-brand-50);
   --color-action-danger: var(--color-danger);
@@ -334,7 +338,7 @@ h3 {
   gap: var(--space-3);
   min-height: var(--control-height);
   font-family: var(--font-family-display);
-  font-size: var(--text-lg);
+  font-size: 18px;
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   text-decoration: none;
@@ -342,17 +346,18 @@ h3 {
 
 .app-brand small {
   display: block;
+  margin-top: 5px;
   color: var(--color-brand-100);
-  font-family: var(--font-family-ui);
-  font-size: var(--text-xs);
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 13px;
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
 
 .app-brand__mark {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 4rem;
+  height: 4rem;
   flex: 0 0 auto;
   object-fit: contain;
 }

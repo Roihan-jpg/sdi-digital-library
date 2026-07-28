@@ -13,7 +13,7 @@ import {
   selector: 'sdi-member-portal-page',
   imports: [ReactiveFormsModule],
   template: `
-    <section class="portal page page--wide">
+    <section class="portal page page--wide" id="portal-anggota">
       <header class="portal__header">
         <div>
           <p class="eyebrow">Portal anggota</p>
@@ -88,6 +88,7 @@ import {
         }
       </section>
 
+
       <section class="panel card" id="reservasi">
         <div class="section-title">
           <h2>Reservasi buku</h2>
@@ -100,6 +101,7 @@ import {
         <form class="reserve-form" (ngSubmit)="reserve()" novalidate>
           <div class="field">
             <label for="book-title-id">Buku dari katalog</label>
+
             <input
               #bookTitleInput
               id="book-title-id"
@@ -207,7 +209,8 @@ import {
         </div>
       </section>
 
-      <section class="panel card">
+
+      <section class="panel card"  id="denda">
         <h2>Denda dan pembayaran</h2>
         <div class="table-wrap">
           <table>
@@ -251,6 +254,7 @@ import {
           </table>
         </div>
       </section>
+
 
       <section class="panel card" id="riwayat">
         <h2>Riwayat peminjaman</h2>
