@@ -15,8 +15,14 @@
         </p>
 
         <div class="hero-cta-row">
-          <a href="#buku" class="btn btn-primary">Jelajahi Buku <svg data-lucide="arrow-right"></svg></a>
-          <a href="#proses" class="btn btn-secondary">Cara Meminjam</a>
+          <a routerLink="/katalog" class="btn btn-primary">
+            Jelajahi Buku
+          <svg data-lucide="arrow-right"></svg>
+        </a>
+
+          <a routerLink="/masuk" class="btn btn-secondary">
+            Meminjam
+          </a>
         </div>
 
         <div class="hero-stats-row">
@@ -244,27 +250,6 @@
   <!-- ============================================================
        ANNOUNCEMENTS
   ============================================================ -->
-  <section class="section" id="pengumuman" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow"><svg data-lucide="bell"></svg>Info Terbaru</span>
-        <h2 class="h2">Pengumuman Sekolah</h2>
-      </div>
-      <div class="ann-grid reveal">
-        <article class="ann-card" *ngFor="let ann of announcements">
-          <div class="ann-media" [style.background]="ann.mediaGradient">
-            <svg data-lucide="calendar"></svg>
-            <span class="ann-date">{{ ann.day }}<br />{{ ann.month }}</span>
-          </div>
-          <div class="ann-body">
-            <h4>{{ ann.title }}</h4>
-            <p>{{ ann.excerpt }}</p>
-            <a href="#" class="ann-link">Baca Selengkapnya<svg data-lucide="arrow-right"></svg></a>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
 
   <!-- ============================================================
        SERVICES
@@ -288,26 +273,7 @@
   <!-- ============================================================
        TESTIMONIALS
   ============================================================ -->
-  <section class="section" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow"><svg data-lucide="quote"></svg>Kata Mereka</span>
-        <h2 class="h2">Cerita dari Warga Sekolah</h2>
-      </div>
-      <div class="testi-row reveal">
-        <article class="testi-card" *ngFor="let t of testimonials">
-          <span class="stars">
-            <svg data-lucide="star" *ngFor="let s of [1, 2, 3, 4, 5]"></svg>
-          </span>
-          <p>{{ t.quote }}</p>
-          <div class="testi-who">
-            <div class="avatar" [style.background]="t.avatarBg" [style.color]="t.avatarColor">{{ t.initials }}</div>
-            <div><b>{{ t.name }}</b><span>{{ t.role }}</span></div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
+
 
   <!-- ============================================================
        FAQ
@@ -320,14 +286,14 @@
       </div>
       <div class="faq-wrap reveal">
         <div class="faq-item" *ngFor="let faq of faqs; let i = index" [class.open]="openFaqIndex === i">
-          <button class="faq-q" type="button" (click)="toggleFaq(i)">
-            {{ faq.question }}
-            <svg data-lucide="chevron-down"></svg>
-          </button>
-          <div class="faq-a">
-            <p>{{ faq.answer }}</p>
-          </div>
-        </div>
+  <button class="faq-q" type="button" (click)="toggleFaq(i)">
+    {{ faq.question }}
+    <svg data-lucide="chevron-down"></svg>
+  </button>
+  <div class="faq-a" *ngIf="openFaqIndex === i">
+    <p>{{ faq.answer }}</p>
+  </div>
+</div>
       </div>
     </div>
   </section>
@@ -341,8 +307,8 @@
         <h2 class="h2">Mulai Jelajahi Ribuan Buku Hari Ini</h2>
         <p>Satu perpustakaan, ribuan cerita — semua bisa diakses langsung dari genggamanmu.</p>
         <div class="hero-cta-row">
-          <a href="#buku" class="btn btn-primary">Jelajahi Buku<svg data-lucide="arrow-right"></svg></a>
-          <a href="#layanan" class="btn btn-secondary">Pelajari Lebih Lanjut</a>
+          <a routerLink="/katalog"  class="btn btn-primary">Jelajahi Buku<svg data-lucide="arrow-right"></svg></a>
+          <a routerLink="/masuk" class="btn btn-secondary">Mulai Meminjam</a>
         </div>
       </div>
     </div>

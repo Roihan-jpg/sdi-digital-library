@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -6,7 +7,8 @@ import { roleHomePath } from '../../../../core/auth/auth.models';
 
 @Component({
   selector: 'sdi-login-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule,
+              RouterLink],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css',
 })
