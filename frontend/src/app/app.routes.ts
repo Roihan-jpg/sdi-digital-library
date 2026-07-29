@@ -111,6 +111,17 @@ export const routes: Routes = [
       },
     ],
   },
+
+  {
+    path: 'masuk',
+    canActivate: [anonymousGuard],
+    title: 'Masuk · SDI Digital Library',
+    loadComponent: () =>
+      import('./features/auth/pages/login-page/login-page').then(
+        (module) => module.LoginPage,
+      ),
+  },
+
   {
     path: '',
     loadComponent: () =>
@@ -146,13 +157,6 @@ export const routes: Routes = [
           import('./features/digital-library/pages/digital-detail-page/digital-detail-page').then(
             (module) => module.DigitalDetailPage,
           ),
-      },
-      {
-        path: 'masuk',
-        canActivate: [anonymousGuard],
-        title: 'Masuk · SDI Digital Library',
-        loadComponent: () =>
-          import('./features/auth/pages/login-page/login-page').then((module) => module.LoginPage),
       },
       {
         path: '**',

@@ -69,11 +69,11 @@
 .page {
   max-width: 1360px;
   margin: 0 auto;
-  padding: 40px 32px 96px;
+  padding: 20px 32px 96px;
 }
 
 .section {
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 .section-head {
@@ -230,11 +230,12 @@
   padding: 22px;
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
+  margin-bottom: 24px;
 }
 .search-input-wrap {
-  flex: 1 1 280px;
+  flex: 2;
   position: relative;
   display: flex;
   align-items: center;
@@ -276,7 +277,8 @@ select.dropdown {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--navy-800);
-  min-width: 150px;
+  flex:1;
+  min-width:180px;
   min-height: var(--control-height, 44px);
   transition: border-color 0.15s ease;
 }
@@ -312,12 +314,6 @@ select.dropdown:hover {
 }
 .reset-link:hover {
   color: var(--rose-700);
-}
-.filter-helper {
-  margin: 10px 2px 0;
-  color: var(--gray-500);
-  font-size: 13px;
-  font-weight: 500;
 }
 
 /* ---------- grid & cards ---------- */
