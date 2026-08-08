@@ -63,6 +63,13 @@ export class AuthService {
     }
   }
 
+  async changePassword(password: string): Promise<CurrentAuthContext> {
+    await firstValueFrom(this.authApi.changePassword(password));
+    const session = this.authStore.session();
+    if (!session) throw new Error('Sesi tidak tersedia. Silakan masuk kembali.');
+    return this.loadCurrentContext(session);
+  }
+
   private async handleAuthChange(session: Session | null): Promise<void> {
     if (!session) {
       this.authStore.setAnonymous();

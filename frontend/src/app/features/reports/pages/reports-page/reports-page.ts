@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, type ParamMap } from '@angular/router';
@@ -102,7 +102,7 @@ const currencyFormatter = new Intl.NumberFormat('id-ID', {
           <label class="field field--wide">
             <span>Jenis laporan</span>
             <select formControlName="kind" (change)="clearStatus()">
-              @for (option of reportOptions; track option.value) {
+              @for (option of reportOptions(); track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
             </select>
@@ -692,7 +692,13 @@ export class ReportsPage {
   private readonly auth = inject(AuthStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  protected readonly reportOptions = reportOptions;
+  protected readonly reportOptions = computed(() =>
+    this.auth.currentRole() === 'librarian'
+      ? reportOptions.filter((option) =>
+          ['overdue', 'fines', 'damaged-lost', 'inventory', 'visits'].includes(option.value),
+        )
+      : reportOptions,
+  );
   protected readonly report = signal<ReportResult | null>(null);
   protected readonly loading = signal(false);
   protected readonly exportingFormat = signal<ExportFormat | null>(null);
@@ -722,7 +728,14 @@ export class ReportsPage {
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
-      this.filters.setValue(filtersFromParams(params), { emitEvent: false });
+      const filters = filtersFromParams(params);
+      if (
+        this.auth.currentRole() === 'librarian' &&
+        !this.reportOptions().some((item) => item.value === filters.kind)
+      ) {
+        filters.kind = 'overdue';
+      }
+      this.filters.setValue(filters, { emitEvent: false });
       this.load();
     });
     this.master.list('classes').subscribe({ next: (r) => this.classes.set(r.data) });

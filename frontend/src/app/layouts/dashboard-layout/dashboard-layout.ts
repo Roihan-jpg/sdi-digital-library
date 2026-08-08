@@ -1,61 +1,9 @@
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
-import type { AppRole } from '../../core/auth/auth.models';
+import { navigationGroupsForRole } from '../../core/auth/access-policy';
 import { AuthStore } from '../../core/auth/auth.store';
 import { NotificationBanner } from '../../shared/components/notification-banner/notification-banner';
-
-interface NavigationItem {
-  label: string;
-  path: string;
-  section: string | null;
-  badge?: string | number;
-}
-
-const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
-  master_admin: [
-    { label: 'Ringkasan', path: '/dashboard/admin', section: null },
-    { label: 'Pengguna & role', path: '/dashboard/admin', section: 'pengguna' },
-    { label: 'Konfigurasi', path: '/dashboard/admin', section: 'konfigurasi' },
-    { label: 'Master data', path: '/dashboard/master-data', section: null },
-    { label: 'Member', path: '/dashboard/members', section: null },
-    { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
-    { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
-    { label: 'Laporan', path: '/dashboard/reports', section: null },
-    { label: 'Import data', path: '/dashboard/imports', section: null },
-    { label: 'Sirkulasi', path: '/dashboard/circulation', section: null },
-    { label: 'Audit', path: '/dashboard/admin', section: 'audit' },
-  ],
-  head_librarian: [
-    { label: 'Monitoring', path: '/dashboard/monitoring', section: null },
-    { label: 'Laporan', path: '/dashboard/reports', section: null },
-    { label: 'Keterlambatan', path: '/dashboard/monitoring', section: 'keterlambatan' },
-    { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
-  ],
-  librarian: [
-    { label: 'Operasional', path: '/dashboard/operasional', section: null },
-    { label: 'Peminjaman & return', path: '/dashboard/circulation', section: null },
-    { label: 'Member & buku', path: '/dashboard/operasional', section: 'data' },
-    { label: 'Master data', path: '/dashboard/master-data', section: null },
-    { label: 'Member', path: '/dashboard/members', section: null },
-    { label: 'Buku & eksemplar', path: '/dashboard/inventory', section: null },
-    { label: 'Koleksi digital', path: '/dashboard/digital-library', section: null },
-    { label: 'Laporan', path: '/dashboard/reports', section: null },
-    { label: 'Import data', path: '/dashboard/imports', section: null },
-  ],
-  member: [
-    { label: 'Portal anggota', path: '/dashboard/member', section: 'portal-anggota' },
-    { label: 'Reservasi', path: '/dashboard/member', section: 'reservasi' },
-    { label: 'Denda dan pembayaran', path: '/dashboard/member', section: 'denda' },
-    { label: 'Riwayat', path: '/dashboard/member', section: 'riwayat' },
-    { label: 'Koleksi digital', path: '/koleksi-digital', section: null },
-  ],
-  guest: [
-    { label: 'Portal tamu', path: '/dashboard/guest', section: null },
-    { label: 'Katalog', path: '/katalog', section: null },
-    { label: 'Koleksi digital', path: '/koleksi-digital', section: null },
-  ],
-};
 
 @Component({
   selector: 'sdi-dashboard-layout',
@@ -76,9 +24,9 @@ export class DashboardLayout {
   protected readonly isLoggingOut = signal(false);
   protected readonly navigationOpen = signal(false);
   protected readonly railCollapsed = signal(false);
-  protected readonly navigation = computed(() => {
+  protected readonly navigationGroups = computed(() => {
     const role = this.authStore.currentRole();
-    return role ? navigationByRole[role] : [];
+    return role ? navigationGroupsForRole(role) : [];
   });
   protected readonly initials = computed(() => {
     const name = this.authStore.displayName()?.trim();

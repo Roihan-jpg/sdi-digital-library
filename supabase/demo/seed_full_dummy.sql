@@ -15,7 +15,7 @@ set local search_path = public, auth, extensions, pg_temp;
 
 with seed_users (id, email, full_name, app_role) as (
   values
-    ('10000000-0000-4000-8000-000000000001'::uuid, 'admin.dummy@sdi.test', 'Admin Dummy', 'master_admin'::public.app_role),
+    ('10000000-0000-4000-8000-000000000001'::uuid, 'admin.perpustakaan.dummy@sdi.test', 'Admin Perpustakaan Dummy', 'master_admin'::public.app_role),
     ('10000000-0000-4000-8000-000000000002'::uuid, 'kepala.perpus.dummy@sdi.test', 'Kepala Perpustakaan Dummy', 'head_librarian'::public.app_role),
     ('10000000-0000-4000-8000-000000000003'::uuid, 'petugas.dummy@sdi.test', 'Petugas Perpustakaan Dummy', 'librarian'::public.app_role),
     ('10000000-0000-4000-8000-000000000004'::uuid, 'siswa.dummy@sdi.test', 'Siswa Login Dummy', 'member'::public.app_role),
@@ -78,7 +78,7 @@ set
 
 with seed_users (id, email, full_name) as (
   values
-    ('10000000-0000-4000-8000-000000000001'::uuid, 'admin.dummy@sdi.test', 'Admin Dummy'),
+    ('10000000-0000-4000-8000-000000000001'::uuid, 'admin.perpustakaan.dummy@sdi.test', 'Admin Perpustakaan Dummy'),
     ('10000000-0000-4000-8000-000000000002'::uuid, 'kepala.perpus.dummy@sdi.test', 'Kepala Perpustakaan Dummy'),
     ('10000000-0000-4000-8000-000000000003'::uuid, 'petugas.dummy@sdi.test', 'Petugas Perpustakaan Dummy'),
     ('10000000-0000-4000-8000-000000000004'::uuid, 'siswa.dummy@sdi.test', 'Siswa Login Dummy'),
@@ -118,7 +118,7 @@ set
 
 with seed_profiles (id, full_name, app_role) as (
   values
-    ('10000000-0000-4000-8000-000000000001'::uuid, 'Admin Dummy', 'master_admin'::public.app_role),
+    ('10000000-0000-4000-8000-000000000001'::uuid, 'Admin Perpustakaan Dummy', 'master_admin'::public.app_role),
     ('10000000-0000-4000-8000-000000000002'::uuid, 'Kepala Perpustakaan Dummy', 'head_librarian'::public.app_role),
     ('10000000-0000-4000-8000-000000000003'::uuid, 'Petugas Perpustakaan Dummy', 'librarian'::public.app_role),
     ('10000000-0000-4000-8000-000000000004'::uuid, 'Siswa Login Dummy', 'member'::public.app_role),

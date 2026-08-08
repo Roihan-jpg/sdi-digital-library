@@ -1301,6 +1301,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_login_at: string | null
+          must_change_password: boolean
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
         }
@@ -1311,6 +1312,7 @@ export type Database = {
           id: string
           is_active?: boolean
           last_login_at?: string | null
+          must_change_password?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
@@ -1321,10 +1323,58 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_login_at?: string | null
+          must_change_password?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
         Relationships: []
+      }
+      system_events: {
+        Row: {
+          actor_user_id: string | null
+          context: Json
+          event_code: string
+          expires_at: string
+          id: number
+          level: string
+          message: string
+          occurred_at: string
+          request_id: string | null
+          source: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          context?: Json
+          event_code: string
+          expires_at?: string
+          id?: never
+          level: string
+          message: string
+          occurred_at?: string
+          request_id?: string | null
+          source: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          context?: Json
+          event_code?: string
+          expires_at?: string
+          id?: never
+          level?: string
+          message?: string
+          occurred_at?: string
+          request_id?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       publishers: {
         Row: {
@@ -1895,6 +1945,7 @@ export type Database = {
         Returns: number
       }
       can_view_operations: { Args: never; Returns: boolean }
+      can_link_member_account: { Args: never; Returns: boolean }
       cancel_reservation: {
         Args: { p_reservation_id: string }
         Returns: undefined
@@ -1947,6 +1998,7 @@ export type Database = {
         Returns: string
       }
       is_library_staff: { Args: never; Returns: boolean }
+      is_library_operator: { Args: never; Returns: boolean }
       is_master_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
       link_member_account: {
@@ -1959,6 +2011,7 @@ export type Database = {
       }
       lookup_member_by_card: { Args: { p_card_number: string }; Returns: Json }
       mark_overdue_items: { Args: never; Returns: number }
+      purge_expired_system_events: { Args: never; Returns: number }
       next_loan_number: { Args: never; Returns: string }
       next_reservation_number: { Args: never; Returns: string }
       record_digital_access: {
@@ -2245,4 +2298,3 @@ export const Constants = {
     },
   },
 } as const
-

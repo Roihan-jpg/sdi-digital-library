@@ -2,6 +2,7 @@ import { DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { roleHomePath } from '../../core/auth/auth.models';
+import { AuthService } from '../../core/auth/auth.service';
 import { AuthStore } from '../../core/auth/auth.store';
 import { NotificationBanner } from '../../shared/components/notification-banner/notification-banner';
 
@@ -17,11 +18,14 @@ import { NotificationBanner } from '../../shared/components/notification-banner/
 })
 export class PublicLayout {
   protected readonly authStore = inject(AuthStore);
+  private readonly authService = inject(AuthService);
   protected readonly dashboardPath = computed(() => {
     const role = this.authStore.currentRole();
     return role ? roleHomePath(role) : '/';
   });
   protected readonly navigationOpen = signal(false);
+  protected readonly loggingOut = signal(false);
+  protected readonly isGuest = computed(() => this.authStore.currentRole() === 'guest');
   protected readonly headerScrolled = signal(false);
   private readonly document = inject(DOCUMENT);
 
@@ -38,5 +42,15 @@ export class PublicLayout {
   protected closeNavigation(): void {
     this.navigationOpen.set(false);
     this.document.body.style.overflow = '';
+  }
+
+  protected async logout(): Promise<void> {
+    this.loggingOut.set(true);
+    try {
+      await this.authService.logout();
+    } finally {
+      this.loggingOut.set(false);
+      this.closeNavigation();
+    }
   }
 }

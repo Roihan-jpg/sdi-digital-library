@@ -2,9 +2,13 @@
 
 ## Akun dan role
 
-Role yang didukung: `master_admin`, `head_librarian`, `librarian`, `member`, dan `guest`. Hanya master admin yang mengubah role. Kepala perpustakaan membaca/mengekspor laporan dan tidak memperoleh konfigurasi master admin.
+Role yang didukung: `master_admin`, `head_librarian`, `librarian`, `member`, dan `guest`. Hanya master admin yang mengubah role dan status akun. Master admin tidak menjalankan sirkulasi atau pengelolaan koleksi. Kepala perpustakaan membaca seluruh data operasional dan laporan tanpa aksi perubahan. Pustakawan menjalankan operasional dan hanya melihat laporan harian yang diizinkan.
 
 Bootstrap master admin pertama dilakukan sekali melalui SQL Editor administratif. Sesudah itu gunakan menu akun; jangan mengubah `profiles.role` dari frontend atau membagikan service role key.
+
+Menu administrasi menyediakan pembuatan akun melalui undangan email atau kata sandi sementara. Kata sandi sementara wajib minimal 12 karakter dengan huruf besar, huruf kecil, angka, dan simbol; pengguna dipaksa menggantinya sebelum membuka fitur lain. Gunakan nonaktifkan akun, bukan menghapus histori pengguna.
+
+Audit detail menyamarkan kredensial, path privat, dan identitas sensitif. Halaman status sistem hanya menampilkan konfigurasi aman. Event warning/error disimpan 30 hari dan dibersihkan oleh job maintenance.
 
 ## Data master dan import
 

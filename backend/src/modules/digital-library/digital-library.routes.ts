@@ -44,13 +44,13 @@ export function createDigitalLibraryRouter(
   router.get(
     '/management',
     authenticate(authService),
-    authorize('master_admin', 'head_librarian', 'librarian'),
+    authorize('head_librarian', 'librarian'),
     async (_req, res) => res.json({ data: await service.listManagement() }),
   );
   router.post(
     '/',
     authenticate(authService),
-    authorize('master_admin', 'librarian'),
+    authorize('librarian'),
     upload.fields([
       { name: 'file', maxCount: 1 },
       { name: 'cover', maxCount: 1 },
@@ -72,7 +72,7 @@ export function createDigitalLibraryRouter(
   router.put(
     '/:id',
     authenticate(authService),
-    authorize('master_admin', 'librarian'),
+    authorize('librarian'),
     upload.fields([
       { name: 'file', maxCount: 1 },
       { name: 'cover', maxCount: 1 },
@@ -93,7 +93,7 @@ export function createDigitalLibraryRouter(
   router.delete(
     '/:id',
     authenticate(authService),
-    authorize('master_admin', 'librarian'),
+    authorize('librarian'),
     async (req, res) => {
       await service.remove(req.auth!, idSchema.parse(req.params['id']));
       res.status(204).send();

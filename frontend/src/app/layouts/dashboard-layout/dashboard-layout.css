@@ -113,7 +113,26 @@ aside {
 
 .dashboard-nav {
   display: grid;
+  gap: 1rem;
+}
+
+.nav-group {
+  display: grid;
   gap: 0.28rem;
+}
+
+.nav-group__label {
+  margin: 0 0 0.22rem;
+  padding: 0 0.65rem;
+  overflow: hidden;
+  color: #777d98;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .dashboard-nav a {

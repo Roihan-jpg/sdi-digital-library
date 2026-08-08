@@ -36,7 +36,11 @@
       >
       <div class="mobile-account">
         @if (authStore.isAuthenticated()) {
-          <a [routerLink]="dashboardPath()" (click)="closeNavigation()">Buka dashboard</a>
+          @if (isGuest()) {
+            <button type="button" (click)="logout()">Keluar akun</button>
+          } @else {
+            <a [routerLink]="dashboardPath()" (click)="closeNavigation()">Buka dashboard</a>
+          }
         } @else {
           <a routerLink="/masuk" (click)="closeNavigation()">Masuk ke akun</a>
         }
@@ -45,7 +49,13 @@
 
     <div class="header-actions">
       @if (authStore.isAuthenticated()) {
-        <a class="account-link" [routerLink]="dashboardPath()">Dashboard</a>
+        @if (isGuest()) {
+          <button class="account-link" type="button" [disabled]="loggingOut()" (click)="logout()">
+            {{ loggingOut() ? 'Keluar...' : 'Keluar' }}
+          </button>
+        } @else {
+          <a class="account-link" [routerLink]="dashboardPath()">Dashboard</a>
+        }
       } @else {
         <a class="account-link" routerLink="/masuk">Masuk</a>
       }

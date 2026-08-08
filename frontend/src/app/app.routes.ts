@@ -9,6 +9,24 @@ import type { AppRole } from './core/auth/auth.models';
 
 export const routes: Routes = [
   {
+    path: 'ganti-kata-sandi',
+    canActivate: [authGuard],
+    title: 'Ganti kata sandi · SDI Digital Library',
+    loadComponent: () =>
+      import('./features/auth/pages/change-password-page/change-password-page').then(
+        (module) => module.ChangePasswordPage,
+      ),
+  },
+  {
+    path: 'atur-ulang-kata-sandi',
+    canActivate: [authGuard],
+    title: 'Atur ulang kata sandi · SDI Digital Library',
+    loadComponent: () =>
+      import('./features/auth/pages/change-password-page/change-password-page').then(
+        (module) => module.ChangePasswordPage,
+      ),
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -26,12 +44,21 @@ export const routes: Routes = [
           ),
       },
       dashboardRoute('admin', ['master_admin'], 'Dashboard Master Admin'),
-      dashboardRoute('monitoring', ['master_admin', 'head_librarian'], 'Monitoring Perpustakaan'),
-      dashboardRoute('operasional', ['master_admin', 'librarian'], 'Operasional Perpustakaan'),
+      dashboardRoute('monitoring', ['head_librarian'], 'Monitoring Perpustakaan'),
+      dashboardRoute('operasional', ['librarian'], 'Operasional Perpustakaan'),
+      {
+        path: 'activity',
+        canActivate: [roleGuard],
+        data: { roles: ['head_librarian'] },
+        loadComponent: () =>
+          import('./features/circulation/pages/activity-page/activity-page').then(
+            (module) => module.ActivityPage,
+          ),
+      },
       {
         path: 'circulation',
         canActivate: [roleGuard],
-        data: { roles: ['master_admin', 'librarian'] },
+        data: { roles: ['librarian'] },
         loadComponent: () =>
           import('./features/circulation/pages/operations-page/operations-page').then(
             (module) => module.OperationsPage,
@@ -40,7 +67,7 @@ export const routes: Routes = [
       {
         path: 'members',
         canActivate: [roleGuard],
-        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        data: { roles: ['head_librarian', 'librarian'] },
         loadComponent: () =>
           import('./features/members/pages/member-management-page/member-management-page').then(
             (module) => module.MemberManagementPage,
@@ -49,7 +76,7 @@ export const routes: Routes = [
       {
         path: 'imports',
         canActivate: [roleGuard],
-        data: { roles: ['master_admin', 'librarian'] },
+        data: { roles: ['head_librarian', 'librarian'] },
         loadComponent: () =>
           import('./features/imports/pages/import-page/import-page').then(
             (module) => module.ImportPage,
@@ -58,7 +85,7 @@ export const routes: Routes = [
       {
         path: 'inventory',
         canActivate: [roleGuard],
-        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        data: { roles: ['head_librarian', 'librarian'] },
         loadComponent: () =>
           import('./features/inventory/pages/inventory-page/inventory-page').then(
             (module) => module.InventoryPage,
@@ -67,7 +94,7 @@ export const routes: Routes = [
       {
         path: 'digital-library',
         canActivate: [roleGuard],
-        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        data: { roles: ['head_librarian', 'librarian'] },
         loadComponent: () =>
           import('./features/digital-library/pages/digital-management-page/digital-management-page').then(
             (module) => module.DigitalManagementPage,
@@ -85,7 +112,7 @@ export const routes: Routes = [
       {
         path: 'master-data',
         canActivate: [roleGuard],
-        data: { roles: ['master_admin', 'head_librarian', 'librarian'] },
+        data: { roles: ['head_librarian', 'librarian'] },
         loadComponent: () =>
           import('./features/master-data/pages/master-data-page/master-data-page').then(
             (module) => module.MasterDataPage,
@@ -100,7 +127,26 @@ export const routes: Routes = [
             (module) => module.MemberPortalPage,
           ),
       },
-      dashboardRoute('guest', ['guest'], 'Portal Tamu'),
+      adminRoute('admin/users', () =>
+        import('./features/administration/pages/user-management-page/user-management-page').then(
+          (m) => m.UserManagementPage,
+        ),
+      ),
+      adminRoute('admin/settings', () =>
+        import('./features/administration/pages/library-settings-page/library-settings-page').then(
+          (m) => m.LibrarySettingsPage,
+        ),
+      ),
+      adminRoute('admin/audit', () =>
+        import('./features/administration/pages/audit-log-page/audit-log-page').then(
+          (m) => m.AuditLogPage,
+        ),
+      ),
+      adminRoute('admin/system', () =>
+        import('./features/administration/pages/system-status-page/system-status-page').then(
+          (m) => m.SystemStatusPage,
+        ),
+      ),
       {
         path: 'forbidden',
         title: 'Akses ditolak · SDI Digital Library',
@@ -179,4 +225,13 @@ function dashboardRoute(path: string, roles: readonly AppRole[], heading: string
         (module) => module.DashboardPage,
       ),
   };
+}
+
+function adminRoute(path: string, loadComponent: () => Promise<unknown>): Routes[number] {
+  return {
+    path,
+    canActivate: [roleGuard],
+    data: { roles: ['master_admin'] },
+    loadComponent,
+  } as Routes[number];
 }

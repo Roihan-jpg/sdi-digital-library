@@ -72,6 +72,9 @@
 
 .links > a,
 .account-link {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
   position: relative;
   padding: 0.65rem 0.15rem;
   color: #4a4e5d;

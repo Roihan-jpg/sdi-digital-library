@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import { MasterDataApiService } from '../../../master-data/data-access/master-data-api.service';
 import { InventoryApiService } from '../../data-access/inventory-api.service';
 import { InventoryPage } from './inventory-page';
@@ -48,6 +49,7 @@ function setup(overrides: Partial<Record<'createTitle' | 'createCopy', unknown>>
   TestBed.configureTestingModule({
     imports: [InventoryPage],
     providers: [
+      { provide: AuthStore, useValue: { currentRole: () => 'librarian' } },
       {
         provide: InventoryApiService,
         useValue: {

@@ -30,6 +30,13 @@ import { createDigitalLibraryRouter } from './modules/digital-library/digital-li
 import { DigitalLibraryService } from './modules/digital-library/digital-library.service.js';
 import { createReportRouter } from './modules/reports/report.routes.js';
 import { ReportService } from './modules/reports/report.service.js';
+import {
+  createAuditLogRouter,
+  createSettingsRouter,
+  createSystemEventRouter,
+  createSystemRouter,
+} from './modules/administration/administration.routes.js';
+import { AdministrationService } from './modules/administration/administration.service.js';
 
 export interface AppDependencies {
   authService: AuthServicePort;
@@ -46,6 +53,7 @@ export function createApp(
   const authService = dependencyOverrides.authService ?? new AuthService(repository);
   const profileService = dependencyOverrides.profileService ?? new ProfileService(repository);
   const circulationService = new CirculationService(config);
+  const administrationService = new AdministrationService(config);
 
   app.disable('x-powered-by');
   app.set('trust proxy', config.TRUST_PROXY_HOPS);
@@ -103,8 +111,12 @@ export function createApp(
     `${config.API_BASE_PATH}/reports`,
     createReportRouter(authService, new ReportService(config)),
   );
+  app.use(`${config.API_BASE_PATH}/settings`, createSettingsRouter(authService, administrationService));
+  app.use(`${config.API_BASE_PATH}/audit-logs`, createAuditLogRouter(authService, administrationService));
+  app.use(`${config.API_BASE_PATH}/system`, createSystemRouter(authService, administrationService));
+  app.use(`${config.API_BASE_PATH}/system-events`, createSystemEventRouter(authService, administrationService));
   app.use(notFoundHandler());
-  app.use(errorHandler(logger));
+  app.use(errorHandler(logger, administrationService));
 
   return app;
 }

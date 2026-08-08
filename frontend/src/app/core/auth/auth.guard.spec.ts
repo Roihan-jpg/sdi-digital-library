@@ -10,16 +10,18 @@ import { AuthStore } from './auth.store';
 describe('auth and role guards', () => {
   const authenticated = signal(false);
   const currentRole = signal<AppRole | null>(null);
+  const context = signal<{ profile: { mustChangePassword?: boolean } } | null>(null);
 
   beforeEach(() => {
     authenticated.set(false);
     currentRole.set(null);
+    context.set(null);
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         {
           provide: AuthStore,
-          useValue: { isAuthenticated: authenticated, currentRole },
+          useValue: { isAuthenticated: authenticated, currentRole, context },
         },
       ],
     });
@@ -47,6 +49,21 @@ describe('auth and role guards', () => {
     expect(result).toBe(true);
   });
 
+  it('forces temporary-password accounts to change their password first', () => {
+    authenticated.set(true);
+    currentRole.set('librarian');
+    context.set({ profile: { mustChangePassword: true } });
+
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard(
+        {} as ActivatedRouteSnapshot,
+        { url: '/dashboard/operasional' } as RouterStateSnapshot,
+      ),
+    ) as UrlTree;
+
+    expect(TestBed.inject(Router).serializeUrl(result)).toBe('/ganti-kata-sandi');
+  });
+
   it('redirects a role that is not permitted', () => {
     authenticated.set(true);
     currentRole.set('member');
@@ -65,7 +82,7 @@ describe('auth and role guards', () => {
       head_librarian: '/dashboard/monitoring',
       librarian: '/dashboard/operasional',
       member: '/dashboard/member',
-      guest: '/dashboard/guest',
+      guest: '/katalog',
     };
 
     for (const [role, path] of Object.entries(expected) as [AppRole, string][]) {

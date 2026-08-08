@@ -10,6 +10,7 @@ import type {
   AppRole,
   AuthContext,
   AuthServicePort,
+  CreateAccountInput,
   ProfileServicePort,
   UpdateOwnProfileInput,
 } from './auth.types.js';
@@ -38,20 +39,32 @@ const config: AppConfig = {
 
 class FakeAuthService implements AuthServicePort {
   loggedOutToken: string | null = null;
+  changedPassword: string | null = null;
 
   async authenticate(accessToken: string): Promise<AuthContext> {
     if (accessToken === 'master-token') return context(masterId, 'master_admin', accessToken);
     if (accessToken === 'member-token') return context(memberId, 'member', accessToken);
+    if (accessToken === 'temporary-token') {
+      return {
+        ...context(targetId, 'guest', accessToken),
+        profile: { ...profile(targetId, 'guest', true), mustChangePassword: true },
+      };
+    }
     throw new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
   }
 
   async logout(accessToken: string): Promise<void> {
     this.loggedOutToken = accessToken;
   }
+
+  async changePassword(_context: AuthContext, password: string): Promise<void> {
+    this.changedPassword = password;
+  }
 }
 
 class FakeProfileService implements ProfileServicePort {
   roleUpdate: { userId: string; role: AppRole } | null = null;
+  createdAccount: { email: string; fullName: string; role: AppRole; deliveryMode: string } | null = null;
 
   async listProfiles(
     authContext: AuthContext,
@@ -85,6 +98,19 @@ class FakeProfileService implements ProfileServicePort {
   }
 
   async linkMember(_context: AuthContext, _userId: string, _memberId: string): Promise<void> {}
+
+  async createAccount(
+    _context: AuthContext,
+    input: CreateAccountInput,
+  ): Promise<AppProfile> {
+    this.createdAccount = {
+      email: input.email,
+      fullName: input.fullName,
+      role: input.role,
+      deliveryMode: input.deliveryMode,
+    };
+    return profile(targetId, input.role, true);
+  }
 }
 
 describe('auth and profile routes', () => {
@@ -155,6 +181,54 @@ describe('auth and profile routes', () => {
 
     assert.equal(response.status, 204);
     assert.equal(authService.loggedOutToken, 'member-token');
+  });
+
+  it('blocks temporary-password accounts outside the allowed auth endpoints', async () => {
+    const response = await request('/api/profiles/me', 'temporary-token');
+    const body = (await response.json()) as { error: { code: string } };
+
+    assert.equal(response.status, 403);
+    assert.equal(body.error.code, 'PASSWORD_CHANGE_REQUIRED');
+  });
+
+  it('validates and changes a temporary password through the backend', async () => {
+    const weak = await request('/api/auth/password', 'temporary-token', {
+      method: 'PATCH',
+      body: JSON.stringify({ password: 'terlalulemah' }),
+    });
+    assert.equal(weak.status, 400);
+
+    const strongPassword = 'Perpustakaan#2026';
+    const accepted = await request('/api/auth/password', 'temporary-token', {
+      method: 'PATCH',
+      body: JSON.stringify({ password: strongPassword }),
+    });
+
+    assert.equal(accepted.status, 204);
+    assert.equal(authService.changedPassword, strongPassword);
+  });
+
+  it('allows master admin to create an invited account without receiving a password', async () => {
+    const response = await request('/api/profiles', 'master-token', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'kepala.baru@example.sch.id',
+        fullName: 'Kepala Baru',
+        role: 'head_librarian',
+        deliveryMode: 'invite',
+      }),
+    });
+    const body = (await response.json()) as { data: AppProfile & { password?: string } };
+
+    assert.equal(response.status, 201);
+    assert.equal(body.data.role, 'head_librarian');
+    assert.equal(body.data.password, undefined);
+    assert.deepEqual(profileService.createdAccount, {
+      email: 'kepala.baru@example.sch.id',
+      fullName: 'Kepala Baru',
+      role: 'head_librarian',
+      deliveryMode: 'invite',
+    });
   });
 
   function request(path: string, token: string, init: RequestInit = {}): Promise<Response> {

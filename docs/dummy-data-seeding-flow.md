@@ -49,7 +49,7 @@ Daftar akun:
 
 | Email | Role |
 |---|---|
-| `admin.dummy@sdi.test` | `master_admin` |
+| `admin.perpustakaan.dummy@sdi.test` | `master_admin` |
 | `kepala.perpus.dummy@sdi.test` | `head_librarian` |
 | `petugas.dummy@sdi.test` | `librarian` |
 | `siswa.dummy@sdi.test` | `member` |

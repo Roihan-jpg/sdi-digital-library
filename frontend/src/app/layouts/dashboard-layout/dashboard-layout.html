@@ -42,26 +42,31 @@
     </div>
 
     <nav class="dashboard-nav" aria-label="Navigasi dashboard">
-      @for (item of navigation(); track item.label) {
-        <a
-          [routerLink]="item.path"
-          [fragment]="item.section ?? undefined"
-          routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{
-            paths: 'exact',
-            queryParams: 'ignored',
-            matrixParams: 'ignored',
-            fragment: 'exact',
-          }"
-          [attr.title]="railCollapsed() ? item.label : null"
-          (click)="closeNavigation()"
-        >
-          <span class="nav-glyph" aria-hidden="true"><i></i><i></i></span>
-          <span class="nav-label">{{ item.label }}</span>
-          @if (item.badge) {
-            <span class="menu-badge">{{ item.badge }}</span>
+      @for (group of navigationGroups(); track group.label) {
+        <section class="nav-group" [attr.aria-labelledby]="'nav-group-' + $index">
+          <h2 [id]="'nav-group-' + $index" class="nav-group__label">{{ group.label }}</h2>
+          @for (item of group.items; track item.label) {
+            <a
+              [routerLink]="item.path"
+              [fragment]="item.section"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{
+                paths: 'exact',
+                queryParams: 'ignored',
+                matrixParams: 'ignored',
+                fragment: 'exact',
+              }"
+              [attr.title]="railCollapsed() ? item.label : null"
+              (click)="closeNavigation()"
+            >
+              <span class="nav-glyph" aria-hidden="true"><i></i><i></i></span>
+              <span class="nav-label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="menu-badge">{{ item.badge }}</span>
+              }
+            </a>
           }
-        </a>
+        </section>
       }
     </nav>
 
