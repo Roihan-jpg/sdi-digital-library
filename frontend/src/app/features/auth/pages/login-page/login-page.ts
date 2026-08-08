@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { Component, ElementRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,8 +8,7 @@ import { roleHomePath } from '../../../../core/auth/auth.models';
 
 @Component({
   selector: 'sdi-login-page',
-  imports: [ReactiveFormsModule,
-              RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NgOptimizedImage],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css',
 })
@@ -92,9 +92,7 @@ export class LoginPage {
         ? requestedRedirect
         : roleHomePath(context.profile.role);
 
-      // Briefly show a success state before navigating away.
       this.loginSucceeded.set(true);
-      await wait(700);
       await this.router.navigateByUrl(target);
     } catch (error) {
       this.errorMessage.set(
@@ -121,10 +119,6 @@ export class LoginPage {
 
 function isSafeInternalRedirect(value: string | null): value is string {
   return value !== null && value.startsWith('/') && !value.startsWith('//');
-}
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 interface LoginField {

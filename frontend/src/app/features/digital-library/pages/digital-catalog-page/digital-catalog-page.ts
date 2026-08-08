@@ -119,7 +119,6 @@ export class DigitalCatalogPage {
     return ({ ebook: 'E-book', module: 'Modul', video: 'Video', audio: 'Audio' } as const)[type];
   }
 
-
   protected downloadLabel(item: DigitalCollection) {
     return item.is_downloadable ? 'Bisa diunduh setelah masuk' : 'Baca atau putar setelah masuk';
   }

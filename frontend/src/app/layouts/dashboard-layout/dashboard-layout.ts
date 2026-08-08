@@ -1,12 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  HostListener,
-  ViewChild,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import type { AppRole } from '../../core/auth/auth.models';
@@ -70,6 +62,9 @@ const navigationByRole: Record<AppRole, readonly NavigationItem[]> = {
   imports: [RouterLink, RouterLinkActive, RouterOutlet, NotificationBanner],
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.css',
+  host: {
+    '(document:keydown.escape)': 'handleEscape()',
+  },
 })
 export class DashboardLayout {
   protected readonly authStore = inject(AuthStore);
@@ -80,6 +75,7 @@ export class DashboardLayout {
   @ViewChild('menuButton') private menuButton?: ElementRef<HTMLButtonElement>;
   protected readonly isLoggingOut = signal(false);
   protected readonly navigationOpen = signal(false);
+  protected readonly railCollapsed = signal(false);
   protected readonly navigation = computed(() => {
     const role = this.authStore.currentRole();
     return role ? navigationByRole[role] : [];
@@ -139,9 +135,12 @@ export class DashboardLayout {
     }
   }
 
-  @HostListener('document:keydown.escape')
   protected handleEscape(): void {
     if (this.navigationOpen()) this.closeNavigation(true);
+  }
+
+  protected toggleRail(): void {
+    this.railCollapsed.update((collapsed) => !collapsed);
   }
 
   protected async logout(): Promise<void> {

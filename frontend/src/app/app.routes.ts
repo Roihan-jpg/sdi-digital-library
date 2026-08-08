@@ -117,9 +117,7 @@ export const routes: Routes = [
     canActivate: [anonymousGuard],
     title: 'Masuk · SDI Digital Library',
     loadComponent: () =>
-      import('./features/auth/pages/login-page/login-page').then(
-        (module) => module.LoginPage,
-      ),
+      import('./features/auth/pages/login-page/login-page').then((module) => module.LoginPage),
   },
 
   {

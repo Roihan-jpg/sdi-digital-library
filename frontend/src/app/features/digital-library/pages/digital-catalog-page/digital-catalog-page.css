@@ -1,25 +1,20 @@
-/*
-  Palet & token diadaptasi dari digital-collection.html.
-  Catatan: font 'Poppins' perlu ditautkan sekali secara global di index.html, mis.:
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-*/
 :host {
-  --navy-950: #0a0f1c;
-  --navy-900: #0f172a;
-  --navy-800: #1b2a44;
-  --navy-700: #2a3b58;
-  --navy-600: #425571;
+  --navy-950: #101226;
+  --navy-900: #171936;
+  --navy-800: #292d68;
+  --navy-700: #3e438d;
+  --navy-600: #5d618f;
 
-  --emerald-800: #065f46;
-  --emerald-700: #047857;
-  --emerald-600: #059669;
-  --emerald-500: #10b981;
-  --emerald-400: #34d399;
-  --emerald-100: #d1fae5;
-  --emerald-50: #ecfdf5;
+  --emerald-800: #292d68;
+  --emerald-700: #343978;
+  --emerald-600: #3e438d;
+  --emerald-500: #5258a5;
+  --emerald-400: #4d9f7d;
+  --emerald-100: #e2e4f2;
+  --emerald-50: #eff0f7;
 
   --white: #ffffff;
-  --gray-50: #f4f6f8;
+  --gray-50: #f2f4f8;
   --gray-100: #ebeef1;
   --gray-200: #dfe4e9;
   --gray-300: #c7cfd6;
@@ -27,7 +22,7 @@
   --gray-500: #8493a1;
   --gray-600: #5f6f7e;
 
-  --amber-500: #f59e0b;
+  --amber-500: #f2c94c;
   --amber-50: #fffbeb;
   --amber-700: #92400e;
   --blue-500: #3b82f6;

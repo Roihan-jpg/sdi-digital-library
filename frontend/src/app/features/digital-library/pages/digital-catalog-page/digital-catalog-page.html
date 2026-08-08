@@ -11,7 +11,15 @@
   <section class="section">
     <form [formGroup]="filters" (ngSubmit)="applyFilters($event)" class="filter-card" novalidate>
       <div class="search-input-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -47,7 +55,15 @@
         <button class="btn btn-primary" type="submit" [disabled]="loading()">Terapkan</button>
         @if (hasActiveFilters()) {
           <button class="reset-link" type="button" (click)="clearFilters()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
               <polyline points="1 4 1 10 7 10" />
               <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
             </svg>
@@ -61,7 +77,14 @@
   @if (loading()) {
     <div class="state-panel" role="status" aria-live="polite">
       <div class="state-icon spin">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
           <path d="M12 3a9 9 0 1 0 9 9" />
         </svg>
       </div>
@@ -72,7 +95,15 @@
   @if (error()) {
     <div class="state-panel error" role="alert">
       <div class="state-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="12" cy="12" r="9" />
           <line x1="12" y1="8" x2="12" y2="13" />
           <line x1="12" y1="16.5" x2="12" y2="16.5" />
@@ -98,7 +129,7 @@
       @for (item of items(); track item.id) {
         <article class="card">
           <a
-            class="card-cover"
+            class="card-cover cover-link"
             [class.cover-ebook]="item.media_type === 'ebook'"
             [class.cover-module]="item.media_type === 'module'"
             [class.cover-video]="item.media_type === 'video'"
@@ -117,7 +148,16 @@
                 decoding="async"
               />
             } @else {
-              <svg class="cov-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg
+                class="cov-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
                 <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z" />
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               </svg>
@@ -128,7 +168,8 @@
               [class.badge-module]="item.media_type === 'module'"
               [class.badge-video]="item.media_type === 'video'"
               [class.badge-audio]="item.media_type === 'audio'"
-            >{{ mediaLabel(item.media_type) }}</span>
+              >{{ mediaLabel(item.media_type) }}</span
+            >
             <span class="card-filetype-float filetype-pill">{{ downloadLabel(item) }}</span>
           </a>
 
@@ -142,7 +183,15 @@
             <div class="card-author">{{ item.author_text || 'Penulis tidak dicatat' }}</div>
             <div class="card-meta-row">
               <span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
                   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
@@ -150,7 +199,9 @@
               </span>
             </div>
             <div class="card-footer">
-              <a class="btn btn-primary btn-block" [routerLink]="['/koleksi-digital', item.slug]">Lihat detail</a>
+              <a class="btn btn-primary btn-block" [routerLink]="['/koleksi-digital', item.slug]"
+                >Lihat detail</a
+              >
             </div>
           </div>
         </article>
@@ -161,7 +212,15 @@
   @if (!loading() && !error() && items().length === 0) {
     <div class="state-panel" aria-labelledby="digital-empty-title">
       <div class="state-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -169,7 +228,9 @@
       <h4 id="digital-empty-title">{{ emptyTitle() }}</h4>
       <p>{{ emptyMessage() }}</p>
       @if (hasActiveFilters()) {
-        <button class="btn btn-ghost" type="button" (click)="clearFilters()">Tampilkan semua koleksi</button>
+        <button class="btn btn-ghost" type="button" (click)="clearFilters()">
+          Tampilkan semua koleksi
+        </button>
       }
     </div>
   }

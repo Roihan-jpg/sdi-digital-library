@@ -1,27 +1,73 @@
+@font-face {
+  font-family: 'Poppins';
+  src: url('/font/Poppins-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/font/Poppins-Medium.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/font/Poppins-SemiBold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/font/Poppins-ExtraBold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/font/Poppins-BoldItalic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
-  --color-nav-text: #374151;
-  --color-nav-active: #22745a;
-  --color-nav-hover: #e9f5ef;
-  --color-nav-hover-text: #185641;
-  --color-brand-950: #1e1b4b;
-  --color-brand-800: #3730a3;
-  --color-brand-700: #4f46e5;
-  --color-brand-100: #e0e7ff;
-  --color-brand-50: #eef2ff;
+  --color-ink: #171936;
+  --color-indigo: #3e438d;
+  --color-jade: #4d9f7d;
+  --color-saffron: #f2c94c;
+  --color-mist: #f2f4f8;
+  --color-charcoal: #171a22;
+  --color-nav-text: #3f4352;
+  --color-nav-active: var(--color-ink);
+  --color-nav-hover: #e7e9f3;
+  --color-nav-hover-text: var(--color-ink);
+  --color-brand-950: var(--color-ink);
+  --color-brand-800: #2c306c;
+  --color-brand-700: var(--color-indigo);
+  --color-brand-100: #dfe2f4;
+  --color-brand-50: #eef0f8;
   --color-brand-divider: rgb(255 255 255 / 24%);
   --color-overlay: rgb(30 27 75 / 64%);
-  --color-accent: #16a34a;
-  --color-accent-strong: #15803d;
-  --color-accent-surface: #dcfce7;
+  --color-accent: var(--color-jade);
+  --color-accent-strong: #34775c;
+  --color-accent-surface: #e2f0e9;
   --color-amber-700: #b45309;
   --color-amber-900: #92400e;
   --color-amber-100: #fef3c7;
-  --color-canvas: #eef2ff;
+  --color-canvas: var(--color-mist);
   --color-surface: #fff;
   --color-surface-subtle: #ebeff9;
-  --color-text: #312e81;
-  --color-text-muted: #565a7d;
+  --color-text: var(--color-charcoal);
+  --color-text-muted: #626777;
   --color-text-inverse: #fff;
   --color-border: #c7d2fe;
   --color-border-strong: #6366f1;
@@ -45,11 +91,9 @@
   --color-warning-surface: var(--color-amber-100);
   --color-error: var(--color-danger);
   --color-error-surface: var(--color-danger-surface);
-  --font-family-ui:
-    Raleway, Aptos, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
-  --font-family-display: Lora, Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
-  --font-family-data: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --font-family-ui: 'Poppins', Aptos, ui-sans-serif, system-ui, sans-serif;
+  --font-family-display: 'Poppins', Aptos, ui-sans-serif, system-ui, sans-serif;
+  --font-family-data: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -87,13 +131,13 @@
   --focus-ring-width: 5px;
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 1.125rem;
   --radius-pill: 999px;
   --shadow-none: none;
   --shadow-sm: 0 1px 2px rgb(49 46 129 / 8%);
-  --shadow-md: 0 8px 24px rgb(49 46 129 / 10%);
-  --shadow-lg: 0 20px 48px rgb(49 46 129 / 14%);
+  --shadow-md: 0 14px 36px rgb(23 25 54 / 10%);
+  --shadow-lg: 0 28px 72px rgb(23 25 54 / 16%);
   --icon-sm: 1rem;
   --icon-md: 1.25rem;
   --icon-lg: 1.5rem;
