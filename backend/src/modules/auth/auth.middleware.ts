@@ -12,6 +12,15 @@ export function authenticate(authService: AuthServicePort): RequestHandler {
       }
 
       req.auth = await authService.authenticate(match[1]);
+      const passwordEndpointAllowed =
+        req.baseUrl.endsWith('/auth') && ['/me', '/logout', '/password'].includes(req.path);
+      if (req.auth.profile.mustChangePassword && !passwordEndpointAllowed) {
+        throw new AppError(
+          403,
+          'PASSWORD_CHANGE_REQUIRED',
+          'Ganti kata sandi sementara sebelum menggunakan fitur lain.',
+        );
+      }
       next();
     } catch (error) {
       next(error);
@@ -34,4 +43,3 @@ export function authorize(...allowedRoles: readonly AppRole[]): RequestHandler {
     next();
   };
 }
-

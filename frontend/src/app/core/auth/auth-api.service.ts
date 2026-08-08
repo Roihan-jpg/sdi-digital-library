@@ -22,4 +22,8 @@ export class AuthApiService {
   logout(): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/auth/logout`, null);
   }
+
+  changePassword(password: string): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/auth/password`, { password });
+  }
 }

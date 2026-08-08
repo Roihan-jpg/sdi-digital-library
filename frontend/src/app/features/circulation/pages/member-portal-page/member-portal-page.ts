@@ -88,7 +88,6 @@ import {
         }
       </section>
 
-
       <section class="panel card" id="reservasi">
         <div class="section-title">
           <h2>Reservasi buku</h2>
@@ -209,8 +208,7 @@ import {
         </div>
       </section>
 
-
-      <section class="panel card"  id="denda">
+      <section class="panel card" id="denda">
         <h2>Denda dan pembayaran</h2>
         <div class="table-wrap">
           <table>
@@ -254,7 +252,6 @@ import {
           </table>
         </div>
       </section>
-
 
       <section class="panel card" id="riwayat">
         <h2>Riwayat peminjaman</h2>

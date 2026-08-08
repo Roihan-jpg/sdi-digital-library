@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import { ImportApiService, type ImportJob } from '../../data-access/import-api.service';
 import { ImportPage } from './import-page';
 
@@ -54,6 +55,7 @@ function setup(
   TestBed.configureTestingModule({
     imports: [ImportPage],
     providers: [
+      { provide: AuthStore, useValue: { currentRole: () => 'librarian' } },
       {
         provide: ImportApiService,
         useValue: {

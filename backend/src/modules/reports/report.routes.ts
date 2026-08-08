@@ -11,6 +11,15 @@ import {
 } from './report.schema.js';
 import type { ReportFilters, ReportKind, SchoolIdentityInput } from './report.schema.js';
 import type { ReportResult, SchoolIdentity } from './report.types.js';
+import { AppError } from '../../common/errors/app-error.js';
+
+const librarianReportKinds = new Set<ReportKind>([
+  'overdue',
+  'fines',
+  'damaged-lost',
+  'inventory',
+  'visits',
+]);
 
 export interface ReportServicePort {
   dashboard(from: string, to: string): Promise<unknown>;
@@ -40,13 +49,25 @@ export function createReportRouter(authService: AuthServicePort, service: Report
   });
   router.get('/:kind/export', async (req, res) => {
     const kind = reportKindSchema.parse(req.params['kind']);
+    assertReportAccess(req.auth!, kind);
     const query = exportQuerySchema.parse(req.query);
     const output = await service.export(kind, query, query.format);
     res.attachment(output.fileName).type(output.mimeType).send(output.buffer);
   });
   router.get('/:kind', async (req, res) => {
     const kind = reportKindSchema.parse(req.params['kind']);
+    assertReportAccess(req.auth!, kind);
     res.json({ data: await service.report(kind, reportFilterSchema.parse(req.query)) });
   });
   return router;
+}
+
+function assertReportAccess(context: AuthContext, kind: ReportKind): void {
+  if (context.profile.role === 'librarian' && !librarianReportKinds.has(kind)) {
+    throw new AppError(
+      403,
+      'REPORT_ACCESS_DENIED',
+      'Laporan ini hanya tersedia untuk kepala perpustakaan dan master admin.',
+    );
+  }
 }

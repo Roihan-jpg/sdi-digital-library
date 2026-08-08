@@ -4,22 +4,25 @@
       <p class="eyebrow">Katalog publik</p>
       <h1>Temukan buku fisik perpustakaan</h1>
       <p>
-        Cari judul, ISBN, kategori, atau penerbit. Katalog menampilkan ketersediaan ringkas
-        tanpa membuka data eksemplar.
+        Cari judul, ISBN, kategori, atau penerbit. Katalog menampilkan ketersediaan ringkas tanpa
+        membuka data eksemplar.
       </p>
     </div>
-    @if (!loading() && !error()) {
-      <div class="stat-pill">
-        <span class="stat-value">{{ filteredBooks().length }}</span>
-        <span class="stat-label">{{ hasActiveFilters() ? 'hasil ditemukan' : 'buku di katalog' }}</span>
-      </div>
-    }
   </header>
 
   <div class="search-dock">
     <form class="search-glass" (submit)="search($event)" novalidate>
       <div class="search-field">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
           <circle cx="11" cy="11" r="7" />
           <path d="m21 21-4.3-4.3" />
         </svg>
@@ -30,7 +33,7 @@
           type="search"
           autocomplete="off"
           spellcheck="false"
-          placeholder="Search......"
+          placeholder="Cari judul, ISBN, kategori, atau penerbit"
           aria-describedby="catalog-search-helper"
         />
       </div>
@@ -50,8 +53,23 @@
       }
 
       @if (hasActiveFilters()) {
-        <button class="icon-btn" type="button" (click)="clearFilters()" aria-label="Hapus semua filter" title="Hapus semua filter">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <button
+          class="icon-btn"
+          type="button"
+          (click)="clearFilters()"
+          aria-label="Hapus semua filter"
+          title="Hapus semua filter"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
@@ -63,7 +81,12 @@
 
   @if (categories().length > 0) {
     <nav class="chip-row" aria-label="Filter cepat kategori">
-      <button class="chip" type="button" [class.active]="selectedCategory() === null" (click)="setCategory(null)">
+      <button
+        class="chip"
+        type="button"
+        [class.active]="selectedCategory() === null"
+        (click)="setCategory(null)"
+      >
         Semua buku
       </button>
       @for (category of categories(); track category) {
@@ -88,16 +111,43 @@
         }
       </div>
       <div class="view-toggle" role="group" aria-label="Ubah tampilan grid atau daftar">
-        <button type="button" [class.active]="viewMode() === 'grid'" (click)="setViewMode('grid')" aria-label="Tampilan grid">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <button
+          type="button"
+          [class.active]="viewMode() === 'grid'"
+          (click)="setViewMode('grid')"
+          aria-label="Tampilan grid"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
             <rect x="3" y="3" width="7" height="7" rx="1.5" />
             <rect x="14" y="3" width="7" height="7" rx="1.5" />
             <rect x="3" y="14" width="7" height="7" rx="1.5" />
             <rect x="14" y="14" width="7" height="7" rx="1.5" />
           </svg>
         </button>
-        <button type="button" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')" aria-label="Tampilan daftar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <button
+          type="button"
+          [class.active]="viewMode() === 'list'"
+          (click)="setViewMode('list')"
+          aria-label="Tampilan daftar"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
             <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -106,7 +156,13 @@
   }
 
   @if (loading()) {
-    <div class="book-grid skeleton-grid" [class.list-view]="viewMode() === 'list'" role="status" aria-live="polite" aria-label="Memuat katalog">
+    <div
+      class="book-grid skeleton-grid"
+      [class.list-view]="viewMode() === 'list'"
+      role="status"
+      aria-live="polite"
+      aria-label="Memuat katalog"
+    >
       @for (item of skeletonItems; track item) {
         <article class="book-card skeleton-card" aria-hidden="true">
           <div class="skeleton sk-cover"></div>
@@ -123,7 +179,15 @@
 
   @if (error()) {
     <div class="state-panel state-panel--error" role="alert">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.4"
+        aria-hidden="true"
+      >
         <circle cx="12" cy="12" r="9.3" />
         <path d="M12 7.5v5.5" stroke-width="1.8" stroke-linecap="round" />
         <circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none" />
@@ -139,6 +203,9 @@
       @for (book of filteredBooks(); track book.id) {
         <article class="book-card">
           <div class="book-cover" [class]="'cover-' + coverVariant(book)">
+            <span class="cover-category">{{ book.categories?.name ?? 'Koleksi' }}</span>
+            <strong>{{ book.title }}</strong>
+            <small>{{ book.publishers?.name ?? 'Perpustakaan SDI' }}</small>
             <span class="badge" [class.badge--available]="book.stock.available > 0">
               {{ stockStatusLabel(book) }}
             </span>
@@ -214,7 +281,15 @@
 
   @if (!loading() && !error() && filteredBooks().length === 0) {
     <section class="state-panel" aria-labelledby="catalog-empty-title">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.4"
+        aria-hidden="true"
+      >
         <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v16.5A2.5 2.5 0 0 0 9.5 22H4z" />
         <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v16.5a2.5 2.5 0 0 1 2.5-2.5H20z" />
         <path d="m9.5 10 2 2 3-3" />

@@ -5,12 +5,12 @@ import { memberIdSchema, memberInputSchema, memberListSchema } from './member.sc
 import { MemberService } from './member.service.js';
 
 export function createMemberRouter(authService: AuthServicePort, service: MemberService): Router {
-  const router = Router(); router.use(authenticate(authService), authorize('master_admin', 'head_librarian', 'librarian'));
+  const router = Router(); router.use(authenticate(authService), authorize('head_librarian', 'librarian'));
   router.get('/', async (req, res) => { const query = memberListSchema.parse(req.query); const result = await service.list(req.auth!, query); res.json({ data: result.items, pagination: { page: query.page, limit: query.limit, total: result.total } }); });
   router.get('/:id/history', async (req, res) => res.json({ data: await service.history(memberIdSchema.parse(req.params['id'])) }));
   router.get('/:id', async (req, res) => res.json({ data: await service.get(req.auth!, memberIdSchema.parse(req.params['id'])) }));
-  router.post('/', authorize('master_admin', 'librarian'), async (req, res) => res.status(201).json({ data: await service.create(req.auth!, memberInputSchema.parse(req.body)) }));
-  router.put('/:id', authorize('master_admin', 'librarian'), async (req, res) => res.json({ data: await service.update(req.auth!, memberIdSchema.parse(req.params['id']), memberInputSchema.parse(req.body)) }));
-  router.delete('/:id', authorize('master_admin'), async (req, res) => { await service.remove(req.auth!, memberIdSchema.parse(req.params['id'])); res.status(204).send(); });
+  router.post('/', authorize('librarian'), async (req, res) => res.status(201).json({ data: await service.create(req.auth!, memberInputSchema.parse(req.body)) }));
+  router.put('/:id', authorize('librarian'), async (req, res) => res.json({ data: await service.update(req.auth!, memberIdSchema.parse(req.params['id']), memberInputSchema.parse(req.body)) }));
+  router.delete('/:id', authorize('librarian'), async (req, res) => { await service.remove(req.auth!, memberIdSchema.parse(req.params['id'])); res.status(204).send(); });
   return router;
 }

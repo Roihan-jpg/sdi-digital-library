@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import {
   ImportApiService,
   type ImportJob,
@@ -43,7 +44,7 @@ type KindState<T> = Record<ImportKind, T>;
         </div>
       </header>
 
-      <div class="import-grid" aria-label="Pilihan import data">
+      <div class="import-grid" aria-label="Pilihan import data" [hidden]="!canWrite()">
         @for (kind of kinds; track kind.value) {
           <article
             class="card import-card"
@@ -151,6 +152,14 @@ type KindState<T> = Record<ImportKind, T>;
           </article>
         }
       </div>
+      @if (!canWrite()) {
+        <div class="alert" role="status">
+          <p>
+            Mode baca: kepala perpustakaan dapat memantau riwayat import, tetapi import baru hanya
+            dapat dijalankan pustakawan.
+          </p>
+        </div>
+      }
 
       @if (message()) {
         <div
@@ -506,6 +515,8 @@ type KindState<T> = Record<ImportKind, T>;
 })
 export class ImportPage {
   protected readonly api = inject(ImportApiService);
+  private readonly auth = inject(AuthStore);
+  protected readonly canWrite = computed(() => this.auth.currentRole() === 'librarian');
   protected readonly kinds: readonly ImportKindConfig[] = [
     {
       value: 'members',

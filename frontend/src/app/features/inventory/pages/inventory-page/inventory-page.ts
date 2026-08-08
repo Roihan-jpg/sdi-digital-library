@@ -1,5 +1,6 @@
-import { Component, ElementRef, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import { forkJoin } from 'rxjs';
 import {
   MasterDataApiService,
@@ -81,7 +82,7 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
         </div>
       }
 
-      <div class="inventory-grid">
+      <div class="inventory-grid" [hidden]="!canWrite()">
         <form
           class="card card--indexed inventory-form"
           [formGroup]="titleForm"
@@ -372,6 +373,36 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
           </div>
         </form>
       </div>
+      @if (!canWrite()) {
+        <section class="card">
+          <h2>Daftar judul inventaris</h2>
+          <p>Mode baca. Perubahan judul dan eksemplar hanya dapat dilakukan pustakawan.</p>
+          @if (titles().length === 0) {
+            <p>Belum ada judul yang dapat ditampilkan.</p>
+          } @else {
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Judul</th>
+                    <th>Kode katalog</th>
+                    <th>ISBN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (book of titles(); track book.id) {
+                    <tr>
+                      <td>{{ book.title }}</td>
+                      <td>{{ book.catalog_code || '-' }}</td>
+                      <td>{{ book.isbn || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
     </section>
   `,
   styles: `
@@ -573,6 +604,8 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
 })
 export class InventoryPage {
   private readonly api = inject(InventoryApiService);
+  private readonly auth = inject(AuthStore);
+  protected readonly canWrite = computed(() => this.auth.currentRole() === 'librarian');
   private readonly masterData = inject(MasterDataApiService);
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
 

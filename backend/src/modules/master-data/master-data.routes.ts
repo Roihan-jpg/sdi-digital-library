@@ -8,21 +8,21 @@ import { MasterDataService } from './master-data.service.js';
 
 export function createMasterDataRouter(authService: AuthServicePort, service: MasterDataService): Router {
   const router = Router();
-  router.use(authenticate(authService), authorize('master_admin', 'head_librarian', 'librarian'));
+  router.use(authenticate(authService), authorize('head_librarian', 'librarian'));
   router.get('/:kind', async (req, res) => {
     const kind = parseKind(req.params['kind']); const query = paginationSchema.parse(req.query);
     const result = await service.list(req.auth!, kind, query.page, query.limit, query.search);
     res.json({ data: result.items, pagination: { page: query.page, limit: query.limit, total: result.total } });
   });
-  router.post('/:kind', authorize('master_admin', 'librarian'), async (req, res) => {
+  router.post('/:kind', authorize('librarian'), async (req, res) => {
     const kind = parseKind(req.params['kind']); const data = await service.create(req.auth!, kind, parseMasterData(kind, req.body));
     res.status(201).json({ data });
   });
-  router.patch('/:kind/:id', authorize('master_admin', 'librarian'), async (req, res) => {
+  router.patch('/:kind/:id', authorize('librarian'), async (req, res) => {
     const kind = parseKind(req.params['kind']); const id = masterIdSchema.parse(req.params['id']);
     const data = await service.update(req.auth!, kind, id, parseMasterData(kind, req.body, true)); res.json({ data });
   });
-  router.delete('/:kind/:id', authorize('master_admin', 'librarian'), async (req, res) => {
+  router.delete('/:kind/:id', authorize('librarian'), async (req, res) => {
     const kind = parseKind(req.params['kind']); await service.remove(req.auth!, kind, masterIdSchema.parse(req.params['id'])); res.status(204).send();
   });
   return router;

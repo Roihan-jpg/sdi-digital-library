@@ -8,7 +8,7 @@ import {
 } from './circulation.schema.js';
 import { CirculationService } from './circulation.service.js';
 
-const staff = ['master_admin', 'librarian'] as const;
+const staff = ['librarian'] as const;
 
 export function createCirculationRouter(authService: AuthServicePort, service: CirculationService): Router {
   const router = Router();
@@ -34,15 +34,15 @@ export function createCirculationRouter(authService: AuthServicePort, service: C
     const input = renewSchema.parse(req.body);
     res.json({ data: await service.renew(req.auth!, input.loanItemId, input.reason) });
   });
-  router.get('/loans', authorize('master_admin', 'head_librarian', 'librarian', 'member'), async (req, res) => {
+  router.get('/loans', authorize('head_librarian', 'librarian', 'member'), async (req, res) => {
     const query = listSchema.parse(req.query);
     const result = await service.listLoans(req.auth!, query);
     res.json({ data: result.items, pagination: { page: query.page, limit: query.limit, total: result.total } });
   });
-  router.get('/receipts/loans/:id', authorize('master_admin', 'librarian', 'member'), async (req, res) => {
+  router.get('/receipts/loans/:id', authorize('head_librarian', 'librarian', 'member'), async (req, res) => {
     res.json({ data: await service.loanReceipt(req.auth!, idSchema.parse(req.params['id'])) });
   });
-  router.get('/fines', authorize('master_admin', 'head_librarian', 'librarian', 'member'), async (req, res) => {
+  router.get('/fines', authorize('head_librarian', 'librarian', 'member'), async (req, res) => {
     const query = listSchema.parse(req.query);
     const result = await service.listFines(req.auth!, query);
     res.json({ data: result.items, pagination: { page: query.page, limit: query.limit, total: result.total } });
@@ -50,7 +50,7 @@ export function createCirculationRouter(authService: AuthServicePort, service: C
   router.post('/fines/:id/payments', authorize(...staff), async (req, res) => {
     res.status(201).json({ data: await service.payFine(req.auth!, idSchema.parse(req.params['id']), finePaymentSchema.parse(req.body)) });
   });
-  router.get('/receipts/payments/:id', authorize('master_admin', 'librarian', 'member'), async (req, res) => {
+  router.get('/receipts/payments/:id', authorize('head_librarian', 'librarian', 'member'), async (req, res) => {
     res.json({ data: await service.paymentReceipt(req.auth!, idSchema.parse(req.params['id'])) });
   });
   router.post('/maintenance', authorize(...staff), async (req, res) => {
@@ -62,7 +62,7 @@ export function createCirculationRouter(authService: AuthServicePort, service: C
 export function createReservationRouter(authService: AuthServicePort, service: CirculationService): Router {
   const router = Router();
   router.use(authenticate(authService));
-  router.get('/', authorize('master_admin', 'head_librarian', 'librarian', 'member'), async (req, res) => {
+  router.get('/', authorize('head_librarian', 'librarian', 'member'), async (req, res) => {
     const query = listSchema.parse(req.query);
     const result = await service.listReservations(req.auth!, query);
     res.json({ data: result.items, pagination: { page: query.page, limit: query.limit, total: result.total } });
@@ -85,7 +85,7 @@ export function createReservationRouter(authService: AuthServicePort, service: C
     await service.rejectReservation(req.auth!, idSchema.parse(req.params['id']), input.reason);
     res.status(204).send();
   });
-  router.post('/:id/cancel', authorize('master_admin', 'librarian', 'member'), async (req, res) => {
+  router.post('/:id/cancel', authorize('librarian', 'member'), async (req, res) => {
     await service.cancelReservation(req.auth!, idSchema.parse(req.params['id']));
     res.status(204).send();
   });
@@ -94,7 +94,7 @@ export function createReservationRouter(authService: AuthServicePort, service: C
 
 export function createVisitRouter(authService: AuthServicePort, service: CirculationService): Router {
   const router = Router();
-  router.use(authenticate(authService), authorize('master_admin', 'head_librarian', 'librarian'));
+  router.use(authenticate(authService), authorize('head_librarian', 'librarian'));
   router.get('/', async (req, res) => res.json({ data: await service.listVisits(req.auth!, listSchema.parse(req.query)) }));
   router.post('/scan', authorize(...staff), async (req, res) => {
     const input = scanSchema.extend({ notes: reservationCreateSchema.shape.notes }).parse(req.body);

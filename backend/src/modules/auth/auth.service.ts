@@ -5,6 +5,9 @@ import type {
   AppRole,
   AuthContext,
   AuthServicePort,
+  CreateAccountInput,
+  ManagedProfile,
+  ProfileListFilters,
   ProfileServicePort,
   UpdateOwnProfileInput,
 } from './auth.types.js';
@@ -31,6 +34,10 @@ export class AuthService implements AuthServicePort {
 
   async logout(accessToken: string): Promise<void> {
     await this.repository.logout(accessToken);
+  }
+
+  async changePassword(context: AuthContext, password: string): Promise<void> {
+    await this.repository.changePassword(context.user.id, password);
   }
 }
 
@@ -71,5 +78,25 @@ export class ProfileService implements ProfileServicePort {
 
   async linkMember(context: AuthContext, userId: string, memberId: string): Promise<void> {
     await this.repository.linkMember(context.accessToken, userId, memberId);
+  }
+
+  async listManagedProfiles(
+    context: AuthContext,
+    filters: ProfileListFilters,
+  ): Promise<{ items: ManagedProfile[]; total: number; page: number; limit: number }> {
+    const result = await this.repository.listManagedProfiles(context.accessToken, filters);
+    return { ...result, page: filters.page, limit: filters.limit };
+  }
+
+  async createAccount(context: AuthContext, input: CreateAccountInput): Promise<ManagedProfile> {
+    return this.repository.createAccount(context, input);
+  }
+
+  async sendInvitation(context: AuthContext, userId: string): Promise<void> {
+    await this.repository.sendInvitation(context.user.id, userId);
+  }
+
+  async sendRecoveryEmail(context: AuthContext, userId: string): Promise<void> {
+    await this.repository.sendRecoveryEmail(context.user.id, userId);
   }
 }

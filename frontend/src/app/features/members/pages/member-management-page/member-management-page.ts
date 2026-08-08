@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import {
   AbstractControl,
   FormControl,
@@ -32,7 +33,9 @@ type NoticeTone = 'success' | 'error' | 'info';
             ditampilkan penuh agar mudah diverifikasi petugas.
           </p>
         </div>
-        <button class="button" type="button" (click)="startCreate()">Tambah member</button>
+        @if (canWrite()) {
+          <button class="button" type="button" (click)="startCreate()">Tambah member</button>
+        }
       </header>
 
       <section class="card toolbar-panel" aria-labelledby="member-filter-title">
@@ -95,7 +98,7 @@ type NoticeTone = 'success' | 'error' | 'info';
         </form>
       </section>
 
-      @if (showForm()) {
+      @if (canWrite() && showForm()) {
         <form
           class="card card--indexed editor"
           [formGroup]="form"
@@ -470,13 +473,17 @@ type NoticeTone = 'success' | 'error' | 'info';
                       </span>
                     </td>
                     <td>
-                      <button
-                        class="button button--secondary table-action"
-                        type="button"
-                        (click)="edit(member)"
-                      >
-                        Ubah
-                      </button>
+                      @if (canWrite()) {
+                        <button
+                          class="button button--secondary table-action"
+                          type="button"
+                          (click)="edit(member)"
+                        >
+                          Ubah
+                        </button>
+                      } @else {
+                        <span class="field__hint">Mode baca</span>
+                      }
                     </td>
                   </tr>
                 }
@@ -693,6 +700,8 @@ type NoticeTone = 'success' | 'error' | 'info';
 })
 export class MemberManagementPage {
   private readonly api = inject(MemberApiService);
+  private readonly auth = inject(AuthStore);
+  protected readonly canWrite = computed(() => this.auth.currentRole() === 'librarian');
   private readonly master = inject(MasterDataApiService);
 
   protected readonly filters = new FormGroup({

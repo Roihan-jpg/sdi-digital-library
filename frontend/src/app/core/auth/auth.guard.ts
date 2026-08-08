@@ -9,9 +9,13 @@ export const authGuard: CanActivateFn = (_route, state) => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
-  return authStore.isAuthenticated()
-    ? true
-    : router.createUrlTree(['/masuk'], { queryParams: { redirect: state.url } });
+  if (!authStore.isAuthenticated()) {
+    return router.createUrlTree(['/masuk'], { queryParams: { redirect: state.url } });
+  }
+  if (authStore.context()?.profile.mustChangePassword && state.url !== '/ganti-kata-sandi') {
+    return router.parseUrl('/ganti-kata-sandi');
+  }
+  return true;
 };
 
 export const anonymousGuard: CanActivateFn = () => {

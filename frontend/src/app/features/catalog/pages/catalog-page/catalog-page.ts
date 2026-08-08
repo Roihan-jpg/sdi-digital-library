@@ -54,9 +54,13 @@ export class CatalogPage {
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const search = params.get('q')?.trim() ?? '';
+      const category = params.get('category')?.trim() || null;
+      const view = params.get('view');
       if (this.query.value !== search) {
         this.query.setValue(search, { emitEvent: false });
       }
+      this.selectedCategory.set(category);
+      this.viewMode.set(view === 'list' ? 'list' : 'grid');
       this.load();
     });
   }
@@ -81,16 +85,29 @@ export class CatalogPage {
   }
 
   protected clearFilters() {
-    this.selectedCategory.set(null);
-    this.clearSearch();
+    this.query.setValue('', { emitEvent: false });
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { q: null, category: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected setViewMode(mode: 'grid' | 'list') {
-    this.viewMode.set(mode);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { view: mode === 'list' ? 'list' : null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   protected setCategory(category: string | null) {
-    this.selectedCategory.set(category || null);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { category: category || null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected reserve(book: CatalogBook) {

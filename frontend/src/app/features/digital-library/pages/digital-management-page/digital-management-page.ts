@@ -835,7 +835,7 @@ export class DigitalManagementPage {
   }
 
   protected canEdit() {
-    return ['master_admin', 'librarian'].includes(this.auth.currentRole() ?? '');
+    return this.auth.currentRole() === 'librarian';
   }
 
   protected load() {

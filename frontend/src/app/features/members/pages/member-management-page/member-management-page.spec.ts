@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import { MasterDataApiService } from '../../../master-data/data-access/master-data-api.service';
 import { MemberApiService, type Member } from '../../data-access/member-api.service';
 import { MemberManagementPage } from './member-management-page';
@@ -39,6 +40,7 @@ function setup(overrides: Partial<Record<'list' | 'create' | 'update', unknown>>
   TestBed.configureTestingModule({
     imports: [MemberManagementPage],
     providers: [
+      { provide: AuthStore, useValue: { currentRole: () => 'librarian' } },
       {
         provide: MemberApiService,
         useValue: {

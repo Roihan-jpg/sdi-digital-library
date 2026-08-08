@@ -36,13 +36,13 @@ const idSchema = z.uuid();
 
 export function createImportRouter(authService: AuthServicePort, service: ImportService) {
   const router = Router();
-  router.use(authenticate(authService), authorize('master_admin', 'librarian'));
+  router.use(authenticate(authService), authorize('head_librarian', 'librarian'));
   router.get('/', async (_req, res) => res.json({ data: await service.list() }));
   router.get('/templates/:kind', async (req, res) => {
     const kind = kindSchema.parse(req.params['kind']);
     res.attachment(`template-${kind}.xlsx`).send(await service.template(kind));
   });
-  router.post('/:kind', upload.single('file'), async (req, res) => {
+  router.post('/:kind', authorize('librarian'), upload.single('file'), async (req, res) => {
     if (!req.file) {
       throw new AppError(400, 'IMPORT_FILE_REQUIRED', 'Pilih file yang akan diimport.');
     }

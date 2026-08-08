@@ -4,13 +4,25 @@ import { ZodError } from 'zod';
 import { MulterError } from 'multer';
 import { AppError } from '../errors/app-error.js';
 
+interface SystemEventRecorder {
+  recordSystemEvent(event: {
+    level: 'warning' | 'error';
+    source: 'backend';
+    eventCode: string;
+    message: string;
+    requestId?: string;
+    actorUserId?: string;
+    context: Record<string, unknown>;
+  }): Promise<void>;
+}
+
 export function notFoundHandler(): RequestHandler {
   return (req, _res, next) => {
     next(new AppError(404, 'ROUTE_NOT_FOUND', `Endpoint ${req.method} ${req.path} tidak ditemukan.`));
   };
 }
 
-export function errorHandler(logger: Logger): ErrorRequestHandler {
+export function errorHandler(logger: Logger, recorder?: SystemEventRecorder): ErrorRequestHandler {
   return (error: unknown, req, res, _next) => {
     const malformedJson =
       error instanceof SyntaxError &&
@@ -30,6 +42,20 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
 
     const log = appError.statusCode >= 500 ? logger.error.bind(logger) : logger.warn.bind(logger);
     log({ err: error, requestId: req.id, method: req.method, path: req.path }, appError.message);
+
+    if (recorder && appError.statusCode >= 500) {
+      void recorder.recordSystemEvent({
+        level: 'error',
+        source: 'backend',
+        eventCode: appError.code,
+        message: appError.message,
+        ...(req.id ? { requestId: String(req.id) } : {}),
+        ...(req.auth?.user.id ? { actorUserId: req.auth.user.id } : {}),
+        context: { method: req.method, path: req.path, statusCode: appError.statusCode },
+      }).catch((recordError: unknown) => {
+        logger.warn({ err: recordError, requestId: req.id }, 'Gagal mencatat event sistem.');
+      });
+    }
 
     res.status(appError.statusCode).json({
       error: {

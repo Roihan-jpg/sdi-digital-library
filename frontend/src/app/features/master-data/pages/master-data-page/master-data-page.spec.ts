@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import { MasterDataApiService, type MasterRow } from '../../data-access/master-data-api.service';
 import { MasterDataPage } from './master-data-page';
 
@@ -21,6 +22,7 @@ function setup(overrides: Partial<Record<'list' | 'create' | 'update' | 'remove'
   TestBed.configureTestingModule({
     imports: [MasterDataPage],
     providers: [
+      { provide: AuthStore, useValue: { currentRole: () => 'librarian' } },
       {
         provide: MasterDataApiService,
         useValue: {

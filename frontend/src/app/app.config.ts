@@ -22,26 +22,29 @@ import { AuthService } from './core/auth/auth.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-  provideBrowserGlobalErrorListeners(),
-  provideClientHydration(),
+    provideBrowserGlobalErrorListeners(),
+    provideClientHydration(),
 
-  provideRouter(
-    routes,
-    withInMemoryScrolling({ anchorScrolling: 'enabled' }),
-  ),
+    provideRouter(
+      routes,
+      withInMemoryScrolling({
+        anchorScrolling: 'enabled',
+        scrollPositionRestoration: 'top',
+      }),
+    ),
 
-  provideTanStackQuery(APP_QUERY_CLIENT),
+    provideTanStackQuery(APP_QUERY_CLIENT),
 
-  provideHttpClient(
-    withInterceptors([
-      requestIdInterceptor,
-      authInterceptor,
-      queryCacheInterceptor,
-      errorInterceptor,
-    ]),
-  ),
+    provideHttpClient(
+      withInterceptors([
+        requestIdInterceptor,
+        authInterceptor,
+        queryCacheInterceptor,
+        errorInterceptor,
+      ]),
+    ),
 
-  provideAppInitializer(() => inject(AuthService).initialize()),
-  { provide: ErrorHandler, useClass: GlobalErrorHandler },
-]
+    provideAppInitializer(() => inject(AuthService).initialize()),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
+  ],
 };

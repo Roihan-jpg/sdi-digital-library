@@ -80,14 +80,26 @@ Angular login langsung ke Supabase Auth menggunakan publishable key. Access toke
 |---|---|---|
 | `GET /api/auth/me` | Semua akun aktif | User, profile, role, dan member tertaut |
 | `POST /api/auth/logout` | Semua akun aktif | Invalidasi sesi aktif |
+| `PATCH /api/auth/password` | Semua akun aktif | Ganti kata sandi; wajib untuk akun dengan kata sandi sementara |
 | `GET /api/profiles/me` | Semua akun aktif | Profile pengguna saat ini |
 | `PATCH /api/profiles/me` | Semua akun aktif | Ubah nama/avatar sendiri; tidak menerima role/status |
 | `GET /api/profiles` | `master_admin` | Daftar profile dengan pagination |
+| `POST /api/profiles` | `master_admin` | Buat akun melalui undangan atau kata sandi sementara |
 | `PATCH /api/profiles/:id/role` | `master_admin` | Ubah role melalui RPC database |
 | `PATCH /api/profiles/:id/status` | `master_admin` | Aktifkan/nonaktifkan akun |
 | `POST /api/profiles/:id/link-member` | `master_admin`, `librarian` | Hubungkan akun Auth dengan member |
+| `POST /api/profiles/:id/invitations` | `master_admin` | Kirim ulang undangan akun |
+| `POST /api/profiles/:id/recovery-emails` | `master_admin` | Kirim email pemulihan kata sandi |
 
-Navigasi dan dashboard diarahkan berdasarkan role `master_admin`, `head_librarian`, `librarian`, `member`, atau `guest`. Otorisasi sebenarnya tetap ditegakkan di backend dan RLS, bukan melalui menu Angular.
+Navigasi dan dashboard diarahkan berdasarkan role `master_admin`, `head_librarian`, `librarian`, `member`, atau `guest`. Guest tetap berada di katalog publik dan tidak memiliki dashboard. Otorisasi sebenarnya tetap ditegakkan di backend dan RLS, bukan melalui menu Angular.
+
+| Role | Menu dan kemampuan utama |
+|---|---|
+| `master_admin` | Monitoring, user/role, konfigurasi, audit, status sistem, seluruh laporan; tanpa aksi operasional |
+| `head_librarian` | Monitoring, seluruh data operasional mode baca, seluruh laporan/export |
+| `librarian` | Sirkulasi dan pengelolaan data operasional, laporan harian terbatas |
+| `member` | Katalog, koleksi digital, pinjaman, reservasi, denda, dan riwayat sendiri |
+| `guest` | Katalog publik/koleksi yang diizinkan; tidak dapat pinjam atau reservasi fisik |
 
 ## Supabase lokal
 
@@ -143,7 +155,7 @@ Migration `202607200001_master_data_import.sql` menambahkan nomor kartu pelajar 
 npm run db:reset
 ```
 
-Halaman operasional tersedia di dashboard untuk `master_admin`/`librarian`: Master data, Member, Buku & eksemplar, serta Import data. `head_librarian` memperoleh akses baca master/member/inventaris. Katalog publik tersedia di `/katalog`.
+Halaman operasional edit tersedia untuk `librarian`: sirkulasi, master data, member, buku/eksemplar, koleksi digital, dan import. `head_librarian` memperoleh tampilan baca aktivitas serta data operasional. `master_admin` tidak mewarisi akses operasional. Katalog publik tersedia di `/katalog`.
 
 Template import menerima `.xlsx` atau `.csv` maksimal 10 MB. Header member:
 

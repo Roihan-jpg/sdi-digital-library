@@ -1,5 +1,6 @@
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthStore } from '../../../../core/auth/auth.store';
 import {
   MasterDataApiService,
   type MasterKind,
@@ -72,6 +73,7 @@ interface FieldConfig {
         </aside>
 
         <form
+          [hidden]="!canWrite()"
           class="card editor-card"
           [formGroup]="form"
           aria-describedby="form-helper form-feedback"
@@ -147,6 +149,16 @@ interface FieldConfig {
             }
           </div>
         </form>
+        @if (!canWrite()) {
+          <div class="card editor-card">
+            <p class="eyebrow">Mode baca</p>
+            <h2>Referensi operasional</h2>
+            <p>
+              Kepala perpustakaan dapat meninjau data, sedangkan perubahan hanya dilakukan
+              pustakawan.
+            </p>
+          </div>
+        }
       </div>
 
       @if (message()) {
@@ -239,24 +251,28 @@ interface FieldConfig {
                       </span>
                     </td>
                     <td>
-                      <div class="row-actions">
-                        <button
-                          class="table-action"
-                          type="button"
-                          [attr.aria-label]="'Ubah ' + row.name"
-                          (click)="edit(row)"
-                        >
-                          Ubah
-                        </button>
-                        <button
-                          class="table-action table-action--danger"
-                          type="button"
-                          [attr.aria-label]="'Hapus ' + row.name"
-                          (click)="openDeleteDialog(row, $event)"
-                        >
-                          Hapus
-                        </button>
-                      </div>
+                      @if (canWrite()) {
+                        <div class="row-actions">
+                          <button
+                            class="table-action"
+                            type="button"
+                            [attr.aria-label]="'Ubah ' + row.name"
+                            (click)="edit(row)"
+                          >
+                            Ubah
+                          </button>
+                          <button
+                            class="table-action table-action--danger"
+                            type="button"
+                            [attr.aria-label]="'Hapus ' + row.name"
+                            (click)="openDeleteDialog(row, $event)"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      } @else {
+                        <span class="row-meta">Mode baca</span>
+                      }
                     </td>
                   </tr>
                 }
@@ -525,6 +541,8 @@ interface FieldConfig {
 })
 export class MasterDataPage {
   private readonly api = inject(MasterDataApiService);
+  private readonly auth = inject(AuthStore);
+  protected readonly canWrite = computed(() => this.auth.currentRole() === 'librarian');
   private readonly host = inject(ElementRef<HTMLElement>);
   private restoreFocusTo: HTMLElement | null = null;
 

@@ -1,320 +1,195 @@
-
-
-<main id="top">
-  <!-- ============================================================
-       HERO
-  ============================================================ -->
-  <section class="hero">
-    <div class="container hero-grid">
+<main class="bookstage-home">
+  <section class="hero-chapter" data-chapter aria-labelledby="home-title">
+    <div class="hero-grid">
       <div class="hero-copy">
-        <span class="eyebrow"><svg data-lucide="flame"></svg>Perpustakaan Digital Resmi</span>
-        <h1 class="display">Perpustakaan Digital untuk SD Islam Tompokersan</h1>
-        <p class="body-lg">
-          Siswa dapat dengan mudah mencari buku, meminjam, dan membaca koleksi digital kapan saja —
-          dari kelas, dari rumah, atau di mana pun mereka belajar.
+        <p class="hero-kicker">Perpustakaan SD Islam Tompokersan</p>
+        <h1 id="home-title">Satu ruang untuk membaca, menganalisa, dan bertumbuh.</h1>
+        <p class="hero-lede">
+          mulai dari koleksi fisik, bahan belajar digital, hingga aktivitas pinjaman Anda.
         </p>
-
-        <div class="hero-cta-row">
-          <a routerLink="/katalog" class="btn btn-primary">
-            Jelajahi Buku
-          <svg data-lucide="arrow-right"></svg>
-        </a>
-
-          <a routerLink="/masuk" class="btn btn-secondary">
-            Meminjam
-          </a>
-        </div>
-
-        <div class="hero-stats-row">
-          <div class="hero-stat"><b>3.240+</b><span>Total Buku</span></div>
-          <div class="hero-stat"><b>612</b><span>Siswa Terdaftar</span></div>
-          <div class="hero-stat"><b>150+</b><span>Koleksi Digital</span></div>
+        <div class="hero-actions">
+          <a class="stage-button stage-button--saffron" href="#layanan">Kenali layanan</a>
+          <a class="stage-button stage-button--ghost" routerLink="/katalog">Cari buku</a>
         </div>
       </div>
 
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-blob"></div>
-        <div class="hero-mark">
-          <svg viewBox="0 0 100 100" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M50 8 C50 8 42 20 42 28 C42 34 46 38 50 38 C54 38 58 34 58 28 C58 20 50 8 50 8Z" />
-            <path d="M50 38 L50 54" />
-            <path
-              d="M18 62 C18 62 34 54 50 60 C66 54 82 62 82 62 L82 82 C82 82 66 74 50 80 C34 74 18 82 18 82 Z"
-            />
-            <circle cx="50" cy="50" r="46" />
-          </svg>
+      <div class="perspective-shelf" aria-hidden="true">
+        <div class="shelf-light"></div>
+        <div class="stage-book stage-book--one">
+          <span class="stage-book__spine">Sains</span>
+          <strong>Menemukan dunia lewat bacaan</strong>
+          <small>Rak pengetahuan</small>
         </div>
-        <div class="book-stack">
-          <div class="book-spine b1">
-            <div class="bs-icon"><svg data-lucide="moon-star"></svg></div>
-            <div><b>Agama Islam</b><span>Kelas 1–6</span></div>
-          </div>
-          <div class="book-spine b2">
-            <div class="bs-icon"><svg data-lucide="flask-conical"></svg></div>
-            <div><b>Sains untuk Anak</b><span>Seri IPA</span></div>
-          </div>
-          <div class="book-spine b3">
-            <div class="bs-icon"><svg data-lucide="book-heart"></svg></div>
-            <div><b>Kumpulan Cerita</b><span>Fiksi Anak</span></div>
-          </div>
+        <div class="stage-book stage-book--two">
+          <span class="stage-book__spine">Cerita</span>
+          <strong>Imajinasi dimulai dari satu halaman</strong>
+          <small>Rak cerita anak</small>
         </div>
-        <div class="float-card fc-1">
-          <div class="fc-icon"><svg data-lucide="book-open"></svg></div>
-          <div><b>3.240+</b><span>Total Buku</span></div>
+        <div class="stage-book stage-book--three">
+          <span class="stage-book__spine">Digital</span>
+          <strong>Belajar melampaui ruang kelas</strong>
+          <small>E-book, video, dan audio</small>
         </div>
-        <div class="float-card fc-2">
-          <div class="fc-icon"><svg data-lucide="users"></svg></div>
-          <div><b>612</b><span>Siswa Aktif</span></div>
-        </div>
-        <div class="float-card fc-3">
-          <div class="fc-icon"><svg data-lucide="repeat"></svg></div>
-          <div><b>480</b><span>Peminjaman/bln</span></div>
-        </div>
+        <div class="shelf-plane"></div>
       </div>
     </div>
   </section>
 
-  <!-- ============================================================
-       STATS
-  ============================================================ -->
-  <section class="stats-section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow"><svg data-lucide="trending-up"></svg>Perpustakaan dalam Angka</span>
-        <h2 class="h2">Dipercaya oleh seluruh warga sekolah</h2>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card reveal"><div class="si"><svg data-lucide="book-open"></svg></div><b>3.240</b><span>Total Buku</span></div>
-        <div class="stat-card reveal"><div class="si"><svg data-lucide="book-marked"></svg></div><b>2.760</b><span>Buku Tersedia</span></div>
-        <div class="stat-card reveal"><div class="si"><svg data-lucide="users"></svg></div><b>612</b><span>Siswa Terdaftar</span></div>
-        <div class="stat-card reveal"><div class="si"><svg data-lucide="repeat"></svg></div><b>480</b><span>Buku Dipinjam</span></div>
-        <div class="stat-card reveal"><div class="si"><svg data-lucide="layers"></svg></div><b>8</b><span>Kategori</span></div>
-      </div>
+  <section id="layanan" class="service-chapter" data-chapter aria-labelledby="services-title">
+    <div class="service-intro">
+      <p class="chapter-kicker">Mulai dari kebutuhan Anda</p>
+      <h2 id="services-title">
+        Perpustakaan yang bekerja seperti meja layanan, bukan labirin menu.
+      </h2>
+      <p>Pilih punggung buku untuk melihat jalur tercepat menuju layanan yang Anda butuhkan.</p>
     </div>
-  </section>
 
-  <!-- ============================================================
-       FEATURED BOOKS
-  ============================================================ -->
-  <section class="section" id="buku">
-    <div class="container">
-      <div class="section-top reveal">
-        <div class="section-head" style="margin-bottom: 0">
-          <span class="eyebrow"><svg data-lucide="sparkles"></svg>Pilihan Minggu Ini</span>
-          <h2 class="h2">Buku Pilihan</h2>
-          <p class="body-lg">Rekomendasi bacaan terbaik dari pustakawan untuk minggu ini.</p>
-        </div>
-        <div class="carousel-controls">
-          <button class="cc-btn" type="button" (click)="scrollRow(bookRow, -1)" aria-label="Sebelumnya">
-            <svg data-lucide="chevron-left"></svg>
-          </button>
-          <button class="cc-btn" type="button" (click)="scrollRow(bookRow, 1)" aria-label="Berikutnya">
-            <svg data-lucide="chevron-right"></svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="book-row reveal" #bookRow>
-        <article class="book-card" *ngFor="let book of featuredBooks">
-          <div class="book-cover" [style.background]="book.coverGradient">
-            <div class="bc-top"><div class="bc-icon"><svg [attr.data-lucide]="book.icon"></svg></div></div>
-            <div class="bc-title">{{ book.title }}</div>
-          </div>
-          <div class="book-body">
-            <span class="b-cat">{{ book.category }}</span>
-            <h4>{{ book.title }}</h4>
-            <div class="b-meta">
-              <span class="badge" [ngClass]="'badge-' + book.status">{{ book.statusLabel }}</span>
-              <span class="stars"><svg data-lucide="star"></svg>{{ book.rating }}</span>
-            </div>
-            <button class="btn btn-secondary btn-block btn-sm" [disabled]="book.status === 'borrowed'">
-              {{ book.status === 'borrowed' ? 'Segera Kembali' : 'Pinjam Buku' }}
-            </button>
+    <div class="service-rack">
+      @for (service of services; track service.title; let index = $index) {
+        <article class="service-volume service-volume--{{ service.tone }}">
+          <span class="service-volume__index" aria-hidden="true">{{ index + 1 }}</span>
+          <div class="service-volume__content">
+            <h3>{{ service.title }}</h3>
+            <p>{{ service.summary }}</p>
+            <a [routerLink]="service.route"
+              >{{ service.action }} <span aria-hidden="true">→</span></a
+            >
           </div>
         </article>
-      </div>
+      }
     </div>
   </section>
 
-  <!-- ============================================================
-       CATEGORIES
-  ============================================================ -->
-  <section class="section" id="kategori" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head center reveal">
-        <span class="eyebrow"><svg data-lucide="layers"></svg>Telusuri Koleksi</span>
-        <h2 class="h2">Kategori Buku</h2>
-        <p class="body-lg">Temukan bacaan sesuai minat dari delapan kategori koleksi perpustakaan.</p>
+  <section class="collection-chapter" data-chapter aria-labelledby="collection-title">
+    <div class="collection-heading">
+      <p class="chapter-kicker">Langsung dari katalog</p>
+      <h2 id="collection-title">Koleksi nyata, ditampilkan apa adanya.</h2>
+      <p>
+        Jumlah stok dan status koleksi berasal dari sistem perpustakaan, bukan angka demonstrasi.
+      </p>
+    </div>
+
+    @if (loading()) {
+      <div class="collection-loading" role="status">
+        <span></span><span></span><span></span><span></span>
+        <p>Memuat koleksi terbaru…</p>
       </div>
-      <div class="cat-grid reveal">
-        <div class="cat-card" *ngFor="let cat of categories">
-          <div class="ci"><svg [attr.data-lucide]="cat.icon"></svg></div>
-          <h4>{{ cat.name }}</h4>
-          <span class="cat-count">{{ cat.count }} buku</span>
+    } @else if (loadError()) {
+      <div class="collection-state" role="alert">
+        <h3>Koleksi belum dapat dimuat</h3>
+        <p>Periksa koneksi, lalu buka katalog untuk mencoba kembali.</p>
+        <a class="stage-button stage-button--ink" routerLink="/katalog">Buka katalog</a>
+      </div>
+    } @else {
+      <div class="collection-block">
+        <div class="collection-block__head">
+          <h3>Buku fisik</h3>
+          <a routerLink="/katalog">Lihat semua</a>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SEARCH EXPERIENCE
-  ============================================================ -->
-  <section class="section" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow"><svg data-lucide="search"></svg>Pencarian Cerdas</span>
-        <h2 class="h2">Temukan Buku dalam Hitungan Detik</h2>
-        <p class="body-lg">Saring berdasarkan kategori, ketersediaan, buku terbaru, atau yang paling populer.</p>
-      </div>
-
-      <div class="search-panel reveal">
-        <div class="sp-inner">
-          <div class="sp-bar">
-            <svg data-lucide="search"></svg>
-            <input
-              type="text"
-              [(ngModel)]="panelSearchQuery"
-              placeholder="Coba cari “Kisah Nabi” atau “Matematika Kelas 4”…"
-              aria-label="Cari buku"
-            />
-            <button class="btn btn-primary btn-sm" type="button" (click)="onSearchSubmit()">
-              Cari<svg data-lucide="arrow-right"></svg>
-            </button>
+        @if (physicalBooks().length > 0) {
+          <div class="collection-grid collection-grid--physical">
+            @for (book of physicalBooks(); track book.id) {
+              <a
+                class="collection-card physical-card"
+                routerLink="/katalog"
+                [queryParams]="{ q: book.title }"
+              >
+                <div class="book-jacket book-jacket--{{ coverVariant(book) }}" aria-hidden="true">
+                  <span class="book-jacket__category">{{
+                    book.categories?.name || 'Koleksi'
+                  }}</span>
+                  <strong>{{ book.title }}</strong>
+                  <span class="book-jacket__publisher">{{
+                    book.publishers?.name || 'Perpustakaan SDI'
+                  }}</span>
+                </div>
+                <div class="collection-card__copy">
+                  <span>{{ book.categories?.name || 'Tanpa kategori' }}</span>
+                  <h4>{{ book.title }}</h4>
+                  <small [class.is-available]="book.stock.available > 0">{{
+                    stockLabel(book)
+                  }}</small>
+                </div>
+              </a>
+            }
           </div>
-          <div class="sp-filters">
-            <button
-              class="chip"
-              type="button"
-              *ngFor="let chip of filterChips"
-              [class.active]="chip.active"
-              (click)="toggleChip(chip)"
-            >
-              <svg [attr.data-lucide]="chip.icon"></svg>{{ chip.label }}
-            </button>
+        } @else {
+          <p class="empty-copy">Belum ada buku fisik yang diterbitkan di katalog.</p>
+        }
+      </div>
+
+      <div class="collection-block collection-block--digital">
+        <div class="collection-block__head">
+          <h3>Koleksi digital</h3>
+          <a routerLink="/koleksi-digital">Lihat semua</a>
+        </div>
+        @if (digitalBooks().length > 0) {
+          <div class="collection-grid collection-grid--digital">
+            @for (item of digitalBooks(); track item.id) {
+              <a
+                class="collection-card digital-card"
+                [routerLink]="['/koleksi-digital', item.slug]"
+              >
+                <div class="digital-cover">
+                  @if (item.coverUrl) {
+                    <img [src]="item.coverUrl" [alt]="'Sampul ' + item.title" />
+                  } @else {
+                    <span>{{ mediaLabel(item.media_type) }}</span>
+                    <strong>{{ item.title }}</strong>
+                  }
+                </div>
+                <div class="collection-card__copy">
+                  <span>{{ mediaLabel(item.media_type) }}</span>
+                  <h4>{{ item.title }}</h4>
+                  <small>{{ item.author_text || 'Koleksi sekolah' }}</small>
+                </div>
+              </a>
+            }
           </div>
-
-          <div class="sp-results">
-            <div class="sp-row" *ngFor="let result of quickResults">
-              <div class="sp-thumb" [style.background]="result.thumbGradient"></div>
-              <div class="srt"><b>{{ result.title }}</b><span>{{ result.meta }}</span></div>
-              <span class="sr-cat">{{ result.category }}</span>
-              <span class="badge" [ngClass]="'badge-' + result.status">{{ result.statusLabel }}</span>
-            </div>
-          </div>
-        </div>
+        } @else {
+          <p class="empty-copy">Belum ada koleksi digital yang diterbitkan.</p>
+        }
       </div>
+    }
+  </section>
+
+  <section class="path-chapter" data-chapter aria-labelledby="path-title">
+    <div class="path-heading">
+      <p class="chapter-kicker">Jalur yang jelas untuk setiap orang</p>
+      <h2 id="path-title">Datang sebagai siapa pun, tetap tahu harus mulai dari mana.</h2>
+    </div>
+    <div class="path-grid">
+      <article>
+        <span>Tamu</span>
+        <h3>Jelajahi sebelum masuk</h3>
+        <p>Cari buku dan lihat metadata koleksi digital yang sudah diterbitkan.</p>
+        <a routerLink="/katalog">Jelajahi katalog</a>
+      </article>
+      <article>
+        <span>Anggota</span>
+        <h3>Pantau tanggung jawab membaca</h3>
+        <p>Lihat pinjaman aktif, tenggat, reservasi, denda, dan riwayat dalam satu portal.</p>
+        <a routerLink="/masuk">Masuk sebagai anggota</a>
+      </article>
+      <article>
+        <span>Petugas</span>
+        <h3>Layani tanpa langkah berulang</h3>
+        <p>Scan kartu dan eksemplar, proses pengembalian, lalu simpan bukti transaksi.</p>
+        <a routerLink="/masuk">Buka meja layanan</a>
+      </article>
     </div>
   </section>
 
-  <!-- ============================================================
-       DIGITAL READING
-  ============================================================ -->
-  <section class="section" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow"><svg data-lucide="smartphone"></svg>Baca Digital</span>
-        <h2 class="h2">Pengalaman Membaca Modern</h2>
-        <p class="body-lg">Baca koleksi digital dengan nyaman, di perangkat apa pun, kapan pun.</p>
-      </div>
-      <div class="dr-grid reveal">
-        <div class="dr-card" *ngFor="let feature of digitalFeatures">
-          <div class="di"><svg [attr.data-lucide]="feature.icon"></svg></div>
-          <h4>{{ feature.title }}</h4>
-          <p>{{ feature.description }}</p>
-        </div>
-      </div>
+  <section class="action-chapter" data-chapter aria-labelledby="action-title">
+    <div class="action-copy">
+      <p class="chapter-kicker">Rak sudah terbuka</p>
+      <h2 id="action-title">Mulai dari buku yang ingin Anda temukan hari ini.</h2>
     </div>
-  </section>
-
-  <!-- ============================================================
-       BORROWING PROCESS
-  ============================================================ -->
-  <section class="section" id="proses" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head center reveal">
-        <span class="eyebrow"><svg data-lucide="repeat"></svg>Alur Sederhana</span>
-        <h2 class="h2">Cara Meminjam Buku</h2>
-        <p class="body-lg">Empat langkah mudah untuk mulai membaca koleksi perpustakaan.</p>
-      </div>
-      <div class="timeline reveal">
-        <div class="tl-step" *ngFor="let step of borrowSteps; let i = index">
-          <div class="tl-num"><svg [attr.data-lucide]="step.icon"></svg></div>
-          <span class="caption">Langkah {{ (i + 1) | number: '2.0-0' }}</span>
-          <h4>{{ step.title }}</h4>
-          <p>{{ step.description }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       ANNOUNCEMENTS
-  ============================================================ -->
-
-  <!-- ============================================================
-       SERVICES
-  ============================================================ -->
-  <section class="section" id="layanan" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow"><svg data-lucide="library-big"></svg>Fasilitas Kami</span>
-        <h2 class="h2">Layanan Perpustakaan</h2>
-      </div>
-      <div class="svc-grid reveal">
-        <div class="svc-card" *ngFor="let svc of services">
-          <div class="vi"><svg [attr.data-lucide]="svc.icon"></svg></div>
-          <h4>{{ svc.title }}</h4>
-          <p>{{ svc.description }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       TESTIMONIALS
-  ============================================================ -->
-
-
-  <!-- ============================================================
-       FAQ
-  ============================================================ -->
-  <section class="section" id="faq" style="padding-top: 0">
-    <div class="container">
-      <div class="section-head center reveal">
-        <span class="eyebrow"><svg data-lucide="help-circle"></svg>Pertanyaan Umum</span>
-        <h2 class="h2">Masih Ada Pertanyaan?</h2>
-      </div>
-      <div class="faq-wrap reveal">
-        <div class="faq-item" *ngFor="let faq of faqs; let i = index" [class.open]="openFaqIndex === i">
-  <button class="faq-q" type="button" (click)="toggleFaq(i)">
-    {{ faq.question }}
-    <svg data-lucide="chevron-down"></svg>
-  </button>
-  <div class="faq-a" *ngIf="openFaqIndex === i">
-    <p>{{ faq.answer }}</p>
-  </div>
-</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       FINAL CTA
-  ============================================================ -->
-  <section class="section" style="padding-top: 10px">
-    <div class="final-cta reveal">
-      <div class="final-cta-inner">
-        <h2 class="h2">Mulai Jelajahi Ribuan Buku Hari Ini</h2>
-        <p>Satu perpustakaan, ribuan cerita — semua bisa diakses langsung dari genggamanmu.</p>
-        <div class="hero-cta-row">
-          <a routerLink="/katalog"  class="btn btn-primary">Jelajahi Buku<svg data-lucide="arrow-right"></svg></a>
-          <a routerLink="/masuk" class="btn btn-secondary">Mulai Meminjam</a>
-        </div>
-      </div>
+    <div class="action-links">
+      <a class="stage-button stage-button--saffron" routerLink="/katalog">Cari buku fisik</a>
+      <a class="stage-button stage-button--ghost" routerLink="/koleksi-digital"
+        >Buka koleksi digital</a
+      >
     </div>
   </section>
 </main>
-
-<!-- ============================================================
-     FOOTER
-============================================================ -->

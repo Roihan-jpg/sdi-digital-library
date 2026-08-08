@@ -13,6 +13,7 @@ export interface AppProfile {
   fullName: string | null;
   avatarPath: string | null;
   isActive: boolean;
+  mustChangePassword?: boolean;
 }
 
 export interface MemberSummary {
@@ -43,6 +44,6 @@ export function roleHomePath(role: AppRole): string {
     case 'member':
       return '/dashboard/member';
     case 'guest':
-      return '/dashboard/guest';
+      return '/katalog';
   }
 }
