@@ -13,25 +13,44 @@
         </div>
       </div>
 
-      <div class="perspective-shelf" aria-hidden="true">
-        <div class="shelf-light"></div>
-        <div class="stage-book stage-book--one">
-          <span class="stage-book__spine">Sains</span>
-          <strong>Menemukan dunia lewat bacaan</strong>
-          <small>Rak pengetahuan</small>
-        </div>
-        <div class="stage-book stage-book--two">
-          <span class="stage-book__spine">Cerita</span>
-          <strong>Imajinasi dimulai dari satu halaman</strong>
-          <small>Rak cerita anak</small>
-        </div>
-        <div class="stage-book stage-book--three">
-          <span class="stage-book__spine">Digital</span>
-          <strong>Belajar melampaui ruang kelas</strong>
-          <small>E-book, modul, dan video</small>
-        </div>
-        <div class="shelf-plane"></div>
-      </div>
+      <aside class="hero-discovery" aria-label="Jalur cepat perpustakaan">
+        <header class="hero-discovery__header">
+          <span>Ruang baca terpadu</span>
+          <p>Mulai dari kebutuhan Anda hari ini.</p>
+        </header>
+
+        <nav class="hero-discovery__routes" aria-label="Jalur cepat">
+          <a routerLink="/katalog">
+            <span class="hero-route__index" aria-hidden="true">01</span>
+            <span>
+              <strong>Cari koleksi fisik</strong>
+              <small>Cek judul dan ketersediaan</small>
+            </span>
+            <span class="hero-route__arrow" aria-hidden="true">&#8599;</span>
+          </a>
+          <a routerLink="/koleksi-digital">
+            <span class="hero-route__index" aria-hidden="true">02</span>
+            <span>
+              <strong>Jelajahi koleksi digital</strong>
+              <small>E-book, modul, dan video</small>
+            </span>
+            <span class="hero-route__arrow" aria-hidden="true">&#8599;</span>
+          </a>
+          <a routerLink="/masuk">
+            <span class="hero-route__index" aria-hidden="true">03</span>
+            <span>
+              <strong>Buka ruang anggota</strong>
+              <small>Pinjaman, reservasi, dan riwayat</small>
+            </span>
+            <span class="hero-route__arrow" aria-hidden="true">&#8599;</span>
+          </a>
+        </nav>
+
+        <footer class="hero-discovery__footer">
+          <span aria-hidden="true"></span>
+          <p>Terhubung dengan layanan perpustakaan sekolah</p>
+        </footer>
+      </aside>
     </div>
   </section>
 

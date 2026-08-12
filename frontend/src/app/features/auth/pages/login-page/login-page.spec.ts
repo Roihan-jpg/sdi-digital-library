@@ -3,8 +3,11 @@ import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
 import type { CurrentAuthContext } from '../../../../core/auth/auth.models';
 import { LoginPage } from './login-page';
+import { axeViolations } from '../../../../../testing/axe-testing';
 
 describe('LoginPage', () => {
+  beforeEach(() => localStorage.setItem('sdi-theme', 'light'));
+  afterEach(() => localStorage.clear());
   const context: CurrentAuthContext = {
     user: { id: 'user-1', email: 'petugas@sdi.test' },
     profile: {
@@ -130,6 +133,40 @@ describe('LoginPage', () => {
 
     expect(navigateByUrl).toHaveBeenCalledWith('/dashboard/operasional');
   });
+
+  it('provides the shared theme control without changing form state', async () => {
+    const { fixture } = await setup();
+    fillLoginForm(fixture.nativeElement as HTMLElement);
+    const toggle = fixture.nativeElement.querySelector(
+      'sdi-theme-toggle button',
+    ) as HTMLButtonElement;
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect((fixture.nativeElement.querySelector('#email') as HTMLInputElement).value).toBe(
+      'petugas@sdi.test',
+    );
+    expect((fixture.nativeElement.querySelector('#password') as HTMLInputElement).value).toBe(
+      'rahasia1',
+    );
+  });
+
+  it('presents a logo-focused brand panel without the former 3D book model', async () => {
+    const { fixture } = await setup();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('.login-books')).toBeNull();
+    expect(element.querySelector('.login-access')).toBeNull();
+    expect(element.querySelector('.login-stage__mark img')).not.toBeNull();
+    expect(element.textContent).toContain('SD Islam Tompokersan');
+  });
+
+  it('passes the automated WCAG audit for form, alert region, and theme toggle', async () => {
+    const { fixture } = await setup();
+    expect(await axeViolations(fixture.nativeElement)).toEqual([]);
+  }, 15_000);
 });
 
 function fillLoginForm(element: HTMLElement): void {

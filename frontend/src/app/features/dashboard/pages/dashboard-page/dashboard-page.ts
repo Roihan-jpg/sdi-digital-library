@@ -332,6 +332,50 @@ interface KpiCard {
       gap: var(--space-4);
     }
 
+    .overview-header {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: clamp(1.5rem, 3vw, 2.25rem);
+      border: 1px solid rgb(255 255 255 / 18%);
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 88% 12%, rgb(234 220 202 / 58%), transparent 17rem),
+        radial-gradient(circle at 70% 120%, rgb(221 237 234 / 32%), transparent 19rem),
+        linear-gradient(135deg, #477f79 0%, #69afa7 64%, #79bbb4 100%);
+      box-shadow: var(--shadow-md);
+      color: #fff;
+    }
+
+    .overview-header::after {
+      position: absolute;
+      right: -4rem;
+      bottom: -7rem;
+      z-index: -1;
+      width: 17rem;
+      height: 17rem;
+      border: 1px solid rgb(255 255 255 / 16%);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2.5rem rgb(255 255 255 / 4%);
+      content: '';
+    }
+
+    :host-context(.dashboard-theme--dark) .overview-header {
+      background:
+        radial-gradient(circle at 88% 12%, rgb(155 208 202 / 20%), transparent 17rem),
+        linear-gradient(135deg, #24443f 0%, #315e57 58%, #3d746d 100%);
+    }
+
+    .overview-header .eyebrow,
+    .overview-header h1,
+    .overview-header__lead {
+      color: #fff;
+    }
+
+    .overview-header h1 {
+      font-size: clamp(1.5rem, 3vw, 2.15rem);
+    }
+
     .overview-header h1,
     .overview-header p,
     .section-heading h2,
@@ -355,6 +399,7 @@ interface KpiCard {
     .overview-header__lead {
       max-width: 62ch;
       margin-top: var(--space-2);
+      color: #eef9f6;
     }
 
     .operator-strip {
@@ -362,19 +407,21 @@ interface KpiCard {
       gap: var(--space-1);
       min-width: min(100%, 15rem);
       padding: var(--space-3) var(--space-4);
-      border: var(--border-width) solid var(--color-border);
+      border: var(--border-width) solid rgb(255 255 255 / 20%);
       border-radius: var(--radius-lg);
-      background: var(--color-surface);
+      background: rgb(255 255 255 / 10%);
+      box-shadow: inset 0 1px rgb(255 255 255 / 8%);
+      backdrop-filter: blur(8px);
       font-size: var(--text-sm);
     }
 
     .operator-strip span {
-      color: var(--color-text-muted);
+      color: #d8ece9;
       font-weight: var(--weight-semibold);
     }
 
     .operator-strip strong {
-      color: var(--color-brand-950);
+      color: #fff;
       font-weight: var(--weight-bold);
     }
 
@@ -467,6 +514,7 @@ interface KpiCard {
       border-top: var(--border-width-accent) solid var(--color-brand-700);
       border-radius: var(--radius-lg);
       background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
 
     .kpi-card--success {
@@ -629,8 +677,8 @@ interface KpiCard {
       background:
         repeating-linear-gradient(
           135deg,
-          rgb(180 83 9 / 22%) 0,
-          rgb(180 83 9 / 22%) 0.35rem,
+          rgb(120 86 44 / 22%) 0,
+          rgb(120 86 44 / 22%) 0.35rem,
           transparent 0.35rem,
           transparent 0.7rem
         ),

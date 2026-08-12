@@ -142,7 +142,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
                               {{ role.label }}
                             </option>
                           }
-                        </select>
+                        </select> 
                       } @else {
                         <span>Master admin (Supabase Auth)</span>
                       }
@@ -220,39 +220,43 @@ const roles: Array<{ value: AppRole; label: string }> = [
     }
     .admin-page {
       display: grid;
-      gap: 22px;
-      color: #18354e;
+      gap: var(--space-6);
+      width: min(var(--container-wide), calc(100% - 2 * var(--page-gutter)));
+      margin-inline: auto;
+      padding-block: clamp(1.25rem, 2.6vw, 2.5rem);
+      color: var(--color-text);
     }
     header,
     .panel-title {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
+      gap: var(--space-5);
       align-items: start;
     }
     h1,
     h2 {
       margin: 0.25rem 0;
-      color: #102f4d;
+      color: var(--color-text);
     }
     .eyebrow {
       margin: 0;
-      color: #a5660b;
+      color: var(--color-brand-800);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-size: 0.72rem;
     }
     .panel {
-      background: #fff;
-      border: 1px solid #dce2e5;
-      padding: 22px;
-      box-shadow: 0 8px 24px #17344d0d;
+      padding: var(--space-6);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .form {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 15px;
+      gap: var(--space-4);
     }
     .form .panel-title {
       grid-column: 1/-1;
@@ -260,7 +264,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
     .link-panel {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr) auto;
-      gap: 18px;
+      gap: var(--space-4);
       align-items: end;
     }
     .link-panel p {
@@ -268,52 +272,62 @@ const roles: Array<{ value: AppRole; label: string }> = [
     }
     .link-actions {
       display: flex;
-      gap: 8px;
+      gap: var(--space-2);
     }
     label {
       display: grid;
-      gap: 6px;
+      gap: var(--space-2);
       font-weight: 700;
     }
     input,
     select {
       font: inherit;
-      padding: 10px;
-      border: 1px solid #aebac2;
-      background: #fff;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text);
     }
     .primary,
     .secondary,
     .status {
       border: 0;
-      padding: 10px 14px;
+      min-height: var(--control-height);
+      padding: 0.65rem var(--space-4);
+      border-radius: var(--radius-md);
       font-weight: 800;
       cursor: pointer;
     }
     .primary {
-      background: #123a5d;
-      color: #fff;
+      background: var(--color-action-primary);
+      color: var(--color-text-inverse);
       align-self: end;
     }
     .secondary {
-      background: #e8eef2;
-      color: #123a5d;
+      border: 1px solid var(--color-border-strong);
+      background: var(--color-surface);
+      color: var(--color-brand-800);
     }
     .notice {
-      padding: 12px;
-      border-left: 4px solid #20805d;
-      background: #edf8f3;
+      padding: var(--space-3);
+      border-left: 4px solid var(--color-success);
+      border-radius: var(--radius-md);
+      background: var(--color-success-surface);
+      color: var(--color-success);
     }
     .notice.error {
-      border-color: #b23b2c;
-      background: #fff0ed;
+      border-color: var(--color-error);
+      background: var(--color-error-surface);
+      color: var(--color-error);
     }
     .search {
       min-width: 260px;
     }
     .table-wrap {
       overflow: auto;
-      margin-top: 16px;
+      margin-top: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
     }
     table {
       border-collapse: collapse;
@@ -322,8 +336,8 @@ const roles: Array<{ value: AppRole; label: string }> = [
     }
     th,
     td {
-      padding: 12px;
-      border-bottom: 1px solid #e1e5e7;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
       text-align: left;
       vertical-align: top;
     }
@@ -333,36 +347,36 @@ const roles: Array<{ value: AppRole; label: string }> = [
       display: block;
     }
     td small {
-      color: #647582;
+      color: var(--color-text-muted);
     }
     .status {
-      background: #e7f5ef;
-      color: #17664a;
+      background: var(--color-success-surface);
+      color: var(--color-success);
     }
     .status.inactive {
-      background: #f4e5e3;
-      color: #8b3026;
+      background: var(--color-error-surface);
+      color: var(--color-error);
     }
     .link {
       display: block;
       border: 0;
       background: none;
-      color: #0d5e92;
+      color: var(--color-info);
       text-decoration: underline;
       padding: 4px 0;
       cursor: pointer;
     }
     .account-actions {
       display: flex;
-      gap: 12px;
+      gap: var(--space-3);
     }
     .link.danger {
-      color: #a3342a;
+      color: var(--color-danger);
     }
     .edit-panel {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(180px, 0.7fr) auto;
-      gap: 15px;
+      gap: var(--space-4);
       align-items: end;
     }
     .edit-panel .panel-title {
@@ -371,7 +385,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
     .state {
       padding: 35px;
       text-align: center;
-      color: #647582;
+      color: var(--color-text-muted);
     }
     @media (max-width: 850px) {
       .form {

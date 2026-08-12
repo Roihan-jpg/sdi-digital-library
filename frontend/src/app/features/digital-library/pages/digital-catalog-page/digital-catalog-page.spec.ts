@@ -4,6 +4,7 @@ import { BehaviorSubject, of } from 'rxjs';
 import { DigitalLibraryApiService } from '../../data-access/digital-library-api.service';
 import type { DigitalCollection } from '../../models/digital-collection.model';
 import { DigitalCatalogPage } from './digital-catalog-page';
+import { axeViolations } from '../../../../../testing/axe-testing';
 
 const collections: DigitalCollection[] = [
   {
@@ -81,7 +82,8 @@ describe('DigitalCatalogPage', () => {
     expect(element.textContent).toContain('Bisa diunduh setelah masuk');
     expect(titleLink.textContent).toContain('Modul Matematika Kelas 4');
     expect(coverLink.getAttribute('aria-label')).toBe('Buka detail Modul Matematika Kelas 4');
-  });
+    expect(await axeViolations(element)).toEqual([]);
+  }, 15_000);
 
   it('writes filters to query params on submit without exposing access URLs', async () => {
     const queryParamMap = convertToParamMap({});

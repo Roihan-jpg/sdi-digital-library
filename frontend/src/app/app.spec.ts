@@ -15,4 +15,12 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
     expect(fixture.nativeElement.querySelector('router-outlet')).toBeTruthy();
   });
+
+  it('applies the unified theme class on the application host', () => {
+    localStorage.setItem('sdi-theme', 'dark');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).classList.contains('app-theme--dark')).toBe(true);
+  });
 });

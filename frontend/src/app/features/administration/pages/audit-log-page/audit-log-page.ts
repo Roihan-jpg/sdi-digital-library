@@ -83,17 +83,17 @@ import {
     }
     .page {
       display: grid;
-      gap: 22px;
-      color: #18354e;
+      gap: var(--space-6);
+      color: var(--color-text);
     }
     header {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
+      gap: var(--space-5);
     }
     .eyebrow {
       margin: 0;
-      color: #a5660b;
+      color: var(--color-brand-800);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -101,16 +101,20 @@ import {
     }
     h1,
     h2 {
-      color: #102f4d;
+      color: var(--color-text);
       margin: 0.3rem 0;
     }
     .panel {
-      background: #fff;
-      border: 1px solid #dce2e5;
-      padding: 22px;
+      padding: var(--space-6);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .table {
       overflow: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
     }
     table {
       width: 100%;
@@ -120,33 +124,38 @@ import {
     th,
     td {
       text-align: left;
-      padding: 12px;
-      border-bottom: 1px solid #e1e5e7;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
     }
     .link,
     header button {
       border: 0;
-      background: #e8eef2;
-      color: #123a5d;
-      padding: 9px 12px;
+      padding: 0.6rem var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+      color: var(--color-brand-800);
       font-weight: 800;
     }
     .changes {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: var(--space-4);
     }
     pre {
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-      background: #f4f5f3;
-      padding: 14px;
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--color-neutral-surface);
+      color: var(--color-text);
       min-height: 90px;
     }
     .notice {
-      padding: 12px;
-      background: #fff0ed;
-      border-left: 4px solid #b23b2c;
+      padding: var(--space-3);
+      border-left: 4px solid var(--color-error);
+      border-radius: var(--radius-md);
+      background: var(--color-error-surface);
+      color: var(--color-error);
     }
     .state {
       text-align: center;

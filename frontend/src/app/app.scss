@@ -1,4 +1,9 @@
 :host {
   display: block;
   min-height: 100dvh;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
 }

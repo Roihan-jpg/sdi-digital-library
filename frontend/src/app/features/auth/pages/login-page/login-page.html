@@ -1,21 +1,22 @@
 <section class="screen" aria-labelledby="login-title">
-  <aside class="login-stage" aria-hidden="true">
-    <div class="login-stage__brand">
-      <img ngSrc="/sdi_logo.png" width="72" height="72" alt="" priority />
-      <span>SD Islam Tompokersan</span>
-    </div>
-    <div class="login-stage__copy">
-      <p>Ruang kerja perpustakaan</p>
-      <h2>Satu akun untuk setiap langkah membaca.</h2>
-    </div>
-    <div class="login-books">
-      <span class="login-book login-book--one">Katalog</span>
-      <span class="login-book login-book--two">Pinjaman</span>
-      <span class="login-book login-book--three">Koleksi digital</span>
+  <aside class="login-stage" aria-label="SD Islam Tompokersan">
+    <div class="login-stage__focus">
+      <div class="login-stage__mark">
+        <img
+          ngSrc="/sdi_logo.png"
+          width="240"
+          height="240"
+          alt="Logo SD Islam Tompokersan"
+          priority
+        />
+      </div>
+      <p>SD Islam Tompokersan</p>
+      <span>Perpustakaan digital</span>
     </div>
   </aside>
 
   <section class="auth">
+    <sdi-theme-toggle class="auth-theme-toggle" />
     <div class="auth-inner">
       <div class="brand-icon" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
