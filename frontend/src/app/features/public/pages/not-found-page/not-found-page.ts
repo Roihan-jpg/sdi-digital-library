@@ -15,6 +15,7 @@ import { AuthStore } from '../../../../core/auth/auth.store';
       aria-live="polite"
     >
       <div class="content-state card card--indexed">
+        <span class="missing-page__code" aria-hidden="true">404</span>
         <p class="eyebrow">Halaman tidak ditemukan</p>
         <h1 id="not-found-title">Alamat ini tidak tersedia</h1>
         <p id="not-found-description" class="missing-page__description">
@@ -34,20 +35,60 @@ import { AuthStore } from '../../../../core/auth/auth.store';
   `,
   styles: `
     .missing-page {
+      position: relative;
       display: grid;
       place-items: center;
-      min-height: min(32rem, calc(100dvh - var(--header-height)));
+      min-height: min(40rem, calc(100dvh - var(--header-height)));
+      overflow: hidden;
+      padding-block: clamp(3rem, 9vw, 8rem);
     }
 
     .content-state {
+      position: relative;
       justify-items: start;
       width: 100%;
-      border-inline-start: var(--border-width-accent) solid var(--color-brand-700);
+      max-width: 58rem;
+      overflow: hidden;
+      padding: clamp(2rem, 6vw, 5rem);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 1.5rem;
+      background:
+        radial-gradient(circle at 92% 10%, var(--color-accent-cream), transparent 13rem),
+        linear-gradient(135deg, var(--color-surface), var(--color-brand-50));
+      box-shadow: var(--shadow-lg);
       text-align: left;
+    }
+
+    .missing-page__code {
+      position: absolute;
+      right: -0.04em;
+      bottom: -0.28em;
+      color: color-mix(in srgb, var(--color-accent) 16%, transparent);
+      font-size: clamp(10rem, 25vw, 20rem);
+      font-weight: 800;
+      letter-spacing: -0.1em;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    h1,
+    .eyebrow,
+    .missing-page__description,
+    .missing-page__actions {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      max-width: 13ch;
+      font-size: clamp(2.4rem, 6vw, 5rem);
+      letter-spacing: -0.05em;
+      line-height: 1;
     }
 
     .missing-page__description {
       color: var(--color-text-muted);
+      max-width: 38rem;
       line-height: var(--leading-body);
     }
 

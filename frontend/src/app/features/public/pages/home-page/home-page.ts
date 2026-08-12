@@ -147,12 +147,10 @@ export class HomePage implements AfterViewInit, OnDestroy {
         stagger: 0.09,
         ease: 'power3.out',
       });
-      gsap.from('.stage-book', {
+      gsap.from('.hero-discovery', {
         opacity: 0,
-        rotateY: -28,
-        x: 90,
-        duration: 1.15,
-        stagger: 0.12,
+        x: 64,
+        duration: 1,
         ease: 'power3.out',
       });
 

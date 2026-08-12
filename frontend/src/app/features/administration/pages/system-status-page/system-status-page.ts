@@ -76,17 +76,17 @@ import {
     }
     .page {
       display: grid;
-      gap: 22px;
-      color: #18354e;
+      gap: var(--space-6);
+      color: var(--color-text);
     }
     header {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
+      gap: var(--space-5);
     }
     .eyebrow {
       margin: 0;
-      color: #a5660b;
+      color: var(--color-brand-800);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -94,51 +94,58 @@ import {
     }
     h1,
     h2 {
-      color: #102f4d;
+      color: var(--color-text);
       margin: 0.3rem 0;
     }
     button {
       border: 0;
-      background: #123a5d;
-      color: white;
-      padding: 10px 14px;
+      min-height: var(--control-height);
+      padding: 0.65rem var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--color-action-primary);
+      color: var(--color-text-inverse);
       font-weight: 800;
     }
     .health {
       display: flex;
       justify-content: space-between;
-      padding: 18px 22px;
-      background: #e6f5ed;
-      border-left: 6px solid #20805d;
+      padding: var(--space-5) var(--space-6);
+      border-left: 6px solid var(--color-success);
+      border-radius: var(--radius-lg);
+      background: var(--color-success-surface);
+      color: var(--color-success);
     }
     .health.degraded {
-      background: #fff3dc;
-      border-color: #d79224;
+      border-color: var(--color-warning);
+      background: var(--color-warning-surface);
+      color: var(--color-warning);
     }
     .checks {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+      gap: var(--space-4);
     }
     .checks article,
     .panel {
-      background: #fff;
-      border: 1px solid #dce2e5;
-      padding: 20px;
+      padding: var(--space-5);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .checks article {
       display: flex;
-      gap: 12px;
+      gap: var(--space-3);
     }
     .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #20805d;
+      background: var(--color-success);
       margin-top: 5px;
     }
     .dot.off {
-      background: #b23b2c;
+      background: var(--color-error);
     }
     .checks p {
       margin: 0.35rem 0;
@@ -150,26 +157,27 @@ import {
     dl {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: var(--space-3);
     }
     dl div {
       display: flex;
       justify-content: space-between;
-      border-bottom: 1px solid #e1e5e7;
-      padding: 8px;
+      padding: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
     }
     .events {
       display: grid;
-      gap: 12px;
+      gap: var(--space-3);
     }
     .events article {
-      border-left: 4px solid #b23b2c;
-      background: #fff4f1;
-      padding: 14px;
+      padding: var(--space-4);
+      border-left: 4px solid var(--color-error);
+      border-radius: var(--radius-md);
+      background: var(--color-error-surface);
     }
     .events article.warning {
-      border-color: #d79224;
-      background: #fff7e9;
+      border-color: var(--color-warning);
+      background: var(--color-warning-surface);
     }
     .events article div {
       display: flex;
@@ -177,15 +185,17 @@ import {
     }
     .events span,
     .events small {
-      color: #61727f;
+      color: var(--color-text-muted);
     }
     .events pre {
       white-space: pre-wrap;
     }
     .notice {
-      padding: 12px;
-      background: #fff0ed;
-      border-left: 4px solid #b23b2c;
+      padding: var(--space-3);
+      border-left: 4px solid var(--color-error);
+      border-radius: var(--radius-md);
+      background: var(--color-error-surface);
+      color: var(--color-error);
     }
     .state {
       text-align: center;

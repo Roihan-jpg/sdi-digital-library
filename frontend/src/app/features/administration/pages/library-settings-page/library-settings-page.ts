@@ -66,11 +66,11 @@ import {
     }
     .page {
       display: grid;
-      gap: 22px;
-      color: #18354e;
+      gap: var(--space-6);
+      color: var(--color-text);
     }
     .eyebrow {
-      color: #a5660b;
+      color: var(--color-brand-800);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -79,23 +79,25 @@ import {
     }
     h1,
     h2 {
-      color: #102f4d;
+      color: var(--color-text);
       margin: 0.3rem 0;
     }
     .panel {
-      background: #fff;
-      border: 1px solid #dce2e5;
-      padding: 24px;
+      padding: var(--space-6);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin: 18px 0 28px;
+      gap: var(--space-4);
+      margin: var(--space-4) 0 var(--space-8);
     }
     label {
       display: grid;
-      gap: 7px;
+      gap: var(--space-2);
       font-weight: 700;
     }
     .wide {
@@ -104,24 +106,32 @@ import {
     input,
     textarea {
       font: inherit;
-      padding: 11px;
-      border: 1px solid #abb8c1;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text);
     }
     button {
-      padding: 12px 18px;
-      background: #123a5d;
-      color: #fff;
+      min-height: var(--control-height);
+      padding: 0.65rem var(--space-4);
       border: 0;
+      border-radius: var(--radius-md);
+      background: var(--color-action-primary);
+      color: var(--color-text-inverse);
       font-weight: 800;
     }
     .notice {
-      padding: 12px;
-      border-left: 4px solid #20805d;
-      background: #edf8f3;
+      padding: var(--space-3);
+      border-left: 4px solid var(--color-success);
+      border-radius: var(--radius-md);
+      background: var(--color-success-surface);
+      color: var(--color-success);
     }
     .notice.error {
-      border-color: #b23b2c;
-      background: #fff0ed;
+      border-color: var(--color-error);
+      background: var(--color-error-surface);
+      color: var(--color-error);
     }
     .state {
       text-align: center;

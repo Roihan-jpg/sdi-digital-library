@@ -660,9 +660,10 @@ const COPY_STATUS_LABELS: Record<string, string> = {
     .panel,
     .receipt {
       padding: 1.2rem;
-      background: #fff;
       border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .compact {
       max-width: 38rem;

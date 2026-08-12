@@ -21,4 +21,14 @@ describe('role access policy', () => {
   it('routes guest accounts to the public catalog', () => {
     expect(roleHomePath('guest')).toBe('/katalog');
   });
+
+  it('provides an icon for every authenticated navigation item', () => {
+    const roles = ['master_admin', 'head_librarian', 'librarian', 'member'] as const;
+
+    for (const role of roles) {
+      const items = navigationGroupsForRole(role).flatMap((group) => group.items);
+      expect(items.length).toBeGreaterThan(0);
+      expect(items.every((item) => 'icon' in item && Boolean(item.icon))).toBe(true);
+    }
+  });
 });

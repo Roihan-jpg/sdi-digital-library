@@ -303,13 +303,30 @@ import {
     .portal {
       display: grid;
       gap: var(--space-6);
+      scroll-margin-top: var(--space-4);
     }
 
     .portal__header {
+      position: relative;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--space-4);
+      overflow: hidden;
+      padding: clamp(1.5rem, 3vw, 2.25rem);
+      border: 1px solid rgb(255 255 255 / 18%);
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 88% 10%, rgb(234 220 202 / 58%), transparent 16rem),
+        linear-gradient(135deg, #477f79 0%, #69afa7 64%, #79bbb4 100%);
+      box-shadow: var(--shadow-md);
+      color: #fff;
+    }
+
+    :host-context(.dashboard-theme--dark) .portal__header {
+      background:
+        radial-gradient(circle at 88% 10%, rgb(155 208 202 / 20%), transparent 16rem),
+        linear-gradient(135deg, #24443f 0%, #315e57 58%, #3d746d 100%);
     }
 
     .portal__header h1,
@@ -326,6 +343,16 @@ import {
       color: var(--color-text-muted);
     }
 
+    .portal__header .eyebrow,
+    .portal__header h1,
+    .portal__header p {
+      color: #fff;
+    }
+
+    .portal__header h1 {
+      font-size: clamp(1.5rem, 3vw, 2.15rem);
+    }
+
     .portal__catalog-link {
       flex: 0 0 auto;
     }
@@ -340,6 +367,7 @@ import {
       display: grid;
       gap: var(--space-2);
       min-height: 7rem;
+      box-shadow: var(--shadow-sm);
     }
 
     .cards strong {
@@ -357,6 +385,7 @@ import {
     .panel {
       display: grid;
       gap: var(--space-4);
+      scroll-margin-top: var(--space-4);
     }
 
     .heading {

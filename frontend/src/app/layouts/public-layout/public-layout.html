@@ -11,6 +11,7 @@
       <img ngSrc="/sdi_logo.png" width="54" height="54" alt="" priority />
       <span>
         <strong>SD Islam Tompokersan Lumajang</strong>
+        <small></small>
       </span>
     </a>
 
@@ -47,6 +48,7 @@
     </nav>
 
     <div class="header-actions">
+      <sdi-theme-toggle class="desktop-theme" />
       @if (authStore.isAuthenticated()) {
         @if (isGuest()) {
           <button class="account-link" type="button" [disabled]="loggingOut()" (click)="logout()">
@@ -61,7 +63,10 @@
       <a class="catalog-link" routerLink="/katalog">Cari buku <span aria-hidden="true">→</span></a>
     </div>
 
+    <sdi-theme-toggle class="mobile-theme" />
+
     <button
+      #menuButton
       class="menu-button"
       type="button"
       aria-label="Buka navigasi"
@@ -80,7 +85,7 @@
   tabindex="-1"
   aria-label="Tutup navigasi"
   [class.nav-backdrop--open]="navigationOpen()"
-  (click)="closeNavigation()"
+  (click)="closeNavigation(true)"
 ></button>
 
 <sdi-notification-banner />

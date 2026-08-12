@@ -5,10 +5,11 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { roleHomePath } from '../../../../core/auth/auth.models';
+import { ThemeToggle } from '../../../../shared/components/theme-toggle/theme-toggle';
 
 @Component({
   selector: 'sdi-login-page',
-  imports: [ReactiveFormsModule, RouterLink, NgOptimizedImage],
+  imports: [ReactiveFormsModule, RouterLink, NgOptimizedImage, ThemeToggle],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css',
 })

@@ -87,17 +87,17 @@ import {
     }
     .page {
       display: grid;
-      gap: 22px;
-      color: #18354e;
+      gap: var(--space-6);
+      color: var(--color-text);
     }
     header {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
+      gap: var(--space-5);
     }
     .eyebrow {
       margin: 0;
-      color: #a5660b;
+      color: var(--color-brand-800);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -105,30 +105,34 @@ import {
     }
     h1,
     h2 {
-      color: #102f4d;
+      color: var(--color-text);
       margin: 0.3rem 0;
     }
     .panel {
-      background: #fff;
-      border: 1px solid #dce2e5;
-      padding: 22px;
+      padding: var(--space-6);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .split {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: var(--space-4);
     }
     .split article {
       display: grid;
-      gap: 4px;
-      padding: 12px 0;
-      border-bottom: 1px solid #e1e5e7;
+      gap: var(--space-1);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--color-border);
     }
     .split span {
-      color: #61727f;
+      color: var(--color-text-muted);
     }
     .table {
       overflow: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
     }
     table {
       width: 100%;
@@ -138,20 +142,24 @@ import {
     th,
     td {
       text-align: left;
-      padding: 11px;
-      border-bottom: 1px solid #e1e5e7;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
     }
     button {
       border: 0;
-      background: #123a5d;
-      color: #fff;
-      padding: 10px 14px;
+      min-height: var(--control-height);
+      padding: 0.65rem var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--color-action-primary);
+      color: var(--color-text-inverse);
       font-weight: 800;
     }
     .notice {
-      padding: 12px;
-      background: #fff0ed;
-      border-left: 4px solid #b23b2c;
+      padding: var(--space-3);
+      border-left: 4px solid var(--color-error);
+      border-radius: var(--radius-md);
+      background: var(--color-error-surface);
+      color: var(--color-error);
     }
     .state {
       text-align: center;

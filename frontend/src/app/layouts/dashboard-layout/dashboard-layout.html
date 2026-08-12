@@ -19,7 +19,7 @@
   >
     <div class="aside-heading">
       <a class="dashboard-brand" routerLink="/dashboard" (click)="closeNavigation()">
-        <img src="/sdi_logo.png" width="46" height="46" alt="" />
+        <img ngSrc="/sdi_logo.png" width="46" height="46" alt="" priority />
         <span><strong>SDI Library</strong><small>Ruang kerja</small></span>
       </a>
       <button
@@ -57,9 +57,11 @@
                 fragment: 'exact',
               }"
               [attr.title]="railCollapsed() ? item.label : null"
-              (click)="closeNavigation()"
+              (click)="handleNavigation(item.section)"
             >
-              <span class="nav-glyph" aria-hidden="true"><i></i><i></i></span>
+              <span class="nav-glyph" aria-hidden="true">
+                <sdi-dashboard-icon [name]="item.icon" />
+              </span>
               <span class="nav-label">{{ item.label }}</span>
               @if (item.badge) {
                 <span class="menu-badge">{{ item.badge }}</span>
@@ -101,14 +103,54 @@
       >
         <span></span><span></span>
       </button>
-      <div>
+      <div class="workspace-copy">
         <small>{{ roleLabel() }}</small>
         <strong>Ruang kerja perpustakaan</strong>
       </div>
-      <a class="public-link" routerLink="/">Lihat situs publik <span aria-hidden="true">↗</span></a>
+      <div class="workspace-actions">
+        <sdi-theme-toggle />
+
+        <div #profilePanel class="profile-panel">
+          <button
+            #profileTrigger
+            class="profile-trigger"
+            type="button"
+            aria-controls="profile-actions"
+            [attr.aria-expanded]="profileOpen()"
+            (click)="toggleProfile()"
+          >
+            <span class="profile-avatar" aria-hidden="true">{{ initials() }}</span>
+            <span class="profile-copy">
+              <strong>{{ authStore.displayName() }}</strong>
+              <small>{{ roleLabel() }}</small>
+            </span>
+            <span class="profile-chevron" aria-hidden="true">⌄</span>
+          </button>
+
+          @if (profileOpen()) {
+            <div id="profile-actions" class="profile-menu" aria-label="Menu akun">
+              <div class="profile-menu__identity">
+                <strong>{{ authStore.displayName() }}</strong>
+                <span>{{ roleLabel() }}</span>
+              </div>
+              <a routerLink="/ganti-kata-sandi" (click)="closeProfile()"> Ganti kata sandi </a>
+              <a routerLink="/" (click)="closeProfile()">Lihat situs publik</a>
+              <button type="button" [disabled]="isLoggingOut()" (click)="logout()">
+                {{ isLoggingOut() ? 'Mengakhiri sesi…' : 'Keluar' }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
     </header>
 
     <sdi-notification-banner />
-    <main id="main-content" tabindex="-1"><router-outlet /></main>
+    <div class="workspace-scroller">
+      <main id="main-content" tabindex="-1"><router-outlet /></main>
+      <footer class="workspace-footer">
+        <span>SDI Digital Library</span>
+        <span>Ruang kerja {{ roleLabel().toLowerCase() }}</span>
+      </footer>
+    </div>
   </section>
 </div>
