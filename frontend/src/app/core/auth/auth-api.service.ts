@@ -8,6 +8,12 @@ interface ApiResponse<T> {
   data: T;
 }
 
+interface LocalLoginPayload {
+  accessToken: string;
+  expiresAt: string;
+  context: CurrentAuthContext;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
   private readonly http = inject(HttpClient);
@@ -16,6 +22,13 @@ export class AuthApiService {
   getCurrentContext(accessToken: string): Observable<ApiResponse<CurrentAuthContext>> {
     return this.http.get<ApiResponse<CurrentAuthContext>>(`${this.baseUrl}/auth/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  }
+
+  loginLocal(identifier: string, password: string): Observable<ApiResponse<LocalLoginPayload>> {
+    return this.http.post<ApiResponse<LocalLoginPayload>>(`${this.baseUrl}/auth/local-login`, {
+      identifier,
+      password,
     });
   }
 

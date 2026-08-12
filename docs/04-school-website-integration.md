@@ -8,7 +8,7 @@ Tambahkan tautan menuju `https://DOMAIN-LIBRARY/koleksi-digital`. Pengunjung dap
 
 ## Endpoint publik terbatas
 
-Gunakan `GET https://DOMAIN-API/api/digital-library?limit=6&sort=latest`. Filter yang didukung: `search`, `categoryId`, `mediaType` (`ebook`, `module`, `video`, `audio`), dan `sort` (`latest`, `popular`, `title`). Respons tidak memuat `file_path`, `preview_path`, ataupun signed URL.
+Gunakan `GET https://DOMAIN-API/api/digital-library?limit=6&sort=latest`. Filter yang didukung: `search`, `categoryId`, `mediaType` (`ebook`, `module`, `video`), dan `sort` (`latest`, `popular`, `title`). Respons tidak memuat `file_path`, `preview_path`, ataupun signed URL.
 
 Pastikan domain website sekolah tercantum dalam `APP_ORIGIN` backend agar diizinkan oleh CORS.
 

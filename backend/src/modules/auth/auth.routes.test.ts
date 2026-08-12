@@ -12,6 +12,7 @@ import type {
   AuthServicePort,
   CreateAccountInput,
   ProfileServicePort,
+  UpdateAccountInput,
   UpdateOwnProfileInput,
 } from './auth.types.js';
 
@@ -27,6 +28,7 @@ const config: AppConfig = {
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_ANON_KEY: 'anon-key-with-at-least-twenty-characters',
   SUPABASE_SERVICE_ROLE_KEY: 'service-key-with-at-least-twenty-characters',
+  SUPABASE_JWT_SECRET: 'jwt-secret-with-at-least-thirty-two-characters',
   LOG_LEVEL: 'silent',
   JSON_BODY_LIMIT: '1mb',
   RATE_LIMIT_WINDOW_MS: 60_000,
@@ -60,11 +62,24 @@ class FakeAuthService implements AuthServicePort {
   async changePassword(_context: AuthContext, password: string): Promise<void> {
     this.changedPassword = password;
   }
+
+  async loginLocal(identifier: string, password: string) {
+    if (identifier !== 'petugas.uji' || password !== 'Petugas2026') {
+      throw new AppError(401, 'INVALID_CREDENTIALS', 'Username atau kata sandi tidak benar.');
+    }
+    return {
+      accessToken: 'local-session-token',
+      expiresAt: '2026-08-12T12:00:00.000Z',
+      context: context(targetId, 'librarian', 'local-session-token'),
+    };
+  }
 }
 
 class FakeProfileService implements ProfileServicePort {
   roleUpdate: { userId: string; role: AppRole } | null = null;
-  createdAccount: { email: string; fullName: string; role: AppRole; deliveryMode: string } | null = null;
+  createdAccount: { username: string; fullName: string; role: AppRole } | null = null;
+  updatedAccount: { userId: string; input: UpdateAccountInput } | null = null;
+  deletedAccount: string | null = null;
 
   async listProfiles(
     authContext: AuthContext,
@@ -104,12 +119,24 @@ class FakeProfileService implements ProfileServicePort {
     input: CreateAccountInput,
   ): Promise<AppProfile> {
     this.createdAccount = {
-      email: input.email,
+      username: input.username,
       fullName: input.fullName,
       role: input.role,
-      deliveryMode: input.deliveryMode,
     };
     return profile(targetId, input.role, true);
+  }
+
+  async updateAccount(
+    _context: AuthContext,
+    userId: string,
+    input: UpdateAccountInput,
+  ): Promise<AppProfile> {
+    this.updatedAccount = { userId, input };
+    return profile(userId, input.role ?? 'guest', true);
+  }
+
+  async deleteAccount(_context: AuthContext, userId: string): Promise<void> {
+    this.deletedAccount = userId;
   }
 }
 
@@ -138,6 +165,19 @@ describe('auth and profile routes', () => {
   it('rejects requests without an access token', async () => {
     const response = await fetch(`${baseUrl}/api/auth/me`);
     assert.equal(response.status, 401);
+  });
+
+  it('signs in a local account without creating a Supabase Auth session', async () => {
+    const response = await fetch(`${baseUrl}/api/auth/local-login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ identifier: 'petugas.uji', password: 'Petugas2026' }),
+    });
+    const body = (await response.json()) as { data: { accessToken: string; context: AuthContext } };
+
+    assert.equal(response.status, 200);
+    assert.equal(body.data.accessToken, 'local-session-token');
+    assert.equal(body.data.context.profile.role, 'librarian');
   });
 
   it('returns the authenticated user and database-backed role', async () => {
@@ -176,6 +216,32 @@ describe('auth and profile routes', () => {
     assert.deepEqual(profileService.roleUpdate, { userId: targetId, role: 'librarian' });
   });
 
+  it('allows a master admin to edit a local account', async () => {
+    const response = await request(`/api/profiles/${targetId}`, 'master-token', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        username: 'pengguna.baru',
+        fullName: 'Pengguna Baru',
+        role: 'librarian',
+      }),
+    });
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(profileService.updatedAccount, {
+      userId: targetId,
+      input: { username: 'pengguna.baru', fullName: 'Pengguna Baru', role: 'librarian' },
+    });
+  });
+
+  it('allows a master admin to delete a local account', async () => {
+    const response = await request(`/api/profiles/${targetId}`, 'master-token', {
+      method: 'DELETE',
+    });
+
+    assert.equal(response.status, 204);
+    assert.equal(profileService.deletedAccount, targetId);
+  });
+
   it('ends the authenticated session through the logout endpoint', async () => {
     const response = await request('/api/auth/logout', 'member-token', { method: 'POST' });
 
@@ -198,7 +264,7 @@ describe('auth and profile routes', () => {
     });
     assert.equal(weak.status, 400);
 
-    const strongPassword = 'Perpustakaan#2026';
+    const strongPassword = 'Perpustakaan2026';
     const accepted = await request('/api/auth/password', 'temporary-token', {
       method: 'PATCH',
       body: JSON.stringify({ password: strongPassword }),
@@ -208,14 +274,24 @@ describe('auth and profile routes', () => {
     assert.equal(authService.changedPassword, strongPassword);
   });
 
-  it('allows master admin to create an invited account without receiving a password', async () => {
+  it('accepts a password with uppercase, lowercase, and numbers without a symbol', async () => {
+    const response = await request('/api/auth/password', 'temporary-token', {
+      method: 'PATCH',
+      body: JSON.stringify({ password: 'KataSandi2026' }),
+    });
+
+    assert.equal(response.status, 204);
+    assert.equal(authService.changedPassword, 'KataSandi2026');
+  });
+
+  it('allows master admin to create a local account with a temporary password', async () => {
     const response = await request('/api/profiles', 'master-token', {
       method: 'POST',
       body: JSON.stringify({
-        email: 'kepala.baru@example.sch.id',
+        username: 'kepala.baru',
         fullName: 'Kepala Baru',
         role: 'head_librarian',
-        deliveryMode: 'invite',
+        password: 'KepalaBaru2026',
       }),
     });
     const body = (await response.json()) as { data: AppProfile & { password?: string } };
@@ -224,10 +300,9 @@ describe('auth and profile routes', () => {
     assert.equal(body.data.role, 'head_librarian');
     assert.equal(body.data.password, undefined);
     assert.deepEqual(profileService.createdAccount, {
-      email: 'kepala.baru@example.sch.id',
+      username: 'kepala.baru',
       fullName: 'Kepala Baru',
       role: 'head_librarian',
-      deliveryMode: 'invite',
     });
   });
 

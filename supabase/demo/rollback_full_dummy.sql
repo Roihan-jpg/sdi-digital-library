@@ -76,10 +76,41 @@ where id::text like '70000000-%'
 -- 2. Katalog fisik.
 -- ---------------------------------------------------------------------------
 
+-- Seed dummy pernah menempelkan sebagian master dummy ke data katalog lain.
+-- Lepaskan referensinya agar data katalog non-dummy tetap aman.
+update public.book_titles bt
+set publisher_id = null
+from public.publishers p
+where p.id = bt.publisher_id
+  and (p.id::text like '42000000-%' or p.name like 'Penerbit Dummy %');
+
+update public.book_titles bt
+set default_shelf_id = null
+from public.shelves s
+where s.id = bt.default_shelf_id
+  and (s.id::text like '43000000-%' or s.code like 'DUMMY-%');
+
+update public.book_copies bc
+set shelf_id = null
+from public.shelves s
+where s.id = bc.shelf_id
+  and (s.id::text like '43000000-%' or s.code like 'DUMMY-%');
+
+update public.book_titles bt
+set replacement_cost_category_id = null
+from public.replacement_cost_categories rcc
+where rcc.id = bt.replacement_cost_category_id
+  and (rcc.id::text like '44000000-%' or rcc.name like 'DUMMY%');
+
 delete from public.book_authors ba
 using public.book_titles bt
 where bt.id = ba.book_title_id
   and (bt.id::text like '50000000-%' or bt.catalog_code like 'DUMMY-%');
+
+delete from public.book_authors ba
+using public.authors a
+where a.id = ba.author_id
+  and (a.id::text like '41000000-%' or a.name like 'Penulis Dummy %');
 
 delete from public.book_copies
 where id::text like '60000000-%'
@@ -160,16 +191,32 @@ where id = 1
 -- 5. Profiles dan akun Auth dummy.
 -- ---------------------------------------------------------------------------
 
+-- Model autentikasi baru menyimpan akun non-master di tabel lokal.
+delete from public.local_auth_sessions las
+using public.profiles p
+where p.id = las.profile_id
+  and (
+    p.id::text like '10000000-%'
+    or p.id::text like 'd0000000-%'
+    or p.full_name ilike '%dummy%'
+    or p.full_name ilike '%demo%'
+  );
+
 delete from public.profiles
 where id::text like '10000000-%'
-   or full_name in (
-     'Admin Dummy',
-     'Kepala Perpustakaan Dummy',
-     'Petugas Perpustakaan Dummy',
-     'Siswa Login Dummy',
-     'Guest Dummy',
-     'Guru Member Dummy'
-   );
+   or id::text like 'd0000000-%'
+   or full_name ilike '%dummy%'
+   or full_name ilike '%demo%';
+
+delete from public.local_user_accounts lua
+using public.profiles p
+where p.id = lua.profile_id
+  and (
+    p.id::text like '10000000-%'
+    or p.id::text like 'd0000000-%'
+    or p.full_name ilike '%dummy%'
+    or p.full_name ilike '%demo%'
+  );
 
 delete from auth.identities
 where user_id::text like '10000000-%'

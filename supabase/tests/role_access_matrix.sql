@@ -9,31 +9,12 @@ insert into auth.users (
     '61000000-0000-4000-8000-000000000001',
     'authenticated', 'authenticated', 'matrix-admin@example.test', 'not-used', now(),
     '{}', '{}', now(), now()
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '61000000-0000-4000-8000-000000000002',
-    'authenticated', 'authenticated', 'matrix-head@example.test', 'not-used', now(),
-    '{}', '{}', now(), now()
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '61000000-0000-4000-8000-000000000003',
-    'authenticated', 'authenticated', 'matrix-librarian@example.test', 'not-used', now(),
-    '{}', '{}', now(), now()
   );
 
-update public.profiles
-set role = case id
-  when '61000000-0000-4000-8000-000000000001' then 'master_admin'::public.app_role
-  when '61000000-0000-4000-8000-000000000002' then 'head_librarian'::public.app_role
-  else 'librarian'::public.app_role
-end
-where id in (
-  '61000000-0000-4000-8000-000000000001',
-  '61000000-0000-4000-8000-000000000002',
-  '61000000-0000-4000-8000-000000000003'
-);
+insert into public.profiles (id, role, full_name)
+values
+  ('61000000-0000-4000-8000-000000000002', 'head_librarian', 'Matrix Head'),
+  ('61000000-0000-4000-8000-000000000003', 'librarian', 'Matrix Librarian');
 
 set local role authenticated;
 

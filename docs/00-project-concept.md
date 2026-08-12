@@ -28,7 +28,7 @@ Sekolah memiliki:
 - koleksi buku fisik dalam jumlah besar;
 - koleksi e-book/PDF;
 - modul pembelajaran;
-- video dan audio pembelajaran;
+- video pembelajaran;
 - kartu pelajar;
 - kartu anggota perpustakaan;
 - data siswa berbasis NIS dan NISN;
@@ -83,11 +83,10 @@ Sistem mengelola:
 - e-book/PDF;
 - modul pembelajaran;
 - video pembelajaran;
-- audio pembelajaran.
 
 Koleksi digital:
 
-- dapat dibaca atau diputar langsung melalui website;
+- dapat dibaca atau ditonton langsung melalui website;
 - dapat diunduh;
 - hanya dapat diakses penuh oleh pengguna yang sudah login;
 - dikelompokkan berdasarkan kategori;
@@ -421,7 +420,6 @@ Master data meliputi:
 - metadata;
 - viewer PDF;
 - pemutar video;
-- pemutar audio;
 - kontrol akses login;
 - pencatatan jumlah baca;
 - pencatatan jumlah unduh.
@@ -676,7 +674,7 @@ Supabase digunakan untuk:
 - Row Level Security;
 - backup;
 - audit berbasis database;
-- penyimpanan e-book, thumbnail, video, dan audio.
+- penyimpanan e-book, thumbnail, dan video.
 
 ### 11.4 Deployment
 
@@ -755,7 +753,7 @@ Fitur yang dapat ditunda setelah MVP:
 
 - katalog publik lengkap;
 - koleksi digital;
-- video dan audio;
+- video;
 - reservasi online;
 - laporan akreditasi;
 - integrasi website sekolah;
@@ -831,7 +829,6 @@ Target semalam harus difokuskan pada alur operasional dan tidak mencakup penyemp
 - e-book;
 - PDF viewer;
 - video;
-- audio;
 - kategori koleksi digital.
 
 #### Hari 6

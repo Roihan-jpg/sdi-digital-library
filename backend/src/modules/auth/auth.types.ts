@@ -1,10 +1,4 @@
-export const appRoles = [
-  'master_admin',
-  'head_librarian',
-  'librarian',
-  'member',
-  'guest',
-] as const;
+export const appRoles = ['master_admin', 'head_librarian', 'librarian', 'member', 'guest'] as const;
 
 export type AppRole = (typeof appRoles)[number];
 
@@ -12,6 +6,8 @@ export interface AuthUser {
   id: string;
   email: string | null;
 }
+
+export type AuthSource = 'supabase' | 'local';
 
 export interface AppProfile {
   id: string;
@@ -24,6 +20,8 @@ export interface AppProfile {
 
 export interface ManagedProfile extends AppProfile {
   email: string | null;
+  username: string | null;
+  authSource: AuthSource;
   createdAt: string;
   lastSignInAt: string | null;
   invitedAt: string | null;
@@ -39,15 +37,20 @@ export interface ProfileListFilters {
 }
 
 interface CreateAccountBase {
-  email: string;
+  username: string;
   fullName: string;
   role: AppRole;
+  password: string;
   memberId?: string | undefined;
 }
 
-export type CreateAccountInput =
-  | (CreateAccountBase & { deliveryMode: 'invite' })
-  | (CreateAccountBase & { deliveryMode: 'temporaryPassword'; temporaryPassword: string });
+export type CreateAccountInput = CreateAccountBase;
+
+export interface UpdateAccountInput {
+  username?: string | undefined;
+  fullName?: string | undefined;
+  role?: Exclude<AppRole, 'master_admin'> | undefined;
+}
 
 export interface MemberSummary {
   id: string;
@@ -63,12 +66,21 @@ export interface AuthContext {
   user: AuthUser;
   profile: AppProfile;
   member: MemberSummary | null;
+  authSource?: AuthSource;
+  authUserId?: string;
+}
+
+export interface LocalLoginResult {
+  accessToken: string;
+  expiresAt: string;
+  context: AuthContext;
 }
 
 export interface AuthServicePort {
   authenticate(accessToken: string): Promise<AuthContext>;
   logout(accessToken: string): Promise<void>;
   changePassword?(context: AuthContext, password: string): Promise<void>;
+  loginLocal?(identifier: string, password: string): Promise<LocalLoginResult>;
 }
 
 export interface UpdateOwnProfileInput {
@@ -91,7 +103,15 @@ export interface ProfileServicePort {
     context: AuthContext,
     filters: ProfileListFilters,
   ): Promise<{ items: ManagedProfile[]; total: number; page: number; limit: number }>;
-  createAccount?(context: AuthContext, input: CreateAccountInput): Promise<ManagedProfile | AppProfile>;
-  sendInvitation?(context: AuthContext, userId: string): Promise<void>;
-  sendRecoveryEmail?(context: AuthContext, userId: string): Promise<void>;
+  createAccount?(
+    context: AuthContext,
+    input: CreateAccountInput,
+  ): Promise<ManagedProfile | AppProfile>;
+  updateAccount?(
+    context: AuthContext,
+    userId: string,
+    input: UpdateAccountInput,
+  ): Promise<AppProfile>;
+  deleteAccount?(context: AuthContext, userId: string): Promise<void>;
+  setPassword?(context: AuthContext, userId: string, password: string): Promise<void>;
 }

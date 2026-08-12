@@ -1,6 +1,6 @@
 # SDI Digital Library
 
-Monorepo prototype perpustakaan sekolah dasar dengan Angular, Express TypeScript, dan Supabase. Fondasi saat ini mencakup autentikasi Supabase, profile database, role-based access control, shell UI, dan API Express.
+Monorepo prototype perpustakaan sekolah dasar dengan Angular, Express TypeScript, dan Supabase. Master admin memakai Supabase Auth; akun role lain memakai akun lokal yang tersimpan aman di database aplikasi.
 
 ## Prasyarat
 
@@ -40,6 +40,7 @@ Backend membaca `backend/.env` dan memvalidasinya saat startup:
 | `SUPABASE_URL` | URL project Supabase |
 | `SUPABASE_ANON_KEY` | Anon/publishable key untuk konteks user |
 | `SUPABASE_SERVICE_ROLE_KEY` | Secret backend untuk operasi administratif terkontrol |
+| `SUPABASE_JWT_SECRET` | JWT secret project Supabase, hanya untuk backend menandatangani sesi akun lokal agar RLS/RPC tetap mengenali profile lokal |
 | `LOG_LEVEL` | Level structured log Pino |
 | `JSON_BODY_LIMIT` | Batas body JSON Express, default `1mb` |
 | `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | Jendela dan maksimum request per IP |
@@ -74,22 +75,22 @@ Angular berjalan di `http://localhost:4200` dan meneruskan request `/api` ke bac
 
 ## Autentikasi dan profile
 
-Angular login langsung ke Supabase Auth menggunakan publishable key. Access token kemudian dikirim ke Express. Backend memvalidasi token melalui Supabase Auth dan selalu mengambil role aktif dari tabel `profiles`; role dari request frontend tidak dipercaya.
+Hanya `master_admin` yang login melalui Supabase Auth. `head_librarian`, `librarian`, `member`, dan `guest` login dengan username serta kata sandi akun lokal. Backend menyimpan password dengan hash `scrypt`, menerbitkan sesi JWT singkat yang tervalidasi terhadap tabel sesi, dan selalu mengambil role aktif dari tabel `profiles`; role dari request frontend tidak dipercaya. JWT secret tidak pernah dikirim ke Angular.
 
 | Endpoint | Akses | Fungsi |
 |---|---|---|
 | `GET /api/auth/me` | Semua akun aktif | User, profile, role, dan member tertaut |
+| `POST /api/auth/local-login` | Publik | Login akun lokal dengan username dan kata sandi |
 | `POST /api/auth/logout` | Semua akun aktif | Invalidasi sesi aktif |
 | `PATCH /api/auth/password` | Semua akun aktif | Ganti kata sandi; wajib untuk akun dengan kata sandi sementara |
 | `GET /api/profiles/me` | Semua akun aktif | Profile pengguna saat ini |
 | `PATCH /api/profiles/me` | Semua akun aktif | Ubah nama/avatar sendiri; tidak menerima role/status |
 | `GET /api/profiles` | `master_admin` | Daftar profile dengan pagination |
-| `POST /api/profiles` | `master_admin` | Buat akun melalui undangan atau kata sandi sementara |
-| `PATCH /api/profiles/:id/role` | `master_admin` | Ubah role melalui RPC database |
+| `POST /api/profiles` | `master_admin` | Buat akun lokal non-master-admin dengan username dan kata sandi sementara |
+| `PATCH /api/profiles/:id/role` | `master_admin` | Ubah role akun lokal; master admin tidak dapat dipindahkan dari Supabase Auth |
 | `PATCH /api/profiles/:id/status` | `master_admin` | Aktifkan/nonaktifkan akun |
-| `POST /api/profiles/:id/link-member` | `master_admin`, `librarian` | Hubungkan akun Auth dengan member |
-| `POST /api/profiles/:id/invitations` | `master_admin` | Kirim ulang undangan akun |
-| `POST /api/profiles/:id/recovery-emails` | `master_admin` | Kirim email pemulihan kata sandi |
+| `POST /api/profiles/:id/link-member` | `master_admin`, `librarian` | Hubungkan akun aplikasi dengan member |
+| `PATCH /api/profiles/:id/password` | `master_admin` | Atur ulang kata sandi akun lokal |
 
 Navigasi dan dashboard diarahkan berdasarkan role `master_admin`, `head_librarian`, `librarian`, `member`, atau `guest`. Guest tetap berada di katalog publik dan tidak memiliki dashboard. Otorisasi sebenarnya tetap ditegakkan di backend dan RLS, bukan melalui menu Angular.
 
@@ -123,7 +124,7 @@ Setelah membuat akun Auth pertama, bootstrap master admin melalui SQL Editor:
 select public.bootstrap_master_admin('email-admin@sekolah.sch.id');
 ```
 
-User Auth baru otomatis memperoleh profile role `guest`. Fungsi bootstrap tidak dapat dipanggil melalui public API dan hanya dijalankan dari SQL Editor dengan hak administratif.
+User Auth pertama otomatis memperoleh profile `master_admin`. Sesudah satu master admin aktif ada, trigger database menolak user Auth tambahan; akun role lain dibuat dari menu administrasi sebagai akun lokal. Fungsi bootstrap tidak dapat dipanggil melalui public API dan hanya dijalankan dari SQL Editor dengan hak administratif.
 
 ## Quality checks
 

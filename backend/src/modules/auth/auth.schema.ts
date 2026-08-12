@@ -16,12 +16,11 @@ export const updateStatusSchema = z.object({ isActive: z.boolean() }).strict();
 export const linkMemberSchema = z.object({ memberId: z.uuid() }).strict();
 const strongPasswordSchema = z
   .string()
-  .min(12)
+  .min(8)
   .max(128)
   .regex(/[a-z]/)
   .regex(/[A-Z]/)
-  .regex(/[0-9]/)
-  .regex(/[^A-Za-z0-9]/);
+  .regex(/[0-9]/);
 
 export const changePasswordSchema = z
   .object({
@@ -41,18 +40,37 @@ export const profileListQuerySchema = z.object({
 });
 
 const accountBaseSchema = z.object({
-  email: z.email().transform((value) => value.trim().toLowerCase()),
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(150)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._@-]*$/)
+    .transform((value) => value.toLowerCase()),
   fullName: z.string().trim().min(2).max(150),
-  role: z.enum(appRoles),
+  role: z.enum(['head_librarian', 'librarian', 'member', 'guest']),
+  password: strongPasswordSchema,
   memberId: z.uuid().optional(),
 });
 
-export const createAccountSchema = z.discriminatedUnion('deliveryMode', [
-  accountBaseSchema.extend({ deliveryMode: z.literal('invite') }).strict(),
-  accountBaseSchema
-    .extend({
-      deliveryMode: z.literal('temporaryPassword'),
-      temporaryPassword: strongPasswordSchema,
-    })
-    .strict(),
-]);
+export const createAccountSchema = accountBaseSchema.strict();
+export const updateAccountSchema = z
+  .object({
+    username: accountBaseSchema.shape.username.optional(),
+    fullName: accountBaseSchema.shape.fullName.optional(),
+    role: accountBaseSchema.shape.role.optional(),
+  })
+  .strict()
+  .refine(
+    (body) => body.username !== undefined || body.fullName !== undefined || body.role !== undefined,
+    {
+      message: 'Minimal satu field akun harus diberikan.',
+    },
+  );
+export const localLoginSchema = z
+  .object({
+    identifier: z.string().trim().min(3).max(150),
+    password: z.string().min(1).max(128),
+  })
+  .strict();
+export const setPasswordSchema = z.object({ password: strongPasswordSchema }).strict();

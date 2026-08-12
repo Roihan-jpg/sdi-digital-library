@@ -15,6 +15,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_local_user_account: {
+        Args: { p_actor_profile_id: string; p_user_id: string }
+        Returns: string
+      }
       graphql: {
         Args: {
           extensions?: Json
@@ -1189,6 +1193,85 @@ export type Database = {
           },
         ]
       }
+      local_auth_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          ip_address: unknown
+          last_seen_at: string
+          profile_id: string
+          revoked_at: string | null
+          token_hash: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          ip_address?: unknown
+          last_seen_at?: string
+          profile_id: string
+          revoked_at?: string | null
+          token_hash: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          ip_address?: unknown
+          last_seen_at?: string
+          profile_id?: string
+          revoked_at?: string | null
+          token_hash?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "local_auth_sessions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      local_user_accounts: {
+        Row: {
+          created_at: string
+          last_sign_in_at: string | null
+          password_hash: string | null
+          password_updated_at: string | null
+          profile_id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          last_sign_in_at?: string | null
+          password_hash?: string | null
+          password_updated_at?: string | null
+          profile_id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          last_sign_in_at?: string | null
+          password_hash?: string | null
+          password_updated_at?: string | null
+          profile_id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "local_user_accounts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           card_number: string
@@ -1295,6 +1378,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auth_user_id: string | null
           avatar_path: string | null
           created_at: string
           full_name: string | null
@@ -1306,10 +1390,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auth_user_id?: string | null
           avatar_path?: string | null
           created_at?: string
           full_name?: string | null
-          id: string
+          id?: string
           is_active?: boolean
           last_login_at?: string | null
           must_change_password?: boolean
@@ -1317,6 +1402,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auth_user_id?: string | null
           avatar_path?: string | null
           created_at?: string
           full_name?: string | null
@@ -1328,53 +1414,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      system_events: {
-        Row: {
-          actor_user_id: string | null
-          context: Json
-          event_code: string
-          expires_at: string
-          id: number
-          level: string
-          message: string
-          occurred_at: string
-          request_id: string | null
-          source: string
-        }
-        Insert: {
-          actor_user_id?: string | null
-          context?: Json
-          event_code: string
-          expires_at?: string
-          id?: never
-          level: string
-          message: string
-          occurred_at?: string
-          request_id?: string | null
-          source: string
-        }
-        Update: {
-          actor_user_id?: string | null
-          context?: Json
-          event_code?: string
-          expires_at?: string
-          id?: never
-          level?: string
-          message?: string
-          occurred_at?: string
-          request_id?: string | null
-          source?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "system_events_actor_user_id_fkey"
-            columns: ["actor_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       publishers: {
         Row: {
@@ -1694,6 +1733,53 @@ export type Database = {
           },
         ]
       }
+      system_events: {
+        Row: {
+          actor_user_id: string | null
+          context: Json
+          event_code: string
+          expires_at: string
+          id: number
+          level: string
+          message: string
+          occurred_at: string
+          request_id: string | null
+          source: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          context?: Json
+          event_code: string
+          expires_at?: string
+          id?: never
+          level: string
+          message: string
+          occurred_at?: string
+          request_id?: string | null
+          source: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          context?: Json
+          event_code?: string
+          expires_at?: string
+          id?: never
+          level?: string
+          message?: string
+          occurred_at?: string
+          request_id?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visits: {
         Row: {
           card_number_snapshot: string | null
@@ -1944,8 +2030,8 @@ export type Database = {
         }
         Returns: number
       }
-      can_view_operations: { Args: never; Returns: boolean }
       can_link_member_account: { Args: never; Returns: boolean }
+      can_view_operations: { Args: never; Returns: boolean }
       cancel_reservation: {
         Args: { p_reservation_id: string }
         Returns: undefined
@@ -1997,8 +2083,8 @@ export type Database = {
         Args: { p_created_by: string; p_row: Json }
         Returns: string
       }
-      is_library_staff: { Args: never; Returns: boolean }
       is_library_operator: { Args: never; Returns: boolean }
+      is_library_staff: { Args: never; Returns: boolean }
       is_master_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
       link_member_account: {
@@ -2011,9 +2097,9 @@ export type Database = {
       }
       lookup_member_by_card: { Args: { p_card_number: string }; Returns: Json }
       mark_overdue_items: { Args: never; Returns: number }
-      purge_expired_system_events: { Args: never; Returns: number }
       next_loan_number: { Args: never; Returns: string }
       next_reservation_number: { Args: never; Returns: string }
+      purge_expired_system_events: { Args: never; Returns: number }
       record_digital_access: {
         Args: {
           p_action: Database["public"]["Enums"]["digital_action_type"]
@@ -2074,6 +2160,16 @@ export type Database = {
         Returns: Json
       }
       run_library_maintenance: { Args: never; Returns: Json }
+      update_local_user_account: {
+        Args: {
+          p_actor_profile_id: string
+          p_full_name?: string | null
+          p_role?: Database["public"]["Enums"]["app_role"] | null
+          p_user_id: string
+          p_username?: string | null
+        }
+        Returns: string
+      }
       set_user_role: {
         Args: {
           p_role: Database["public"]["Enums"]["app_role"]
@@ -2100,7 +2196,7 @@ export type Database = {
         | "maintenance"
         | "inactive"
       digital_action_type: "view" | "play" | "download"
-      digital_media_type: "ebook" | "module" | "video" | "audio"
+      digital_media_type: "ebook" | "module" | "video"
       fine_status: "unpaid" | "partial" | "paid" | "waived"
       fine_type: "overdue" | "damaged" | "lost" | "other"
       gender_type: "male" | "female" | "unknown"
@@ -2128,7 +2224,6 @@ export type Database = {
     }
   }
 }
-
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
@@ -2271,7 +2366,7 @@ export const Constants = {
         "inactive",
       ],
       digital_action_type: ["view", "play", "download"],
-      digital_media_type: ["ebook", "module", "video", "audio"],
+      digital_media_type: ["ebook", "module", "video"],
       fine_status: ["unpaid", "partial", "paid", "waived"],
       fine_type: ["overdue", "damaged", "lost", "other"],
       gender_type: ["male", "female", "unknown"],

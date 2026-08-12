@@ -123,11 +123,10 @@
               </svg>
               <input
                 id="email"
-                name="email"
-                type="email"
+                name="identifier"
+                type="text"
                 formControlName="email"
-                autocomplete="email"
-                inputmode="email"
+                autocomplete="username"
                 spellcheck="false"
                 required
                 [attr.aria-invalid]="isInvalid('email')"
@@ -135,7 +134,7 @@
               />
             </div>
             <p id="email-error" class="hint" [class.visible]="showEmailError()">
-              Masukkan alamat email yang valid.
+              Masukkan username atau email master admin.
             </p>
           </div>
 
@@ -208,7 +207,7 @@
               </button>
             </div>
             <p id="password-error" class="hint" [class.visible]="showPasswordError()">
-              Kata sandi minimal 6 karakter.
+              Kata sandi minimal 8 karakter.
             </p>
           </div>
 

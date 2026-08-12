@@ -614,7 +614,9 @@ export class MasterDataPage {
     schoolYearId: new FormControl<string | null>(null),
     classId: new FormControl<string | null>(null),
     homeroomTeacherName: new FormControl<string | null>(null),
-    isActive: new FormControl(true, { nonNullable: true }),
+    // Only one school year can be active in the database. New periods start inactive
+    // so they can be saved while an existing active period is still in use.
+    isActive: new FormControl(false, { nonNullable: true }),
   });
 
   protected readonly selectedKindLabel = computed(
@@ -866,7 +868,7 @@ export class MasterDataPage {
       schoolYearId: null,
       classId: null,
       homeroomTeacherName: null,
-      isActive: true,
+      isActive: this.currentKind() === 'school-years' ? false : true,
     });
     this.updateValidatorsForKind();
   }

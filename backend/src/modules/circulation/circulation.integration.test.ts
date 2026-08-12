@@ -9,7 +9,7 @@ import { CirculationService, operationError } from './circulation.service.js';
 const config = {
   NODE_ENV: 'test', PORT: 3000, APP_ORIGIN: ['http://localhost:4200'], API_BASE_PATH: '/api',
   SUPABASE_URL: 'https://example.supabase.co', SUPABASE_ANON_KEY: 'a'.repeat(24),
-  SUPABASE_SERVICE_ROLE_KEY: 's'.repeat(24), LOG_LEVEL: 'silent', JSON_BODY_LIMIT: '1mb',
+  SUPABASE_SERVICE_ROLE_KEY: 's'.repeat(24), SUPABASE_JWT_SECRET: 'j'.repeat(32), LOG_LEVEL: 'silent', JSON_BODY_LIMIT: '1mb',
   RATE_LIMIT_WINDOW_MS: 60_000, RATE_LIMIT_MAX: 120, TRUST_PROXY_HOPS: 0,
   REQUEST_TIMEOUT_MS: 30_000, HEADERS_TIMEOUT_MS: 15_000, KEEP_ALIVE_TIMEOUT_MS: 5_000,
 } satisfies AppConfig;

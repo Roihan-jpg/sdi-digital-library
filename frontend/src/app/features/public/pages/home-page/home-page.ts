@@ -60,8 +60,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     },
     {
       title: 'Baca koleksi digital',
-      summary:
-        'Jelajahi e-book, modul, video, dan audio yang diterbitkan oleh perpustakaan sekolah.',
+      summary: 'Jelajahi e-book, modul, dan video yang diterbitkan oleh perpustakaan sekolah.',
       route: '/koleksi-digital',
       action: 'Lihat koleksi digital',
       tone: 'jade',
@@ -109,7 +108,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   protected mediaLabel(type: DigitalCollection['media_type']): string {
-    return { ebook: 'E-book', module: 'Modul', video: 'Video', audio: 'Audio' }[type];
+    return { ebook: 'E-book', module: 'Modul', video: 'Video' }[type];
   }
 
   private loadCollections(): void {

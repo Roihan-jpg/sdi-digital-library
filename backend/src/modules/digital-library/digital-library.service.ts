@@ -17,10 +17,6 @@ const mainMimeTypes = new Set([
   'application/pdf',
   'video/mp4',
   'video/webm',
-  'audio/mpeg',
-  'audio/mp4',
-  'audio/ogg',
-  'audio/wav',
 ]);
 const coverMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const fileLimit = 100 * 1024 * 1024;
@@ -249,8 +245,7 @@ export function validateMainFile(file: Express.Multer.File, mediaType: string) {
   }
   const validForType =
     ((mediaType === 'ebook' || mediaType === 'module') && file.mimetype === 'application/pdf') ||
-    (mediaType === 'video' && file.mimetype.startsWith('video/')) ||
-    (mediaType === 'audio' && file.mimetype.startsWith('audio/'));
+    (mediaType === 'video' && file.mimetype.startsWith('video/'));
   if (!validForType) throw new AppError(400, 'DIGITAL_MEDIA_MISMATCH', 'Jenis media tidak sesuai dengan file utama.');
 }
 
@@ -273,16 +268,9 @@ function hasExpectedSignature(file: Express.Multer.File): boolean {
     case 'image/webp':
       return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP';
     case 'video/mp4':
-    case 'audio/mp4':
       return ascii(4, 8) === 'ftyp';
     case 'video/webm':
       return bytes.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
-    case 'audio/mpeg':
-      return ascii(0, 3) === 'ID3' || (bytes[0] === 0xff && (bytes[1] ?? 0) >= 0xe0);
-    case 'audio/ogg':
-      return ascii(0, 4) === 'OggS';
-    case 'audio/wav':
-      return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WAVE';
     default:
       return false;
   }

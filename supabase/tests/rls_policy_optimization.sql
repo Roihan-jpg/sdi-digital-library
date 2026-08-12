@@ -88,40 +88,11 @@ begin
 end;
 $$;
 
-insert into auth.users (
-  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
-) values
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '41000000-0000-4000-8000-000000000001',
-    'authenticated', 'authenticated', 'rls-librarian@example.test', 'not-used', now(),
-    '{}', '{}', now(), now()
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '41000000-0000-4000-8000-000000000002',
-    'authenticated', 'authenticated', 'rls-head@example.test', 'not-used', now(),
-    '{}', '{}', now(), now()
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '41000000-0000-4000-8000-000000000003',
-    'authenticated', 'authenticated', 'rls-member@example.test', 'not-used', now(),
-    '{}', '{}', now(), now()
-  );
-
-update public.profiles
-set role = case id
-  when '41000000-0000-4000-8000-000000000001' then 'librarian'::public.app_role
-  when '41000000-0000-4000-8000-000000000002' then 'head_librarian'::public.app_role
-  else 'member'::public.app_role
-end
-where id in (
-  '41000000-0000-4000-8000-000000000001',
-  '41000000-0000-4000-8000-000000000002',
-  '41000000-0000-4000-8000-000000000003'
-);
+insert into public.profiles (id, role, full_name)
+values
+  ('41000000-0000-4000-8000-000000000001', 'librarian', 'RLS Librarian'),
+  ('41000000-0000-4000-8000-000000000002', 'head_librarian', 'RLS Head'),
+  ('41000000-0000-4000-8000-000000000003', 'member', 'RLS Member');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"41000000-0000-4000-8000-000000000001","role":"authenticated"}';

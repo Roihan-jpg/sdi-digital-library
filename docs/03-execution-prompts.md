@@ -295,17 +295,17 @@ git commit -m "feat: implement end to end library circulation"
 Implementasikan modul koleksi digital dan katalog publik SDI Digital Library.
 
 Cakupan:
-1. CRUD metadata e-book/PDF, modul, video, dan audio.
+1. CRUD metadata e-book/PDF, modul, dan video.
 2. Upload cover ke bucket public yang sesuai dan file utama ke bucket private digital-library.
 3. Validasi MIME type, ukuran file, nama objek, serta hak akses upload/delete.
 4. Hanya koleksi berstatus published yang dapat diakses pengguna biasa.
 5. Pengunjung tanpa login boleh melihat halaman katalog dan metadata publik, tetapi akses file penuh/download meminta login.
-6. User login dengan role member atau guest dapat membaca PDF, memutar video/audio, dan mengunduh jika is_downloadable aktif.
+6. User login dengan role member atau guest dapat membaca PDF, menonton video, dan mengunduh jika is_downloadable aktif.
 7. Gunakan signed URL atau mekanisme private storage yang aman; jangan mengekspos service role atau membuat bucket file utama menjadi public.
 8. Catat view, play, dan download tanpa membuat request log yang berlebihan.
 9. Buat katalog publik responsif dengan pencarian, kategori, media type, detail buku, informasi ketersediaan umum, koleksi terbaru, dan buku populer.
 10. Sediakan pola integrasi ke website sekolah berupa URL halaman, endpoint publik terbatas, dan komponen/widget sederhana bila struktur project memungkinkan.
-11. Tambahkan loading state, empty state, error state, dan fallback saat media tidak dapat diputar.
+11. Tambahkan loading state, empty state, error state, dan fallback saat media tidak dapat dibuka.
 12. Tambahkan test akses file unpublished, akses tanpa login, role guest/member, dan upload petugas.
 13. Jalankan typecheck, test, dan build.
 
@@ -446,14 +446,14 @@ Jangan mengejar digital library, laporan lengkap, atau kosmetik dashboard sebelu
 
 ## Target Satu Minggu
 
-| Hari | Fokus |
-|---|---|
-| 1 | Prompt 1 dan Prompt 2 |
-| 2 | Prompt 3 |
-| 3–4 | Prompt 4 |
-| 5 | Prompt 5 |
-| 6 | Prompt 6 |
-| 7 | Prompt 7 dan go-live checklist |
+| Hari | Fokus                          |
+| ---- | ------------------------------ |
+| 1    | Prompt 1 dan Prompt 2          |
+| 2    | Prompt 3                       |
+| 3–4  | Prompt 4                       |
+| 5    | Prompt 5                       |
+| 6    | Prompt 6                       |
+| 7    | Prompt 7 dan go-live checklist |
 
 ---
 

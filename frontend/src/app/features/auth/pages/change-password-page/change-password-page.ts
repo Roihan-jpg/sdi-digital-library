@@ -12,9 +12,7 @@ import { roleHomePath } from '../../../../core/auth/auth.models';
       <form [formGroup]="form" (ngSubmit)="save()" class="password-card" novalidate>
         <p class="eyebrow">Keamanan akun</p>
         <h1>Buat kata sandi baru</h1>
-        <p>
-          Kata sandi minimal 12 karakter dan memuat huruf besar, huruf kecil, angka, serta simbol.
-        </p>
+        <p>Kata sandi minimal 8 karakter dan memuat huruf besar, huruf kecil, serta angka.</p>
         @if (error()) {
           <div class="notice" role="alert">{{ error() }}</div>
         }
@@ -105,8 +103,8 @@ export class ChangePasswordPage {
       nonNullable: true,
       validators: [
         Validators.required,
-        Validators.minLength(12),
-        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/),
+        Validators.minLength(8),
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
       ],
     }),
     confirmation: new FormControl('', { nonNullable: true, validators: [Validators.required] }),

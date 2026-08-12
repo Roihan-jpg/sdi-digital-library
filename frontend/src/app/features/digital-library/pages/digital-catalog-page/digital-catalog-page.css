@@ -192,10 +192,6 @@
   background: var(--rose-50);
   color: var(--rose-700);
 }
-.badge-audio {
-  background: var(--amber-50);
-  color: var(--amber-700);
-}
 .filetype-pill {
   display: inline-flex;
   align-items: center;
@@ -367,9 +363,6 @@ select.dropdown:hover {
 }
 .cover-video {
   background: linear-gradient(160deg, var(--navy-950), var(--navy-600));
-}
-.cover-audio {
-  background: linear-gradient(160deg, var(--emerald-600), var(--emerald-800));
 }
 .card-badge-top {
   position: absolute;
