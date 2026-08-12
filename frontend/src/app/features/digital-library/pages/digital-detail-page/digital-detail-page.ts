@@ -67,8 +67,6 @@ import type { DigitalCollection } from '../../models/digital-collection.model';
             <h2>Media</h2>
             @if (collection.media_type === 'video') {
               <video controls [src]="mediaUrl()">Browser tidak dapat memutar video ini.</video>
-            } @else if (collection.media_type === 'audio') {
-              <audio controls [src]="mediaUrl()">Browser tidak dapat memutar audio ini.</audio>
             } @else {
               <iframe [src]="safeMediaUrl()" title="Pembaca dokumen digital"
                 ><p>Dokumen tidak dapat ditampilkan. Gunakan tombol unduh bila tersedia.</p></iframe
@@ -117,7 +115,6 @@ import type { DigitalCollection } from '../../models/digital-collection.model';
       margin-top: 2rem;
     }
     .viewer video,
-    .viewer audio,
     .viewer iframe {
       width: 100%;
     }
@@ -169,19 +166,17 @@ export class DigitalDetailPage {
     const item = this.item();
     if (!item || this.opening()) return;
     this.opening.set(true);
-    this.api
-      .access(item.id, item.media_type === 'video' || item.media_type === 'audio' ? 'play' : 'view')
-      .subscribe({
-        next: (r) => {
-          this.mediaUrl.set(r.data.url);
-          this.safeMediaUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(r.data.url));
-          this.opening.set(false);
-        },
-        error: () => {
-          this.error.set('File tidak dapat dibuka. Silakan coba lagi.');
-          this.opening.set(false);
-        },
-      });
+    this.api.access(item.id, item.media_type === 'video' ? 'play' : 'view').subscribe({
+      next: (r) => {
+        this.mediaUrl.set(r.data.url);
+        this.safeMediaUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(r.data.url));
+        this.opening.set(false);
+      },
+      error: () => {
+        this.error.set('File tidak dapat dibuka. Silakan coba lagi.');
+        this.opening.set(false);
+      },
+    });
   }
   protected download() {
     const item = this.item();

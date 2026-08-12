@@ -13,6 +13,8 @@ interface PaginatedResponse<T> extends ApiResponse<T[]> {
 export interface ManagedProfile {
   id: string;
   email: string | null;
+  username: string | null;
+  authSource: 'supabase' | 'local';
   fullName: string | null;
   role: AppRole;
   isActive: boolean;
@@ -93,13 +95,16 @@ export class AdministrationApiService {
     });
   }
   linkMember(id: string, memberId: string) {
-    return this.http.post<void>(`${this.base}/profiles/${id}/member-link`, { memberId });
+    return this.http.post<void>(`${this.base}/profiles/${id}/link-member`, { memberId });
   }
-  sendInvitation(id: string) {
-    return this.http.post<void>(`${this.base}/profiles/${id}/invitations`, {});
+  setPassword(id: string, password: string) {
+    return this.http.patch<void>(`${this.base}/profiles/${id}/password`, { password });
   }
-  sendRecovery(id: string) {
-    return this.http.post<void>(`${this.base}/profiles/${id}/recovery-emails`, {});
+  updateUser(id: string, input: { username?: string; fullName?: string; role?: AppRole }) {
+    return this.http.patch<ApiResponse<ManagedProfile>>(`${this.base}/profiles/${id}`, input);
+  }
+  deleteUser(id: string) {
+    return this.http.delete<void>(`${this.base}/profiles/${id}`);
   }
   getSettings() {
     return this.http.get<ApiResponse<LibrarySettings>>(`${this.base}/settings/library`);

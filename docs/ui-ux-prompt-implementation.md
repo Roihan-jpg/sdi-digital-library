@@ -579,7 +579,7 @@ Jangan eksplor seluruh frontend kecuali diperlukan untuk memahami komponen globa
 
 Karakter halaman:
 
-- digunakan publik untuk mencari PDF/e-book, modul, video, dan audio;
+- digunakan publik untuk mencari PDF/e-book, modul, dan video;
 - metadata published boleh tampil publik, tetapi akses penuh file membutuhkan login/backend;
 - cover image bisa berasal dari storage.
 
@@ -646,7 +646,7 @@ Target desain dan UX:
 - metadata utama jelas: judul, media type, penulis, penerbit, tahun, ukuran/durasi, status download;
 - cover memiliki dimensi/aspect ratio stabil;
 - aksi Buka koleksi dan Unduh punya loading/error state terpisah;
-- viewer media responsif untuk PDF/video/audio dan punya fallback yang jelas;
+- viewer media responsif untuk PDF/video dan punya fallback yang jelas;
 - guest atau user belum login mendapat CTA login yang tidak membingungkan;
 - error akses file tampil dekat aksi terkait;
 - label enum media dilokalkan ke Bahasa Indonesia;

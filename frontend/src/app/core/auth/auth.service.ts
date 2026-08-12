@@ -15,6 +15,7 @@ export class AuthService {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly destroyRef = inject(DestroyRef);
   private synchronization: { token: string; promise: Promise<CurrentAuthContext> } | null = null;
+  private readonly localTokenKey = 'sdi_local_access_token';
 
   async initialize(): Promise<void> {
     if (!this.browser) {
@@ -22,14 +23,23 @@ export class AuthService {
       return;
     }
 
-    const { data, error } = await this.supabase.auth.getSession();
-    if (error || !data.session) {
-      this.authStore.setAnonymous();
-    } else {
+    const localToken = localStorage.getItem(this.localTokenKey);
+    if (localToken) {
       try {
-        await this.synchronizeSession(data.session);
+        await this.loadCurrentContext(localToken);
       } catch {
+        localStorage.removeItem(this.localTokenKey);
         this.authStore.setAnonymous();
+      }
+    } else {
+      const { data, error } = await this.supabase.auth.getSession();
+      if (error || !data.session) this.authStore.setAnonymous();
+      else {
+        try {
+          await this.synchronizeSession(data.session);
+        } catch {
+          this.authStore.setAnonymous();
+        }
       }
     }
 
@@ -43,12 +53,19 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<CurrentAuthContext> {
-    const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.session) {
-      throw new Error('Email atau kata sandi tidak benar.');
+    try {
+      const local = await firstValueFrom(this.authApi.loginLocal(email, password));
+      localStorage.setItem(this.localTokenKey, local.data.accessToken);
+      this.authStore.setSession(
+        { access_token: local.data.accessToken } as Session,
+        local.data.context,
+      );
+      return local.data.context;
+    } catch {
+      const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+      if (error || !data.session) throw new Error('Username atau kata sandi tidak benar.');
+      return this.synchronizeSession(data.session);
     }
-
-    return this.synchronizeSession(data.session);
   }
 
   async logout(): Promise<void> {
@@ -58,6 +75,7 @@ export class AuthService {
       try {
         await this.supabase.auth.signOut({ scope: 'local' });
       } finally {
+        if (this.browser) localStorage.removeItem(this.localTokenKey);
         this.authStore.setAnonymous();
       }
     }
@@ -65,9 +83,9 @@ export class AuthService {
 
   async changePassword(password: string): Promise<CurrentAuthContext> {
     await firstValueFrom(this.authApi.changePassword(password));
-    const session = this.authStore.session();
-    if (!session) throw new Error('Sesi tidak tersedia. Silakan masuk kembali.');
-    return this.loadCurrentContext(session);
+    const token = this.authStore.accessToken();
+    if (!token) throw new Error('Sesi tidak tersedia. Silakan masuk kembali.');
+    return this.loadCurrentContext(token);
   }
 
   private async handleAuthChange(session: Session | null): Promise<void> {
@@ -88,7 +106,7 @@ export class AuthService {
       return this.synchronization.promise;
     }
 
-    const promise = this.loadCurrentContext(session);
+    const promise = this.loadCurrentContext(session.access_token);
     this.synchronization = { token: session.access_token, promise };
     try {
       return await promise;
@@ -97,13 +115,15 @@ export class AuthService {
     }
   }
 
-  private async loadCurrentContext(session: Session): Promise<CurrentAuthContext> {
+  private async loadCurrentContext(accessToken: string): Promise<CurrentAuthContext> {
     try {
-      const response = await firstValueFrom(this.authApi.getCurrentContext(session.access_token));
-      this.authStore.setSession(session, response.data);
+      const response = await firstValueFrom(this.authApi.getCurrentContext(accessToken));
+      this.authStore.setSession({ access_token: accessToken } as Session, response.data);
       return response.data;
     } catch (error) {
-      await this.supabase.auth.signOut({ scope: 'local' });
+      if (localStorage.getItem(this.localTokenKey) === accessToken)
+        localStorage.removeItem(this.localTokenKey);
+      else await this.supabase.auth.signOut({ scope: 'local' });
       this.authStore.setAnonymous();
       throw error;
     }

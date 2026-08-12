@@ -1,4 +1,4 @@
-export type DigitalMediaType = 'ebook' | 'module' | 'video' | 'audio';
+export type DigitalMediaType = 'ebook' | 'module' | 'video';
 export interface DigitalCollection {
   id: string;
   category_id: string | null;

@@ -12,6 +12,7 @@ const environmentSchema = z.object({
   SUPABASE_URL: z.url(),
   SUPABASE_ANON_KEY: z.string().min(20),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
+  SUPABASE_JWT_SECRET: z.string().min(32),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   JSON_BODY_LIMIT: z.string().regex(/^\d+(b|kb|mb)$/i).default('1mb'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1_000).max(3_600_000).default(60_000),

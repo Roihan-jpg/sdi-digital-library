@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { AppError } from '../../common/errors/app-error.js';
 import { validateCover, validateMainFile } from './digital-library.service.js';
+import { digitalCollectionInputSchema } from './digital-library.schema.js';
 
 function file(
   name: string,
@@ -9,12 +10,26 @@ function file(
   size = 1024,
   buffer = Buffer.from('%PDF-1.7'),
 ): Express.Multer.File {
-  return { fieldname: 'file', originalname: name, encoding: '7bit', mimetype, size, buffer, stream: null!, destination: '', filename: '', path: '' };
+  return {
+    fieldname: 'file',
+    originalname: name,
+    encoding: '7bit',
+    mimetype,
+    size,
+    buffer,
+    stream: null!,
+    destination: '',
+    filename: '',
+    path: '',
+  };
 }
 describe('digital file validation', () => {
   it('accepts PDF for ebook and rejects media mismatch', () => {
     assert.doesNotThrow(() => validateMainFile(file('cerita.pdf', 'application/pdf'), 'ebook'));
-    assert.throws(() => validateMainFile(file('cerita.pdf', 'application/pdf'), 'video'), (error: unknown) => error instanceof AppError && error.code === 'DIGITAL_MEDIA_MISMATCH');
+    assert.throws(
+      () => validateMainFile(file('cerita.pdf', 'application/pdf'), 'video'),
+      (error: unknown) => error instanceof AppError && error.code === 'DIGITAL_MEDIA_MISMATCH',
+    );
   });
   it('rejects unsafe file names and oversized covers', () => {
     assert.throws(() => validateMainFile(file('../rahasia.pdf', 'application/pdf'), 'ebook'));
@@ -28,6 +43,23 @@ describe('digital file validation', () => {
           'ebook',
         ),
       (error: unknown) => error instanceof AppError && error.code === 'DIGITAL_FILE_INVALID',
+    );
+  });
+  it('rejects audio as a digital media type', () => {
+    assert.throws(() =>
+      digitalCollectionInputSchema.parse({
+        title: 'Audio lama',
+        slug: 'audio-lama',
+        description: null,
+        mediaType: 'audio',
+        categoryId: null,
+        authorText: null,
+        publisherText: null,
+        publicationYear: null,
+        durationSeconds: null,
+        isDownloadable: false,
+        isPublished: false,
+      }),
     );
   });
 });

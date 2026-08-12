@@ -47,14 +47,14 @@ DemoPass123!
 
 Daftar akun:
 
-| Email | Role |
-|---|---|
-| `admin.perpustakaan.dummy@sdi.test` | `master_admin` |
-| `kepala.perpus.dummy@sdi.test` | `head_librarian` |
-| `petugas.dummy@sdi.test` | `librarian` |
-| `siswa.dummy@sdi.test` | `member` |
-| `guru.member.dummy@sdi.test` | `member` |
-| `guest.dummy@sdi.test` | `guest` |
+| Email                               | Role             |
+| ----------------------------------- | ---------------- |
+| `admin.perpustakaan.dummy@sdi.test` | `master_admin`   |
+| `kepala.perpus.dummy@sdi.test`      | `head_librarian` |
+| `petugas.dummy@sdi.test`            | `librarian`      |
+| `siswa.dummy@sdi.test`              | `member`         |
+| `guru.member.dummy@sdi.test`        | `member`         |
+| `guest.dummy@sdi.test`              | `guest`          |
 
 Catatan teknis Auth:
 
@@ -66,10 +66,10 @@ Catatan teknis Auth:
 
 Data master sekolah yang dibuat:
 
-| Tabel | Isi |
-|---|---|
-| `school_years` | 1 tahun ajaran `DUMMY 2026/2027` |
-| `classes` | 6 kelas, `DUMMY Kelas 1` sampai `DUMMY Kelas 6` |
+| Tabel          | Isi                                                          |
+| -------------- | ------------------------------------------------------------ |
+| `school_years` | 1 tahun ajaran `DUMMY 2026/2027`                             |
+| `classes`      | 6 kelas, `DUMMY Kelas 1` sampai `DUMMY Kelas 6`              |
 | `study_groups` | 12 rombel, masing-masing kelas punya `DUMMY A` dan `DUMMY B` |
 
 Tahun ajaran dummy dibuat aktif hanya jika belum ada tahun ajaran aktif lain, supaya tidak melanggar unique index satu tahun ajaran aktif.
@@ -78,10 +78,10 @@ Tahun ajaran dummy dibuat aktif hanya jika belum ada tahun ajaran aktif lain, su
 
 Script membuat 594 member:
 
-| Jenis | Jumlah |
-|---|---:|
-| Siswa dummy | 592 |
-| Member non-siswa | 2 |
+| Jenis            | Jumlah |
+| ---------------- | -----: |
+| Siswa dummy      |    592 |
+| Member non-siswa |      2 |
 
 Pola data siswa:
 
@@ -99,13 +99,13 @@ Member `DUMMY-SIS-0001` dihubungkan ke akun `siswa.dummy@sdi.test`.
 
 Master katalog yang dibuat:
 
-| Tabel | Jumlah | Contoh |
-|---|---:|---|
-| `categories` | 8 | `DUMMY Bacaan Anak`, `DUMMY Pelajaran` |
-| `authors` | 12 | `Penulis Dummy 01` |
-| `publishers` | 5 | `Penerbit Dummy 01` |
-| `shelves` | 8 | `DUMMY-RK-01` |
-| `replacement_cost_categories` | 3 | harga penuh, nominal tetap, persentase |
+| Tabel                         | Jumlah | Contoh                                 |
+| ----------------------------- | -----: | -------------------------------------- |
+| `categories`                  |      8 | `DUMMY Bacaan Anak`, `DUMMY Pelajaran` |
+| `authors`                     |     12 | `Penulis Dummy 01`                     |
+| `publishers`                  |      5 | `Penerbit Dummy 01`                    |
+| `shelves`                     |      8 | `DUMMY-RK-01`                          |
+| `replacement_cost_categories` |      3 | harga penuh, nominal tetap, persentase |
 
 Data ini dipakai oleh judul buku, eksemplar, digital collection, import dummy, dan laporan.
 
@@ -113,11 +113,11 @@ Data ini dipakai oleh judul buku, eksemplar, digital collection, import dummy, d
 
 Script membuat:
 
-| Tabel | Jumlah |
-|---|---:|
-| `book_titles` | 30 |
-| `book_authors` | 36 |
-| `book_copies` | 90 |
+| Tabel          | Jumlah |
+| -------------- | -----: |
+| `book_titles`  |     30 |
+| `book_authors` |     36 |
+| `book_copies`  |     90 |
 
 Pola data:
 
@@ -128,15 +128,15 @@ Pola data:
 
 Status akhir eksemplar setelah semua transaksi dummy:
 
-| Status | Jumlah |
-|---|---:|
-| `available` | 79 |
-| `loaned` | 4 |
-| `reserved` | 1 |
-| `damaged` | 2 |
-| `lost` | 2 |
-| `maintenance` | 1 |
-| `inactive` | 1 |
+| Status        | Jumlah |
+| ------------- | -----: |
+| `available`   |     79 |
+| `loaned`      |      4 |
+| `reserved`    |      1 |
+| `damaged`     |      2 |
+| `lost`        |      2 |
+| `maintenance` |      1 |
+| `inactive`    |      1 |
 
 Barcode dan QR tetap mengikuti aturan sistem: payload sama persis dengan `inventory_code`.
 
@@ -149,7 +149,6 @@ Jenis media:
 - `ebook`
 - `module`
 - `video`
-- `audio`
 
 Skenario akses:
 
@@ -164,26 +163,26 @@ Catatan: script hanya mengisi metadata database dan path dummy. File fisik di Su
 
 Script membuat 6 reservasi, masing-masing mewakili status penting:
 
-| Status | Jumlah | Fungsi Testing |
-|---|---:|---|
-| `pending` | 1 | daftar reservasi menunggu approval |
-| `approved` | 1 | copy sudah dialokasikan dan status copy `reserved` |
-| `rejected` | 1 | alasan penolakan terisi |
-| `cancelled` | 1 | pembatalan member/staf |
-| `expired` | 1 | maintenance/expiry |
-| `completed` | 1 | reservasi dikonversi menjadi loan |
+| Status      | Jumlah | Fungsi Testing                                     |
+| ----------- | -----: | -------------------------------------------------- |
+| `pending`   |      1 | daftar reservasi menunggu approval                 |
+| `approved`  |      1 | copy sudah dialokasikan dan status copy `reserved` |
+| `rejected`  |      1 | alasan penolakan terisi                            |
+| `cancelled` |      1 | pembatalan member/staf                             |
+| `expired`   |      1 | maintenance/expiry                                 |
+| `completed` |      1 | reservasi dikonversi menjadi loan                  |
 
 ## 8. Peminjaman, Return, Denda, dan Pembayaran
 
 Script membuat:
 
-| Tabel | Jumlah |
-|---|---:|
-| `loans` | 6 |
-| `loan_items` | 8 |
-| `loan_extensions` | 1 |
-| `fines` | 3 |
-| `fine_payments` | 2 |
+| Tabel             | Jumlah |
+| ----------------- | -----: |
+| `loans`           |      6 |
+| `loan_items`      |      8 |
+| `loan_extensions` |      1 |
+| `fines`           |      3 |
+| `fine_payments`   |      2 |
 
 Skenario yang dicakup:
 
@@ -204,10 +203,10 @@ Setelah data transaksi masuk, script menyesuaikan status eksemplar agar konsiste
 
 Script membuat:
 
-| Tabel | Jumlah |
-|---|---:|
-| `visits` | 24 |
-| `group_visits` | 6 |
+| Tabel          | Jumlah |
+| -------------- | -----: |
+| `visits`       |     24 |
+| `group_visits` |      6 |
 
 Skenario:
 
@@ -220,10 +219,10 @@ Skenario:
 
 Script membuat:
 
-| Tabel | Jumlah |
-|---|---:|
-| `import_jobs` | 2 |
-| `import_errors` | 2 |
+| Tabel           | Jumlah |
+| --------------- | -----: |
+| `import_jobs`   |      2 |
+| `import_errors` |      2 |
 
 Skenario:
 
@@ -241,29 +240,29 @@ npx supabase db query --linked --file supabase\demo\verify_dummy.sql
 
 Hasil terakhir yang sudah diverifikasi:
 
-| Data | Jumlah |
-|---|---:|
-| profiles dummy | 6 |
-| members dummy | 594 |
-| classes dummy | 6 |
-| study groups dummy | 12 |
-| categories dummy | 8 |
-| authors dummy | 12 |
-| publishers dummy | 5 |
-| shelves dummy | 8 |
-| book titles dummy | 30 |
-| book copies dummy | 90 |
-| digital collections dummy | 8 |
-| digital access logs dummy | 24 |
-| reservations dummy | 6 |
-| loans dummy | 6 |
-| loan items dummy | 8 |
-| fines dummy | 3 |
-| fine payments dummy | 2 |
-| visits dummy | 24 |
-| group visits dummy | 6 |
-| import jobs dummy | 2 |
-| import errors dummy | 2 |
+| Data                      | Jumlah |
+| ------------------------- | -----: |
+| profiles dummy            |      6 |
+| members dummy             |    594 |
+| classes dummy             |      6 |
+| study groups dummy        |     12 |
+| categories dummy          |      8 |
+| authors dummy             |     12 |
+| publishers dummy          |      5 |
+| shelves dummy             |      8 |
+| book titles dummy         |     30 |
+| book copies dummy         |     90 |
+| digital collections dummy |      8 |
+| digital access logs dummy |     24 |
+| reservations dummy        |      6 |
+| loans dummy               |      6 |
+| loan items dummy          |      8 |
+| fines dummy               |      3 |
+| fine payments dummy       |      2 |
+| visits dummy              |     24 |
+| group visits dummy        |      6 |
+| import jobs dummy         |      2 |
+| import errors dummy       |      2 |
 
 Verifikasi tambahan yang sudah dijalankan:
 

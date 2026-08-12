@@ -1,7 +1,7 @@
 <section class="page">
   <header class="catalog-hero">
     <p class="eyebrow">Koleksi digital</p>
-    <h1>Baca, tonton, dan dengarkan materi belajar</h1>
+    <h1>Baca dan tonton materi belajar</h1>
     <p class="lead">
       Metadata koleksi terbit dapat dilihat publik. Masuk diperlukan untuk membuka file utama
       melalui akses aman.
@@ -41,7 +41,6 @@
         <option value="ebook">E-book</option>
         <option value="module">Modul</option>
         <option value="video">Video</option>
-        <option value="audio">Audio</option>
       </select>
 
       <label class="sr-only" for="digital-sort">Urutkan</label>
@@ -133,7 +132,6 @@
             [class.cover-ebook]="item.media_type === 'ebook'"
             [class.cover-module]="item.media_type === 'module'"
             [class.cover-video]="item.media_type === 'video'"
-            [class.cover-audio]="item.media_type === 'audio'"
             [routerLink]="['/koleksi-digital', item.slug]"
             [attr.aria-label]="'Buka detail ' + item.title"
           >
@@ -167,7 +165,6 @@
               [class.badge-ebook]="item.media_type === 'ebook'"
               [class.badge-module]="item.media_type === 'module'"
               [class.badge-video]="item.media_type === 'video'"
-              [class.badge-audio]="item.media_type === 'audio'"
               >{{ mediaLabel(item.media_type) }}</span
             >
             <span class="card-filetype-float filetype-pill">{{ downloadLabel(item) }}</span>

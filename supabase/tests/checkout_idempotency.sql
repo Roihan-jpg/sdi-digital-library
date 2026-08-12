@@ -1,18 +1,7 @@
 begin;
 
-insert into auth.users (
-  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
-) values (
-  '00000000-0000-0000-0000-000000000000',
-  '51000000-0000-4000-8000-000000000001',
-  'authenticated', 'authenticated', 'idempotency-librarian@example.test', 'not-used', now(),
-  '{}', '{}', now(), now()
-);
-
-update public.profiles
-set role = 'librarian'
-where id = '51000000-0000-4000-8000-000000000001';
+insert into public.profiles (id, role, full_name)
+values ('51000000-0000-4000-8000-000000000001', 'librarian', 'Librarian Idempotency');
 
 insert into public.members (
   id, member_code, card_number, is_student, full_name, is_active

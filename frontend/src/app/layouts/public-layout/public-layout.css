@@ -271,6 +271,11 @@
 }
 
 @media (max-width: 64rem) {
+  .site-header {
+    /* Keep the open mobile menu above the backdrop. */
+    z-index: 40;
+  }
+
   .header-shell {
     grid-template-columns: auto auto;
     justify-content: space-between;

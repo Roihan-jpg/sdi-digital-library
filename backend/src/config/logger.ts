@@ -13,9 +13,9 @@ export function createLogger(config: Pick<AppConfig, 'LOG_LEVEL' | 'NODE_ENV'>):
         '*.token',
         '*.signedUrl',
         '*.SUPABASE_SERVICE_ROLE_KEY',
+        '*.SUPABASE_JWT_SECRET',
       ],
       censor: '[REDACTED]',
     },
   });
 }
-

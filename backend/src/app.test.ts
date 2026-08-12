@@ -13,6 +13,7 @@ const config: AppConfig = {
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_ANON_KEY: 'anon-key-with-at-least-twenty-characters',
   SUPABASE_SERVICE_ROLE_KEY: 'service-key-with-at-least-twenty-characters',
+  SUPABASE_JWT_SECRET: 'jwt-secret-with-at-least-thirty-two-characters',
   LOG_LEVEL: 'silent',
   JSON_BODY_LIMIT: '1mb',
   RATE_LIMIT_WINDOW_MS: 60_000,

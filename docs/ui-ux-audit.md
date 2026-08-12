@@ -80,7 +80,7 @@ Tidak ada masalah global berstatus **Critical/Open** setelah penerapan token das
 - **High:** cover kembali tidak memiliki dimensi intrinsik, lazy loading, atau `NgOptimizedImage`; bukti: `digital-detail-page.ts:22-24`.
 - **High:** tombol “Buka koleksi” dan “Unduh” berbagi satu state `opening()`. Kegagalan salah satu aksi ditampilkan sebagai error global yang dapat tetap terlihat saat retry, dan kedua tombol dinonaktifkan bersamaan; bukti: `digital-detail-page.ts:47-61`, `digital-detail-page.ts:168-199`.
 - **Medium:** viewer memakai `min-height: 32rem`/`20rem` tanpa strategi rasio atau fallback mobile landscape; bukti: `digital-detail-page.ts:119-141`.
-- **Medium:** label media menampilkan enum mentah `ebook/module/video/audio`, berbeda dari label Bahasa Indonesia di katalog; bukti: `digital-detail-page.ts:26`.
+- **Medium:** label media menampilkan enum mentah `ebook/module/video`, berbeda dari label Bahasa Indonesia di katalog; bukti: `digital-detail-page.ts:26`.
 
 ### `/masuk` — Login
 

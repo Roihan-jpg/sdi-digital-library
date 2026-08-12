@@ -125,6 +125,45 @@ describe('MasterDataPage', () => {
     });
   });
 
+  it('creates a new school year inactive when another active period may already exist', async () => {
+    const { fixture, create } = setup();
+    const component = fixture.componentInstance as unknown as {
+      form: { controls: { name: { setValue(value: string): void } } };
+      save(): void;
+    };
+
+    component.form.controls.name.setValue('2027/2028');
+    component.save();
+    await fixture.whenStable();
+
+    expect(create).toHaveBeenCalledWith('school-years', {
+      name: '2027/2028',
+      isActive: false,
+    });
+  });
+
+  it('edits a school year from the table and sends the selected row id', async () => {
+    const { fixture, update } = setup();
+    const editButton = fixture.nativeElement.querySelector('.table-action') as HTMLButtonElement;
+
+    editButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance as unknown as {
+      form: { controls: { name: { setValue(value: string): void } } };
+      save(): void;
+    };
+    component.form.controls.name.setValue('Pelajaran diperbarui');
+    component.save();
+    await fixture.whenStable();
+
+    expect(update).toHaveBeenCalledWith('school-years', 'category-1', {
+      name: 'Pelajaran diperbarui',
+      isActive: true,
+    });
+  });
+
   it('opens an accessible delete dialog and does not call the API before confirmation', async () => {
     const { fixture, remove } = setup();
     const nativeConfirm = vi.spyOn(window, 'confirm');

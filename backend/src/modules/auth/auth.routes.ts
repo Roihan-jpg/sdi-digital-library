@@ -4,7 +4,10 @@ import {
   changePasswordSchema,
   createAccountSchema,
   linkMemberSchema,
+  localLoginSchema,
   profileListQuerySchema,
+  setPasswordSchema,
+  updateAccountSchema,
   updateOwnProfileSchema,
   updateRoleSchema,
   updateStatusSchema,
@@ -14,6 +17,14 @@ import type { AuthServicePort, ProfileServicePort } from './auth.types.js';
 
 export function createAuthRouter(authService: AuthServicePort): Router {
   const router = Router();
+
+  router.post('/local-login', async (req, res) => {
+    if (!authService.loginLocal) throw new Error('Login akun lokal belum tersedia.');
+    const { identifier, password } = localLoginSchema.parse(req.body);
+    const result = await authService.loginLocal(identifier, password);
+    res.status(200).json({ data: result });
+  });
+
   router.use(authenticate(authService));
 
   router.get('/me', (req, res) => {
@@ -57,7 +68,10 @@ export function createProfileRouter(
 
   router.post('/', authorize('master_admin'), async (req, res) => {
     if (!profileService.createAccount) throw new Error('Account service belum tersedia.');
-    const account = await profileService.createAccount(req.auth!, createAccountSchema.parse(req.body));
+    const account = await profileService.createAccount(
+      req.auth!,
+      createAccountSchema.parse(req.body),
+    );
     res.status(201).json({ data: account });
   });
 
@@ -70,6 +84,23 @@ export function createProfileRouter(
     const input = updateOwnProfileSchema.parse(req.body);
     const profile = await profileService.updateOwnProfile(req.auth!, input);
     res.status(200).json({ data: profile });
+  });
+
+  router.patch('/:userId', authorize('master_admin'), async (req, res) => {
+    if (!profileService.updateAccount) throw new Error('Pengubahan akun belum tersedia.');
+    const userId = userIdSchema.parse(req.params['userId']);
+    const profile = await profileService.updateAccount(
+      req.auth!,
+      userId,
+      updateAccountSchema.parse(req.body),
+    );
+    res.status(200).json({ data: profile });
+  });
+
+  router.delete('/:userId', authorize('master_admin'), async (req, res) => {
+    if (!profileService.deleteAccount) throw new Error('Penghapusan akun belum tersedia.');
+    await profileService.deleteAccount(req.auth!, userIdSchema.parse(req.params['userId']));
+    res.status(204).send();
   });
 
   router.patch('/:userId/role', authorize('master_admin'), async (req, res) => {
@@ -86,27 +117,21 @@ export function createProfileRouter(
     res.status(200).json({ data: profile });
   });
 
-  router.post(
-    '/:userId/link-member',
-    authorize('master_admin', 'librarian'),
-    async (req, res) => {
-      const userId = userIdSchema.parse(req.params['userId']);
-      const { memberId } = linkMemberSchema.parse(req.body);
-      await profileService.linkMember(req.auth!, userId, memberId);
-      res.status(200).json({ data: { userId, memberId } });
-    },
-  );
-
-  router.post('/:userId/invitations', authorize('master_admin'), async (req, res) => {
-    if (!profileService.sendInvitation) throw new Error('Invitation service belum tersedia.');
-    await profileService.sendInvitation(req.auth!, userIdSchema.parse(req.params['userId']));
+  router.patch('/:userId/password', authorize('master_admin'), async (req, res) => {
+    if (!profileService.setPassword) throw new Error('Pengaturan kata sandi akun belum tersedia.');
+    await profileService.setPassword(
+      req.auth!,
+      userIdSchema.parse(req.params['userId']),
+      setPasswordSchema.parse(req.body).password,
+    );
     res.status(204).send();
   });
 
-  router.post('/:userId/recovery-emails', authorize('master_admin'), async (req, res) => {
-    if (!profileService.sendRecoveryEmail) throw new Error('Recovery service belum tersedia.');
-    await profileService.sendRecoveryEmail(req.auth!, userIdSchema.parse(req.params['userId']));
-    res.status(204).send();
+  router.post('/:userId/link-member', authorize('master_admin', 'librarian'), async (req, res) => {
+    const userId = userIdSchema.parse(req.params['userId']);
+    const { memberId } = linkMemberSchema.parse(req.body);
+    await profileService.linkMember(req.auth!, userId, memberId);
+    res.status(200).json({ data: { userId, memberId } });
   });
 
   return router;

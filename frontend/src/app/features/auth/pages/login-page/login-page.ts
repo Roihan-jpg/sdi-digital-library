@@ -25,8 +25,8 @@ export class LoginPage {
   protected readonly showPassword = signal(false);
   protected readonly loginSucceeded = signal(false);
   protected readonly form = this.formBuilder.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    email: ['', [Validators.required, Validators.minLength(3)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   protected showEmailError(): boolean {
@@ -130,6 +130,6 @@ interface LoginField {
 type LoginFieldKey = 'email' | 'password';
 
 const loginFields: LoginField[] = [
-  { key: 'email', id: 'email', label: 'Email' },
+  { key: 'email', id: 'email', label: 'Username atau email master admin' },
   { key: 'password', id: 'password', label: 'Kata sandi' },
 ];

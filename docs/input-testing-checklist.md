@@ -8,18 +8,18 @@ Untuk setiap poin: buka menu terkait, isi data, klik **Simpan/Proses**, lalu cek
 
 ## Relasi penting
 
-| Data yang diisi | Harus sudah ada / dampaknya |
-|---|---|
-| Tahun ajaran → kelas → rombel | Kelas dapat memakai tahun ajaran; rombel harus memilih kelas. |
-| Member | Siswa memilih kelas dan rombel; satu member dapat dihubungkan ke satu akun profile. |
-| Judul buku | Dapat memakai kategori, pengarang, penerbit, rak default, dan kategori biaya penggantian. |
-| Eksemplar buku | Wajib memilih judul buku; dapat memilih rak. Satu judul bisa memiliki banyak eksemplar. |
-| Peminjaman | Memilih member dan satu/lebih eksemplar; menghasilkan item pinjaman. |
-| Reservasi | Menghubungkan member dengan judul, lalu dapat dialokasikan ke satu eksemplar. |
-| Pengembalian | Mengubah item pinjaman dan status eksemplar; dapat membuat denda. |
-| Pembayaran denda | Wajib mengacu ke satu denda. |
-| Kunjungan | Individual mengacu ke member; rombongan mengacu ke kelas/rombel. |
-| Koleksi digital | Dapat memilih kategori; akses baca/putar/download dicatat di log. |
+| Data yang diisi               | Harus sudah ada / dampaknya                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| Tahun ajaran → kelas → rombel | Kelas dapat memakai tahun ajaran; rombel harus memilih kelas.                             |
+| Member                        | Siswa memilih kelas dan rombel; satu member dapat dihubungkan ke satu akun profile.       |
+| Judul buku                    | Dapat memakai kategori, pengarang, penerbit, rak default, dan kategori biaya penggantian. |
+| Eksemplar buku                | Wajib memilih judul buku; dapat memilih rak. Satu judul bisa memiliki banyak eksemplar.   |
+| Peminjaman                    | Memilih member dan satu/lebih eksemplar; menghasilkan item pinjaman.                      |
+| Reservasi                     | Menghubungkan member dengan judul, lalu dapat dialokasikan ke satu eksemplar.             |
+| Pengembalian                  | Mengubah item pinjaman dan status eksemplar; dapat membuat denda.                         |
+| Pembayaran denda              | Wajib mengacu ke satu denda.                                                              |
+| Kunjungan                     | Individual mengacu ke member; rombongan mengacu ke kelas/rombel.                          |
+| Koleksi digital               | Dapat memilih kategori; akses baca/putar/download dicatat di log.                         |
 
 ## 1. Akun dan pengaturan
 
@@ -37,6 +37,7 @@ Gunakan `master_admin`.
 Gunakan `librarian`.
 
 - **Tahun ajaran:** nama wajib dan unik; tanggal selesai tidak boleh sebelum tanggal mulai; hanya satu yang aktif.
+- Edit tahun ajaran dari tabel. Saat menghapus, kelas dan rombel di bawahnya ikut terhapus; member dan histori transaksi tetap dipertahankan.
 - **Kelas:** tingkat hanya 1–6; coba nama kelas yang sama dalam tahun ajaran yang sama.
 - **Rombel:** wajib memilih kelas; coba kelas yang tidak ada dan nama rombel sama dalam satu kelas.
 - **Kategori:** nama, slug, induk kategori, deskripsi, aktif/nonaktif. Slug hanya huruf kecil, angka, dan strip, misalnya `cerita-anak`.
@@ -122,11 +123,11 @@ Gunakan `librarian`, member aktif, dan eksemplar `available`.
 
 - Isi judul, slug, deskripsi, jenis media, kategori, penulis/penerbit, tahun, durasi, published, dan download.
 - Uji slug salah/duplikat, tahun atau durasi di luar batas, dan kategori yang tidak ada.
-- Upload file sesuai media: PDF untuk e-book/modul, MP4/WebM untuk video, MP3/M4A/OGG/WAV untuk audio.
+- Upload file sesuai media: PDF untuk e-book/modul atau MP4/WebM untuk video.
 - Coba file >100 MB, file tidak sesuai jenis media, nama file tidak aman, dan signature file yang tidak cocok. Semua harus ditolak.
 - Cover hanya JPG/PNG/WebP maksimal 5 MB.
 - Simpan sebagai unpublished lalu buka sebagai guest/member: tidak boleh muncul. Publish, lalu cek metadata tampil di katalog.
-- Sebagai member, coba baca/putar dan download. Download harus ditolak jika opsi download dimatikan.
+- Sebagai member, coba baca/tonton dan download. Download harus ditolak jika opsi download dimatikan.
 
 ## 10. Uji akses singkat
 

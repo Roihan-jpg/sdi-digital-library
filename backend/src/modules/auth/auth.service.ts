@@ -9,6 +9,7 @@ import type {
   ManagedProfile,
   ProfileListFilters,
   ProfileServicePort,
+  UpdateAccountInput,
   UpdateOwnProfileInput,
 } from './auth.types.js';
 
@@ -16,20 +17,23 @@ export class AuthService implements AuthServicePort {
   constructor(private readonly repository: AuthRepository) {}
 
   async authenticate(accessToken: string): Promise<AuthContext> {
-    const user = await this.repository.verifyUser(accessToken);
-    const profile = await this.repository.getProfile(accessToken, user.id);
-
-    if (!profile.isActive) {
-      throw new AppError(403, 'ACCOUNT_INACTIVE', 'Akun Anda sedang tidak aktif.');
+    try {
+      const user = await this.repository.verifyUser(accessToken);
+      const profile = await this.repository.getProfile(accessToken, user.id);
+      if (!profile.isActive)
+        throw new AppError(403, 'ACCOUNT_INACTIVE', 'Akun Anda sedang tidak aktif.');
+      return {
+        accessToken,
+        user: { id: profile.id, email: user.email ?? null },
+        profile,
+        member: await this.repository.getMember(accessToken, profile.id),
+        authSource: 'supabase',
+        authUserId: user.id,
+      };
+    } catch (error) {
+      if (!(error instanceof AppError) || error.code !== 'INVALID_ACCESS_TOKEN') throw error;
+      return this.repository.authenticateLocal(accessToken);
     }
-
-    const member = await this.repository.getMember(accessToken, user.id);
-    return {
-      accessToken,
-      user: { id: user.id, email: user.email ?? null },
-      profile,
-      member,
-    };
   }
 
   async logout(accessToken: string): Promise<void> {
@@ -37,7 +41,11 @@ export class AuthService implements AuthServicePort {
   }
 
   async changePassword(context: AuthContext, password: string): Promise<void> {
-    await this.repository.changePassword(context.user.id, password);
+    await this.repository.changePassword(context, password);
+  }
+
+  async loginLocal(identifier: string, password: string) {
+    return this.repository.loginLocal(identifier, password);
   }
 }
 
@@ -57,10 +65,7 @@ export class ProfileService implements ProfileServicePort {
     return context;
   }
 
-  async updateOwnProfile(
-    context: AuthContext,
-    input: UpdateOwnProfileInput,
-  ): Promise<AppProfile> {
+  async updateOwnProfile(context: AuthContext, input: UpdateOwnProfileInput): Promise<AppProfile> {
     return this.repository.updateOwnProfile(context, input);
   }
 
@@ -68,11 +73,7 @@ export class ProfileService implements ProfileServicePort {
     await this.repository.setRole(context.accessToken, userId, role);
   }
 
-  async setActive(
-    context: AuthContext,
-    userId: string,
-    isActive: boolean,
-  ): Promise<AppProfile> {
+  async setActive(context: AuthContext, userId: string, isActive: boolean): Promise<AppProfile> {
     return this.repository.setActive(context.accessToken, userId, isActive);
   }
 
@@ -92,11 +93,19 @@ export class ProfileService implements ProfileServicePort {
     return this.repository.createAccount(context, input);
   }
 
-  async sendInvitation(context: AuthContext, userId: string): Promise<void> {
-    await this.repository.sendInvitation(context.user.id, userId);
+  async updateAccount(
+    context: AuthContext,
+    userId: string,
+    input: UpdateAccountInput,
+  ): Promise<AppProfile> {
+    return this.repository.updateAccount(context.profile.id, userId, input);
   }
 
-  async sendRecoveryEmail(context: AuthContext, userId: string): Promise<void> {
-    await this.repository.sendRecoveryEmail(context.user.id, userId);
+  async deleteAccount(context: AuthContext, userId: string): Promise<void> {
+    await this.repository.deleteAccount(context.profile.id, userId);
+  }
+
+  async setPassword(context: AuthContext, userId: string, password: string): Promise<void> {
+    await this.repository.setPassword(context.profile.id, userId, password);
   }
 }

@@ -330,6 +330,7 @@ aside {
   .shell--compact aside {
     position: fixed;
     left: 0;
+    z-index: 31;
     width: min(18rem, 86vw);
     padding: 1rem;
     box-shadow: 24px 0 60px rgb(17 19 41 / 32%);
@@ -399,6 +400,7 @@ aside {
     inset: 0;
     z-index: 29;
     display: block;
+    pointer-events: auto;
     border: 0;
     background: rgb(17 19 41 / 55%);
   }

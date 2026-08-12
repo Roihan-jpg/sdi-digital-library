@@ -10,17 +10,9 @@ import type { DigitalCollection, DigitalMediaType } from '../../models/digital-c
 
 type DigitalFormValue = ReturnType<DigitalManagementPage['form']['getRawValue']>;
 
-const MAIN_FILE_HELPER = 'PDF maksimal 100 MB, video MP4/WebM, atau audio MP3/MP4/OGG/WAV.';
+const MAIN_FILE_HELPER = 'PDF maksimal 100 MB atau video MP4/WebM.';
 const COVER_HELPER = 'Cover JPG, PNG, atau WebP maksimal 5 MB.';
-const MAIN_FILE_TYPES = [
-  'application/pdf',
-  'video/mp4',
-  'video/webm',
-  'audio/mpeg',
-  'audio/mp4',
-  'audio/ogg',
-  'audio/wav',
-];
+const MAIN_FILE_TYPES = ['application/pdf', 'video/mp4', 'video/webm'];
 const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAIN_FILE_MAX_BYTES = 100 * 1024 * 1024;
 const COVER_MAX_BYTES = 5 * 1024 * 1024;
@@ -157,7 +149,6 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
                   <option value="ebook">E-book/PDF</option>
                   <option value="module">Modul</option>
                   <option value="video">Video</option>
-                  <option value="audio">Audio</option>
                 </select>
                 @if (showError('mediaType')) {
                   <span id="mediaType-error" class="field-error">Jenis media wajib dipilih.</span>
@@ -172,9 +163,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
                   min="0"
                   aria-describedby="duration-helper"
                 />
-                <span id="duration-helper" class="field-helper"
-                  >Isi dalam detik untuk video atau audio.</span
-                >
+                <span id="duration-helper" class="field-helper">Isi dalam detik untuk video.</span>
               </label>
             </div>
           </fieldset>
@@ -201,7 +190,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
                   type="file"
                   data-control-name="mainFile"
                   (change)="pickFile($event)"
-                  accept="application/pdf,video/mp4,video/webm,audio/mpeg,audio/mp4,audio/ogg,audio/wav"
+                  accept="application/pdf,video/mp4,video/webm"
                   [attr.aria-invalid]="mainFileError() ? 'true' : 'false'"
                   aria-describedby="main-file-helper main-file-error main-file-preview"
                 />
@@ -1022,7 +1011,6 @@ export class DigitalManagementPage {
       ebook: 'E-book/PDF',
       module: 'Modul',
       video: 'Video',
-      audio: 'Audio',
     };
     return labels[type];
   }

@@ -116,11 +116,11 @@ export class DigitalCatalogPage {
   }
 
   protected mediaLabel(type: DigitalMediaType) {
-    return ({ ebook: 'E-book', module: 'Modul', video: 'Video', audio: 'Audio' } as const)[type];
+    return ({ ebook: 'E-book', module: 'Modul', video: 'Video' } as const)[type];
   }
 
   protected downloadLabel(item: DigitalCollection) {
-    return item.is_downloadable ? 'Bisa diunduh setelah masuk' : 'Baca atau putar setelah masuk';
+    return item.is_downloadable ? 'Bisa diunduh setelah masuk' : 'Baca atau tonton setelah masuk';
   }
 }
 
@@ -157,7 +157,7 @@ function sameFilters(a: DigitalCatalogFilters, b: DigitalCatalogFilters) {
 }
 
 function isMediaType(value: string): value is DigitalMediaType {
-  return ['ebook', 'module', 'video', 'audio'].includes(value);
+  return ['ebook', 'module', 'video'].includes(value);
 }
 
 function isSort(value: string): value is DigitalSort {

@@ -20,7 +20,7 @@ export const digitalCollectionInputSchema = z.object({
   title: z.string().trim().min(1).max(250),
   slug: z.string().trim().min(1).max(250).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   description: nullableText(10_000),
-  mediaType: z.enum(['ebook', 'module', 'video', 'audio']),
+  mediaType: z.enum(['ebook', 'module', 'video']),
   categoryId: nullableUuid,
   authorText: nullableText(500),
   publisherText: nullableText(500),
@@ -35,7 +35,7 @@ export const digitalCatalogQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(12),
   search: z.string().trim().max(100).default(''),
   categoryId: z.uuid().optional(),
-  mediaType: z.enum(['ebook', 'module', 'video', 'audio']).optional(),
+  mediaType: z.enum(['ebook', 'module', 'video']).optional(),
   sort: z.enum(['latest', 'popular', 'title']).default('latest'),
 });
 

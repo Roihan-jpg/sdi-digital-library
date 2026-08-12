@@ -4,14 +4,14 @@ Dokumen ini berisi contoh skema yang dapat digambar ulang di draw.io. Setiap con
 
 ## Legenda Bentuk
 
-| Bentuk | Fungsi |
-|---|---|
-| Oval | Mulai atau selesai |
-| Persegi panjang | Proses |
-| Belah ketupat | Keputusan atau validasi |
-| Jajar genjang | Input atau output |
-| Silinder | Database |
-| Dokumen | Bukti transaksi atau laporan |
+| Bentuk          | Fungsi                       |
+| --------------- | ---------------------------- |
+| Oval            | Mulai atau selesai           |
+| Persegi panjang | Proses                       |
+| Belah ketupat   | Keputusan atau validasi      |
+| Jajar genjang   | Input atau output            |
+| Silinder        | Database                     |
+| Dokumen         | Bukti transaksi atau laporan |
 
 ---
 
@@ -326,13 +326,11 @@ flowchart TD
     E -- Ya --> G{Jenis media}
     G -- E-Book / Modul --> H[Buka PDF viewer]
     G -- Video --> I[Buka video player]
-    G -- Audio --> J[Buka audio player]
     H --> K[Catat view]
     I --> K
-    J --> K
     K --> L{Download diizinkan?}
     L -- Ya --> M[Tampilkan tombol download]
-    L -- Tidak --> N[Hanya baca atau putar]
+    L -- Tidak --> N[Hanya baca atau tonton]
     M --> O[Catat download]
     N --> P([Selesai])
     O --> P
