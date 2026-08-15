@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { AuthStore } from '../../../../core/auth/auth.store';
 import { MasterDataApiService } from '../../../master-data/data-access/master-data-api.service';
 import { InventoryApiService } from '../../data-access/inventory-api.service';
@@ -17,7 +17,7 @@ const titleOption = {
   stock: { total: 2, available: 1 },
 };
 
-function setup(overrides: Partial<Record<'createTitle' | 'createCopy', unknown>> = {}) {
+function setup(overrides: Partial<Record<'createTitle' | 'createCopy' | 'print', unknown>> = {}) {
   const createTitle = vi.fn(() => of({ data: { id: 'title-new' } }));
   const createCopy = vi.fn(() => of({ data: { id: 'copy-1', inventory_code: 'INV-SDI-001' } }));
   const masterList = vi.fn((kind: string) =>
@@ -56,7 +56,7 @@ function setup(overrides: Partial<Record<'createTitle' | 'createCopy', unknown>>
           listTitles,
           createTitle: overrides.createTitle ?? createTitle,
           createCopy: overrides.createCopy ?? createCopy,
-          print: vi.fn(() => of('<html></html>')),
+          print: overrides.print ?? vi.fn(() => of('<html></html>')),
         },
       },
       { provide: MasterDataApiService, useValue: { list: masterList } },
@@ -177,5 +177,42 @@ describe('InventoryPage', () => {
       status: 'available',
       isActive: true,
     });
+  });
+
+  it('shows a local error when label generation fails', () => {
+    const print = vi.fn(() => throwError(() => new Error('offline')));
+    const { fixture } = setup({ print });
+    const component = fixture.componentInstance as unknown as {
+      lastCopyId: { set(value: string): void };
+      printLast(): void;
+    };
+    component.lastCopyId.set('copy-1');
+
+    component.printLast();
+    fixture.detectChanges();
+
+    expect(print).toHaveBeenCalledWith(['copy-1']);
+    expect(fixture.nativeElement.textContent).toContain('Label belum dapat dibuat');
+    expect(fixture.nativeElement.querySelector('.feedback-banner')?.getAttribute('role')).toBe(
+      'alert',
+    );
+  });
+
+  it('warns when the browser blocks the print popup', () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const { fixture } = setup();
+    const component = fixture.componentInstance as unknown as {
+      lastCopyId: { set(value: string): void };
+      printLast(): void;
+    };
+    component.lastCopyId.set('copy-1');
+
+    component.printLast();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Jendela cetak diblokir browser');
+    expect(fixture.nativeElement.querySelector('.feedback-banner')?.getAttribute('role')).toBe(
+      'status',
+    );
   });
 });

@@ -185,6 +185,7 @@ describe('ImportPage', () => {
     expect(upload).toHaveBeenCalledWith('members', file);
     expect(element.textContent).toContain('selesai sebagian');
     expect(element.textContent).toContain('Unduh CSV error');
+    expect(element.textContent?.match(/selesai sebagian/g)).toHaveLength(1);
   });
 
   it('renders history table semantics, localized status, counts, date, and CSV error action', () => {

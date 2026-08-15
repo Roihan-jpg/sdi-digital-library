@@ -1,6 +1,11 @@
 import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthStore } from '../../../../core/auth/auth.store';
+import { parseApiError } from '../../../../core/errors/api-error';
+import {
+  FeedbackBanner,
+  type FeedbackMessage,
+} from '../../../../shared/components/feedback-banner/feedback-banner';
 import {
   MasterDataApiService,
   type MasterRow,
@@ -24,7 +29,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
 
 @Component({
   selector: 'sdi-digital-management-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FeedbackBanner],
   template: `
     <section class="page management-page">
       <div class="page-head">
@@ -40,6 +45,16 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
           <span>Akses penuh hanya melalui backend dan signed URL.</span>
         </div>
       </div>
+
+      @if (feedback(); as currentFeedback) {
+        <sdi-feedback-banner
+          [tone]="currentFeedback.tone"
+          [message]="currentFeedback.message"
+          [requestId]="currentFeedback.requestId"
+          [dismissible]="true"
+          (dismissed)="feedback.set(null)"
+        />
+      }
 
       @if (canEdit()) {
         <form
@@ -300,7 +315,12 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
               </tr>
             } @else if (error()) {
               <tr>
-                <td class="state-cell error" [attr.colspan]="canEdit() ? 6 : 5">
+                <td
+                  class="state-cell error"
+                  [attr.colspan]="canEdit() ? 6 : 5"
+                  role="alert"
+                  aria-atomic="true"
+                >
                   {{ error() }}
                 </td>
               </tr>
@@ -788,6 +808,7 @@ export class DigitalManagementPage {
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly deleting = signal(false);
+  protected readonly feedback = signal<FeedbackMessage | null>(null);
   protected readonly error = signal('');
   protected readonly formError = signal('');
   protected readonly mainFileError = signal('');
@@ -820,7 +841,17 @@ export class DigitalManagementPage {
 
   constructor() {
     this.load();
-    this.masters.list('categories').subscribe({ next: (r) => this.categories.set(r.data) });
+    this.masters.list('categories').subscribe({
+      next: (r) => this.categories.set(r.data),
+      error: (error) => {
+        this.feedback.set(
+          errorFeedback(
+            error,
+            'Pilihan kategori belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.',
+          ),
+        );
+      },
+    });
   }
 
   protected canEdit() {
@@ -835,8 +866,13 @@ export class DigitalManagementPage {
         this.items.set(r.data);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Data koleksi belum dapat dimuat.');
+      error: (error) => {
+        this.error.set(
+          apiMessage(
+            error,
+            'Data koleksi belum dapat dimuat. Gunakan Muat ulang untuk mencoba lagi.',
+          ),
+        );
         this.loading.set(false);
       },
     });
@@ -903,12 +939,19 @@ export class DigitalManagementPage {
       : this.api.create(payload);
     request.subscribe({
       next: () => {
+        const wasEditing = Boolean(this.editingId());
         this.saving.set(false);
         this.reset();
+        this.feedback.set({
+          tone: 'success',
+          message: wasEditing ? 'Koleksi berhasil diperbarui.' : 'Koleksi berhasil ditambahkan.',
+        });
         this.load();
       },
-      error: () => {
-        this.formError.set('Koleksi gagal disimpan. Periksa format file dan slug.');
+      error: (error) => {
+        this.formError.set(
+          apiMessage(error, 'Koleksi gagal disimpan. Periksa format file dan slug.'),
+        );
         this.saving.set(false);
         this.focusFirstError();
       },
@@ -981,10 +1024,13 @@ export class DigitalManagementPage {
       next: () => {
         this.deleting.set(false);
         this.deleteCandidate.set(null);
+        this.feedback.set({ tone: 'success', message: 'Koleksi berhasil dihapus.' });
         this.load();
       },
-      error: () => {
-        this.deleteError.set('Koleksi tidak dapat dihapus.');
+      error: (error) => {
+        this.deleteError.set(
+          apiMessage(error, 'Koleksi tidak dapat dihapus. Coba kembali atau hubungi admin.'),
+        );
         this.deleting.set(false);
       },
     });
@@ -1057,4 +1103,18 @@ function toFormData(value: DigitalFormValue, file: File | null, cover: File | nu
   if (file) data.set('file', file);
   if (cover) data.set('cover', cover);
   return data;
+}
+
+function apiMessage(error: unknown, fallback: string): string {
+  const details = parseApiError(error, fallback);
+  return details.requestId ? `${details.message} Referensi: ${details.requestId}` : details.message;
+}
+
+function errorFeedback(error: unknown, fallback: string): FeedbackMessage {
+  const details = parseApiError(error, fallback);
+  return {
+    tone: 'error',
+    message: details.message,
+    ...(details.requestId ? { requestId: details.requestId } : {}),
+  };
 }

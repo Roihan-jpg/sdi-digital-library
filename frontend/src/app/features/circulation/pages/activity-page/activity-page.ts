@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { parseApiError } from '../../../../core/errors/api-error';
 import { forkJoin } from 'rxjs';
 import {
   CirculationApiService,
@@ -19,10 +20,10 @@ import {
       <button (click)="load()">Muat ulang</button>
     </header>
     @if (error()) {
-      <div class="notice">{{ error() }}</div>
+      <div class="notice" role="alert" aria-atomic="true">{{ error() }}</div>
     }
     @if (loading()) {
-      <div class="panel state">Memuat aktivitas...</div>
+      <div class="panel state" role="status">Memuat aktivitas...</div>
     } @else {
       <section class="panel">
         <h2>Pinjaman terbaru</h2>
@@ -197,8 +198,16 @@ export class ActivityPage {
         this.fines.set(r.fines.data);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Aktivitas belum dapat dimuat.');
+      error: (error) => {
+        const details = parseApiError(
+          error,
+          'Aktivitas belum dapat dimuat. Gunakan Muat ulang untuk mencoba lagi.',
+        );
+        this.error.set(
+          details.requestId
+            ? `${details.message} Referensi: ${details.requestId}`
+            : details.message,
+        );
         this.loading.set(false);
       },
     });

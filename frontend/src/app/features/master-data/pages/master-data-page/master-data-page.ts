@@ -715,7 +715,7 @@ export class MasterDataPage {
 
     this.loading.set(true);
     this.loadError.set(false);
-    this.message.set(null);
+    if (resetForm) this.message.set(null);
     this.api.list(this.currentKind()).subscribe({
       next: (response) => {
         this.rows.set(response.data);

@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { roleHomePath } from '../../../../core/auth/auth.models';
 import { ThemeToggle } from '../../../../shared/components/theme-toggle/theme-toggle';
+import { parseApiError } from '../../../../core/errors/api-error';
 
 @Component({
   selector: 'sdi-login-page',
@@ -96,8 +97,9 @@ export class LoginPage {
       this.loginSucceeded.set(true);
       await this.router.navigateByUrl(target);
     } catch (error) {
+      const details = parseApiError(error, 'Login gagal. Silakan coba kembali.');
       this.errorMessage.set(
-        error instanceof Error ? error.message : 'Login gagal. Silakan coba kembali.',
+        details.status === null && error instanceof Error ? error.message : details.message,
       );
       this.focusElementById('login-auth-error');
     } finally {

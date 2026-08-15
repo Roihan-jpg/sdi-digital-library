@@ -72,5 +72,36 @@ describe('OperationsPage scanner flow', () => {
     expect(memberInput.value).toBe('CARD-RETRY');
     expect(document.activeElement).toBe(memberInput);
     expect(fixture.nativeElement.textContent).toContain('Input tetap tersimpan');
+    expect(fixture.nativeElement.querySelector('.feedback-banner')?.getAttribute('role')).toBe(
+      'alert',
+    );
+  });
+
+  it('announces an inactive member as a warning instead of neutral status', async () => {
+    await TestBed.configureTestingModule({
+      imports: [OperationsPage],
+      providers: [
+        provideRouter([]),
+        {
+          provide: CirculationApiService,
+          useValue: { lookupMember: () => of({ data: { ...member, is_active: false } }) },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(OperationsPage);
+    fixture.detectChanges();
+    const component = fixture.componentInstance as unknown as {
+      memberCode: { setValue(value: string): void };
+      scanMember(): void;
+    };
+    component.memberCode.setValue('CARD-INACTIVE');
+    component.scanMember();
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('.feedback-banner') as HTMLElement;
+    expect(banner.textContent).toContain('Member tidak aktif');
+    expect(banner.classList).toContain('alert--warning');
+    expect(banner.getAttribute('role')).toBe('status');
   });
 });

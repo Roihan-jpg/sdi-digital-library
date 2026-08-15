@@ -1,6 +1,7 @@
 import { JsonPipe, KeyValuePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { parseApiError } from '../../../../core/errors/api-error';
 import {
   AdministrationApiService,
   type SystemEvent,
@@ -19,7 +20,7 @@ import {
       <button (click)="load()">Periksa ulang</button>
     </header>
     @if (error()) {
-      <div class="notice">{{ error() }}</div>
+      <div class="notice" role="alert" aria-atomic="true">{{ error() }}</div>
     }
     @if (status(); as current) {
       <section class="health" [class.degraded]="current.overall === 'degraded'">
@@ -232,8 +233,13 @@ export class SystemStatusPage {
       ]);
       this.status.set(status.data);
       this.events.set(events.data);
-    } catch {
-      this.error.set('Status sistem belum dapat dimuat.');
+    } catch (error) {
+      this.error.set(
+        apiMessage(
+          error,
+          'Status sistem belum dapat dimuat. Gunakan Periksa ulang untuk mencoba lagi.',
+        ),
+      );
     }
   }
   protected date(value: string) {
@@ -243,4 +249,9 @@ export class SystemStatusPage {
       timeZone: 'Asia/Jakarta',
     }).format(new Date(value));
   }
+}
+
+function apiMessage(error: unknown, fallback: string): string {
+  const details = parseApiError(error, fallback);
+  return details.requestId ? `${details.message} Referensi: ${details.requestId}` : details.message;
 }
