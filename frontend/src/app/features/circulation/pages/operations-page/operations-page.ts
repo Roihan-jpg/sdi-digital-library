@@ -3,6 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
+import { parseApiError } from '../../../../core/errors/api-error';
+import {
+  FeedbackBanner,
+  type FeedbackTone,
+} from '../../../../shared/components/feedback-banner/feedback-banner';
 import {
   CirculationApiService,
   type CopyLookup,
@@ -63,7 +68,7 @@ const COPY_STATUS_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'sdi-operations-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FeedbackBanner],
   template: `
     <section class="operations" [attr.aria-busy]="busy()">
       <header>
@@ -106,7 +111,13 @@ const COPY_STATUS_LABELS: Record<string, string> = {
         Gunakan tombol panah kiri dan kanan untuk berpindah layanan.
       </p>
       @if (message()) {
-        <p class="notice" role="status">{{ message() }}</p>
+        <sdi-feedback-banner
+          [tone]="messageTone()"
+          [message]="message()"
+          [requestId]="messageRequestId()"
+          [dismissible]="true"
+          (dismissed)="clearMessage()"
+        />
       }
 
       @switch (tab()) {
@@ -934,6 +945,8 @@ export class OperationsPage {
   protected readonly tab = signal<ServiceTabId>('checkout');
   protected readonly busy = signal(false);
   protected readonly message = signal('');
+  protected readonly messageTone = signal<FeedbackTone>('info');
+  protected readonly messageRequestId = signal<string | undefined>(undefined);
   protected readonly member = signal<MemberLookup | null>(null);
   protected readonly copies = signal<CopyLookup[]>([]);
   protected readonly checkoutKey = signal<string | null>(null);
@@ -1027,7 +1040,7 @@ export class OperationsPage {
     const changed = this.tab() !== id;
     this.tab.set(id);
     if (changed) {
-      this.message.set('');
+      this.clearMessage();
       if (id === 'reservations') this.loadReservations();
       if (id === 'fines') this.loadFines();
     }
@@ -1114,10 +1127,11 @@ export class OperationsPage {
         this.member.set(r.data);
         this.copies.set([]);
         this.checkoutKey.set(null);
-        this.message.set(
+        this.showMessage(
           r.data.is_active
             ? 'Member siap untuk transaksi.'
             : 'Member tidak aktif dan tidak dapat meminjam.',
+          r.data.is_active ? 'success' : 'warning',
         );
         this.focusScanner(this.bookInput);
       },
@@ -1128,7 +1142,7 @@ export class OperationsPage {
     const code = this.bookCode.value.trim();
     if (!code || !this.member()) return;
     if (this.copies().some((c) => c.inventory_code === code)) {
-      this.message.set('Eksemplar sudah ada di daftar scan.');
+      this.showMessage('Eksemplar sudah ada di daftar scan.', 'warning');
       this.bookCode.reset();
       this.focusScanner(this.bookInput);
       return;
@@ -1137,7 +1151,7 @@ export class OperationsPage {
       this.api.lookupCopy(code),
       (r) => {
         if (r.data.status !== 'available' || !r.data.is_active || r.data.is_reference_only) {
-          this.message.set('Eksemplar tidak tersedia atau tidak boleh dipinjam.');
+          this.showMessage('Eksemplar tidak tersedia atau tidak boleh dipinjam.', 'warning');
           this.focusScanner(this.bookInput);
           return;
         }
@@ -1175,7 +1189,7 @@ export class OperationsPage {
       ),
       (r) => {
         this.receipt.set(r.data);
-        this.message.set('Peminjaman berhasil. Jatuh tempo ditetapkan oleh database.');
+        this.showMessage('Peminjaman berhasil. Jatuh tempo ditetapkan oleh database.', 'success');
         this.copies.set([]);
         this.checkoutKey.set(null);
       },
@@ -1188,7 +1202,7 @@ export class OperationsPage {
     this.checkoutKey.set(null);
     this.memberCode.reset();
     this.bookCode.reset();
-    this.message.set('Siap untuk transaksi berikutnya.');
+    this.showMessage('Siap untuk transaksi berikutnya.', 'info');
     this.focusScanner(this.memberInput);
   }
   protected returnBook() {
@@ -1197,7 +1211,7 @@ export class OperationsPage {
       this.api.returnBook(this.returnForm.getRawValue()),
       (r) => {
         this.returnResult.set(r.data);
-        this.message.set('Pengembalian berhasil dicatat.');
+        this.showMessage('Pengembalian berhasil dicatat.', 'success');
         this.returnForm.controls.inventoryCode.reset();
         this.focusScanner(this.returnInput);
       },
@@ -1283,7 +1297,7 @@ export class OperationsPage {
       const code = this.dialogInventoryCode.value.trim() || undefined;
       this.runDialog(this.api.approveReservation(dialog.item.id, code), () => {
         this.closeDialog();
-        this.message.set('Reservasi disetujui dan eksemplar dialokasikan.');
+        this.showMessage('Reservasi disetujui dan eksemplar dialokasikan.', 'success');
         this.loadReservations();
       });
       return;
@@ -1305,7 +1319,7 @@ export class OperationsPage {
       this.runDialog(this.api.convertReservation(dialog.item.id, code, idempotencyKey), (r) => {
         this.receipt.set(r.data);
         this.closeDialog();
-        this.message.set('Reservasi dikonversi menjadi peminjaman.');
+        this.showMessage('Reservasi dikonversi menjadi peminjaman.', 'success');
         this.reservationCheckoutKeys.update((current) => {
           const { [dialog.item.id]: _completed, ...pending } = current;
           return pending;
@@ -1324,7 +1338,7 @@ export class OperationsPage {
       }
       this.runDialog(this.api.rejectReservation(dialog.item.id, reason), () => {
         this.closeDialog();
-        this.message.set('Reservasi ditolak.');
+        this.showMessage('Reservasi ditolak.', 'success');
         this.loadReservations();
       });
       return;
@@ -1341,7 +1355,7 @@ export class OperationsPage {
     this.runDialog(this.api.payFine(dialog.fine.id, amount, 'cash'), (r) => {
       this.paymentReceipt.set(r.data);
       this.closeDialog();
-      this.message.set('Pembayaran denda tersimpan.');
+      this.showMessage('Pembayaran denda tersimpan.', 'success');
       this.loadFines();
     });
   }
@@ -1351,7 +1365,7 @@ export class OperationsPage {
     this.run(
       this.api.recordVisit(code),
       (r) => {
-        this.message.set(`Kunjungan ${r.data.member.full_name} tercatat.`);
+        this.showMessage(`Kunjungan ${r.data.member.full_name} tercatat.`, 'success');
         this.visitCode.reset();
         this.focusScanner(this.visitInput);
       },
@@ -1362,14 +1376,15 @@ export class OperationsPage {
     if (this.groupVisitForm.invalid) return;
     const v = this.groupVisitForm.getRawValue();
     this.run(this.api.recordGroupVisit({ ...v, studyGroupId: v.studyGroupId || undefined }), () => {
-      this.message.set('Kunjungan rombongan tercatat.');
+      this.showMessage('Kunjungan rombongan tercatat.', 'success');
       this.groupVisitForm.controls.teacherName.reset();
     });
   }
   protected runMaintenance() {
     this.run(this.api.maintenance(), (r) =>
-      this.message.set(
+      this.showMessage(
         `${r.data.overdue_items_marked} item ditandai overdue; ${r.data.reservations_expired} reservasi diakhiri.`,
+        'success',
       ),
     );
   }
@@ -1407,15 +1422,17 @@ export class OperationsPage {
   ) {
     if (this.busy()) return;
     this.busy.set(true);
-    this.message.set('');
+    this.clearMessage();
     request.pipe(finalize(() => this.busy.set(false))).subscribe({
       next,
       error: (error) => {
-        const message = this.errorMessage(error);
-        this.message.set(
+        const details = parseApiError(error, 'Operasi gagal.');
+        this.showMessage(
           focusAfterError
-            ? `${message} Input tetap tersimpan; periksa pesan lalu coba lagi.`
-            : `${message} Periksa data lalu coba lagi.`,
+            ? `${details.message} Input tetap tersimpan; periksa pesan lalu coba lagi.`
+            : `${details.message} Periksa data lalu coba lagi.`,
+          'error',
+          details.requestId,
         );
         queueMicrotask(() => focusAfterError?.());
       },
@@ -1436,15 +1453,21 @@ export class OperationsPage {
   }
 
   private errorMessage(error: unknown) {
-    if (typeof error === 'object' && error !== null) {
-      const maybeHttp = error as {
-        error?: { message?: unknown; error?: unknown };
-        message?: unknown;
-      };
-      const backendMessage =
-        maybeHttp.error?.message ?? maybeHttp.error?.error ?? maybeHttp.message;
-      if (typeof backendMessage === 'string' && backendMessage.trim()) return backendMessage.trim();
-    }
-    return 'Operasi gagal.';
+    const details = parseApiError(error, 'Operasi gagal. Periksa data lalu coba lagi.');
+    return details.requestId
+      ? `${details.message} Referensi: ${details.requestId}`
+      : details.message;
+  }
+
+  protected clearMessage(): void {
+    this.message.set('');
+    this.messageTone.set('info');
+    this.messageRequestId.set(undefined);
+  }
+
+  private showMessage(message: string, tone: FeedbackTone, requestId?: string): void {
+    this.message.set(message);
+    this.messageTone.set(tone);
+    this.messageRequestId.set(requestId);
   }
 }

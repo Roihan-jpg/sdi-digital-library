@@ -1,65 +1,51 @@
 import { Component, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationStart, Router } from '@angular/router';
+import { filter } from 'rxjs';
 import { NotificationService } from '../../../core/notifications/notification.service';
+import { FeedbackBanner } from '../feedback-banner/feedback-banner';
 
 @Component({
   selector: 'sdi-notification-banner',
+  imports: [FeedbackBanner],
   template: `
     @if (notifications.current(); as notification) {
-      <div class="notification alert alert--error" role="alert" aria-live="assertive">
-        <div class="notification__content">
-          <strong>Tindakan belum berhasil</strong>
-          <p>{{ notification.message }}</p>
-          @if (notification.requestId) {
-            <small
-              >Referensi: <code>{{ notification.requestId }}</code></small
-            >
-          }
-        </div>
-        <button
-          class="button button--tertiary notification__dismiss"
-          type="button"
-          aria-label="Tutup pesan kesalahan"
-          (click)="notifications.dismiss()"
-        >
-          Tutup
-        </button>
-      </div>
+      <sdi-feedback-banner
+        tone="error"
+        title="Tindakan belum berhasil"
+        [message]="notification.message"
+        [requestId]="notification.requestId ?? null"
+        actionLabel="Muat ulang"
+        [dismissible]="true"
+        (action)="reloadPage()"
+        (dismissed)="notifications.dismiss()"
+      />
     }
   `,
   styles: `
-    .notification {
-      grid-template-columns: var(--border-width-accent) minmax(0, 1fr) auto;
-      border-inline: 0;
-      border-radius: 0;
-    }
-    .notification__content {
-      min-width: 0;
-    }
-    .notification__content strong {
-      font-family: var(--font-family-display);
-    }
-    p {
-      margin: var(--space-1) 0;
-    }
-    code {
-      font-family: var(--font-family-data);
-      overflow-wrap: anywhere;
-    }
-    .notification__dismiss {
-      align-self: start;
-      color: inherit;
-    }
-    @media (max-width: 36rem) {
-      .notification {
-        grid-template-columns: var(--border-width-accent) minmax(0, 1fr);
-      }
-      .notification__dismiss {
-        grid-column: 2;
-        justify-self: start;
-      }
+    :host {
+      display: block;
     }
   `,
 })
 export class NotificationBanner {
   protected readonly notifications = inject(NotificationService);
+  private readonly router = inject(Router);
+  private hasSeenNavigation = false;
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationStart),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        if (this.router.navigated || this.hasSeenNavigation) this.notifications.dismiss();
+        this.hasSeenNavigation = true;
+      });
+  }
+
+  protected reloadPage(): void {
+    globalThis.location?.reload();
+  }
 }

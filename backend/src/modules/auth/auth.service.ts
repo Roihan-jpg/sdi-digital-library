@@ -17,23 +17,21 @@ export class AuthService implements AuthServicePort {
   constructor(private readonly repository: AuthRepository) {}
 
   async authenticate(accessToken: string): Promise<AuthContext> {
-    try {
-      const user = await this.repository.verifyUser(accessToken);
-      const profile = await this.repository.getProfile(accessToken, user.id);
-      if (!profile.isActive)
-        throw new AppError(403, 'ACCOUNT_INACTIVE', 'Akun Anda sedang tidak aktif.');
-      return {
-        accessToken,
-        user: { id: profile.id, email: user.email ?? null },
-        profile,
-        member: await this.repository.getMember(accessToken, profile.id),
-        authSource: 'supabase',
-        authUserId: user.id,
-      };
-    } catch (error) {
-      if (!(error instanceof AppError) || error.code !== 'INVALID_ACCESS_TOKEN') throw error;
-      return this.repository.authenticateLocal(accessToken);
-    }
+    const localContext = await this.repository.authenticateLocal(accessToken);
+    if (localContext) return localContext;
+
+    const user = await this.repository.verifyUser(accessToken);
+    const profile = await this.repository.getProfile(accessToken, user.id);
+    if (!profile.isActive)
+      throw new AppError(403, 'ACCOUNT_INACTIVE', 'Akun Anda sedang tidak aktif.');
+    return {
+      accessToken,
+      user: { id: profile.id, email: user.email ?? null },
+      profile,
+      member: await this.repository.getMember(accessToken, profile.id),
+      authSource: 'supabase',
+      authUserId: user.id,
+    };
   }
 
   async logout(accessToken: string): Promise<void> {

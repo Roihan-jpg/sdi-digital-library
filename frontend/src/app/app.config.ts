@@ -13,7 +13,6 @@ import { provideTanStackQuery } from '@tanstack/angular-query-experimental';
 
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
 import { authInterceptor } from './core/http/auth.interceptor';
-import { errorInterceptor } from './core/http/error.interceptor';
 import { queryCacheInterceptor } from './core/http/query-cache.interceptor';
 import { requestIdInterceptor } from './core/http/request-id.interceptor';
 import { APP_QUERY_CLIENT } from './core/query/query-client';
@@ -36,12 +35,7 @@ export const appConfig: ApplicationConfig = {
     provideTanStackQuery(APP_QUERY_CLIENT),
 
     provideHttpClient(
-      withInterceptors([
-        requestIdInterceptor,
-        authInterceptor,
-        queryCacheInterceptor,
-        errorInterceptor,
-      ]),
+      withInterceptors([requestIdInterceptor, authInterceptor, queryCacheInterceptor]),
     ),
 
     provideAppInitializer(() => inject(AuthService).initialize()),

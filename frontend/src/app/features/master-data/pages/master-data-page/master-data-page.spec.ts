@@ -140,6 +140,8 @@ describe('MasterDataPage', () => {
       name: '2027/2028',
       isActive: false,
     });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Master data berhasil disimpan.');
   });
 
   it('edits a school year from the table and sends the selected row id', async () => {

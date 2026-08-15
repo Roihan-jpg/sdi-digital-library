@@ -1,6 +1,7 @@
 import { JsonPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { parseApiError } from '../../../../core/errors/api-error';
 import {
   AdministrationApiService,
   type AuditLog,
@@ -18,11 +19,11 @@ import {
       <button (click)="load()">Muat ulang</button>
     </header>
     @if (error()) {
-      <div class="notice">{{ error() }}</div>
+      <div class="notice" role="alert" aria-atomic="true">{{ error() }}</div>
     }
     <div class="panel">
       @if (loading()) {
-        <p class="state">Memuat audit...</p>
+        <p class="state" role="status">Memuat audit...</p>
       } @else {
         <div class="table">
           <table>
@@ -184,8 +185,10 @@ export class AuditLogPage {
     this.error.set('');
     try {
       this.logs.set((await firstValueFrom(this.api.listAuditLogs())).data);
-    } catch {
-      this.error.set('Audit belum dapat dimuat.');
+    } catch (error) {
+      this.error.set(
+        apiMessage(error, 'Audit belum dapat dimuat. Gunakan Muat ulang untuk mencoba lagi.'),
+      );
     } finally {
       this.loading.set(false);
     }
@@ -193,8 +196,8 @@ export class AuditLogPage {
   protected async open(item: AuditLog) {
     try {
       this.selected.set((await firstValueFrom(this.api.getAuditLog(item.id))).data);
-    } catch {
-      this.error.set('Detail audit belum dapat dimuat.');
+    } catch (error) {
+      this.error.set(apiMessage(error, 'Detail audit belum dapat dimuat. Coba pilih kembali.'));
     }
   }
   protected date(value: string) {
@@ -204,4 +207,9 @@ export class AuditLogPage {
       timeZone: 'Asia/Jakarta',
     }).format(new Date(value));
   }
+}
+
+function apiMessage(error: unknown, fallback: string): string {
+  const details = parseApiError(error, fallback);
+  return details.requestId ? `${details.message} Referensi: ${details.requestId}` : details.message;
 }

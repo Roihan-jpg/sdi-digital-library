@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { parseApiError } from '../../../../core/errors/api-error';
 import {
   AdministrationApiService,
   type LibrarySettings,
@@ -16,10 +17,17 @@ import {
       <p>Aturan sirkulasi dan identitas sekolah yang menjadi sumber kebenaran backend.</p>
     </header>
     @if (message()) {
-      <div class="notice" [class.error]="failed()">{{ message() }}</div>
+      <div
+        class="notice"
+        [class.error]="failed()"
+        [attr.role]="failed() ? 'alert' : 'status'"
+        aria-atomic="true"
+      >
+        {{ message() }}
+      </div>
     }
     @if (loading()) {
-      <div class="panel state">Memuat pengaturan...</div>
+      <div class="panel state" role="status">Memuat pengaturan...</div>
     } @else {
       <form class="panel" [formGroup]="form" (ngSubmit)="save()">
         <h2>Aturan sirkulasi</h2>
@@ -195,8 +203,8 @@ export class LibrarySettingsPage {
     try {
       const result = await firstValueFrom(this.api.getSettings());
       this.form.reset(result.data);
-    } catch {
-      this.show('Pengaturan belum dapat dimuat.', true);
+    } catch (error) {
+      this.show(apiMessage(error, 'Pengaturan belum dapat dimuat. Muat ulang halaman.'), true);
     } finally {
       this.loading.set(false);
     }
@@ -213,8 +221,11 @@ export class LibrarySettingsPage {
       );
       this.form.reset(result.data);
       this.show('Pengaturan berhasil disimpan.', false);
-    } catch {
-      this.show('Pengaturan belum dapat disimpan.', true);
+    } catch (error) {
+      this.show(
+        apiMessage(error, 'Pengaturan belum dapat disimpan. Periksa data lalu coba lagi.'),
+        true,
+      );
     } finally {
       this.saving.set(false);
     }
@@ -223,4 +234,9 @@ export class LibrarySettingsPage {
     this.message.set(text);
     this.failed.set(error);
   }
+}
+
+function apiMessage(error: unknown, fallback: string): string {
+  const details = parseApiError(error, fallback);
+  return details.requestId ? `${details.message} Referensi: ${details.requestId}` : details.message;
 }

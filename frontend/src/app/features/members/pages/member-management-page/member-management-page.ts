@@ -1,5 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { AuthStore } from '../../../../core/auth/auth.store';
+import { parseApiError } from '../../../../core/errors/api-error';
+import {
+  FeedbackBanner,
+  type FeedbackMessage,
+} from '../../../../shared/components/feedback-banner/feedback-banner';
+import { forkJoin } from 'rxjs';
 import {
   AbstractControl,
   FormControl,
@@ -17,11 +23,9 @@ import {
   type MemberPayload,
 } from '../../data-access/member-api.service';
 
-type NoticeTone = 'success' | 'error' | 'info';
-
 @Component({
   selector: 'sdi-member-management-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FeedbackBanner],
   template: `
     <section class="page page--wide member-page">
       <header class="page-header">
@@ -374,14 +378,13 @@ type NoticeTone = 'success' | 'error' | 'info';
       }
 
       @if (notice(); as currentNotice) {
-        <div
-          class="alert"
-          [class.alert--success]="currentNotice.tone === 'success'"
-          [class.alert--error]="currentNotice.tone === 'error'"
-          role="status"
-        >
-          <p>{{ currentNotice.message }}</p>
-        </div>
+        <sdi-feedback-banner
+          [tone]="currentNotice.tone"
+          [message]="currentNotice.message"
+          [requestId]="currentNotice.requestId"
+          [dismissible]="true"
+          (dismissed)="notice.set(null)"
+        />
       }
 
       <section class="members-section" aria-labelledby="members-table-title">
@@ -720,7 +723,7 @@ export class MemberManagementPage {
   protected readonly editingId = signal<string | null>(null);
   protected readonly formSubmitted = signal(false);
   protected readonly loadError = signal('');
-  protected readonly notice = signal<{ tone: NoticeTone; message: string } | null>(null);
+  protected readonly notice = signal<FeedbackMessage | null>(null);
   protected readonly form = new FormGroup({
     memberCode: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     libraryCardNumber: new FormControl('', {
@@ -754,11 +757,21 @@ export class MemberManagementPage {
       }
     });
     this.load();
-    this.master.list('classes').subscribe({
-      next: (response) => this.classes.set(response.data),
-    });
-    this.master.list('study-groups').subscribe({
-      next: (response) => this.studyGroups.set(response.data),
+    forkJoin({
+      classes: this.master.list('classes'),
+      studyGroups: this.master.list('study-groups'),
+    }).subscribe({
+      next: ({ classes, studyGroups }) => {
+        this.classes.set(classes.data);
+        this.studyGroups.set(studyGroups.data);
+      },
+      error: (error) => {
+        const details = parseApiError(
+          error,
+          'Pilihan kelas dan rombel belum dapat dimuat. Coba muat ulang halaman.',
+        );
+        this.notice.set(feedbackFromError(details));
+      },
     });
   }
 
@@ -848,12 +861,15 @@ export class MemberManagementPage {
         this.formSubmitted.set(false);
         this.load();
       },
-      error: () => {
-        this.notice.set({
-          tone: 'error',
-          message:
-            'Data member tidak dapat disimpan. Periksa field wajib dan pastikan NIS, NISN, kode member, serta nomor kartu belum digunakan.',
-        });
+      error: (error) => {
+        this.notice.set(
+          feedbackFromError(
+            parseApiError(
+              error,
+              'Data member tidak dapat disimpan. Periksa field wajib dan pastikan NIS, NISN, kode member, serta nomor kartu belum digunakan.',
+            ),
+          ),
+        );
         this.saving.set(false);
       },
     });
@@ -913,8 +929,16 @@ export class MemberManagementPage {
         this.totalMembers.set(response.pagination.total);
         this.loading.set(false);
       },
-      error: () => {
-        this.loadError.set('Periksa koneksi atau coba ulang beberapa saat lagi.');
+      error: (error) => {
+        const details = parseApiError(
+          error,
+          'Daftar member belum dapat dimuat. Periksa koneksi lalu coba lagi.',
+        );
+        this.loadError.set(
+          details.requestId
+            ? `${details.message} Referensi: ${details.requestId}`
+            : details.message,
+        );
         this.loading.set(false);
       },
     });
@@ -949,6 +973,14 @@ export class MemberManagementPage {
       if (element instanceof HTMLElement) element.focus();
     });
   }
+}
+
+function feedbackFromError(details: ReturnType<typeof parseApiError>): FeedbackMessage {
+  return {
+    tone: 'error',
+    message: details.message,
+    ...(details.requestId ? { requestId: details.requestId } : {}),
+  };
 }
 
 const fieldOrder: {

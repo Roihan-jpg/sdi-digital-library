@@ -619,7 +619,6 @@ export class ImportPage {
             ? `Import ${this.kindLabel(kind).toLowerCase()} selesai sebagian: ${this.formatNumber(response.data.success_rows)} berhasil, ${this.formatNumber(response.data.failed_rows)} gagal. Unduh CSV error pada riwayat untuk memperbaiki baris gagal.`
             : `Import ${this.kindLabel(kind).toLowerCase()} selesai: ${this.formatNumber(response.data.success_rows)} baris berhasil.`;
         this.setPanelMessage(kind, { tone, text });
-        this.message.set({ tone, text });
         this.clearFile(kind, false);
         this.load();
       },

@@ -6,12 +6,15 @@ import { AuthApiService } from './auth-api.service';
 import type { CurrentAuthContext } from './auth.models';
 import { AuthStore } from './auth.store';
 import { SUPABASE_CLIENT } from './supabase.client';
+import { parseApiError } from '../errors/api-error';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly supabase = inject(SUPABASE_CLIENT);
   private readonly authApi = inject(AuthApiService);
   private readonly authStore = inject(AuthStore);
+  private readonly notifications = inject(NotificationService);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly destroyRef = inject(DestroyRef);
   private synchronization: { token: string; promise: Promise<CurrentAuthContext> } | null = null;
@@ -27,19 +30,20 @@ export class AuthService {
     if (localToken) {
       try {
         await this.loadCurrentContext(localToken);
-      } catch {
-        localStorage.removeItem(this.localTokenKey);
-        this.authStore.setAnonymous();
+      } catch (error) {
+        await this.handleStoredSessionFailure(error, localToken);
       }
     } else {
-      const { data, error } = await this.supabase.auth.getSession();
-      if (error || !data.session) this.authStore.setAnonymous();
-      else {
-        try {
+      try {
+        const { data, error } = await this.supabase.auth.getSession();
+        if (error) {
+          await this.handleStoredSessionFailure(error);
+        } else if (!data.session) this.authStore.setAnonymous();
+        else {
           await this.synchronizeSession(data.session);
-        } catch {
-          this.authStore.setAnonymous();
         }
+      } catch (sessionError) {
+        await this.handleStoredSessionFailure(sessionError);
       }
     }
 
@@ -61,9 +65,20 @@ export class AuthService {
         local.data.context,
       );
       return local.data.context;
-    } catch {
-      const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
-      if (error || !data.session) throw new Error('Username atau kata sandi tidak benar.');
+    } catch (localError) {
+      const details = parseApiError(localError, 'Login gagal. Silakan coba kembali.');
+      if (details.status !== 401 || details.code !== 'INVALID_CREDENTIALS') throw localError;
+
+      const { data, error: providerError } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (providerError || !data.session) {
+        if (!providerError || providerError.status === 400 || providerError.status === 401) {
+          throw new Error('Username atau kata sandi tidak benar.');
+        }
+        throw new Error('Layanan autentikasi belum tersedia. Silakan coba kembali.');
+      }
       return this.synchronizeSession(data.session);
     }
   }
@@ -96,8 +111,8 @@ export class AuthService {
 
     try {
       await this.synchronizeSession(session);
-    } catch {
-      this.authStore.setAnonymous();
+    } catch (error) {
+      await this.handleStoredSessionFailure(error, session.access_token);
     }
   }
 
@@ -116,16 +131,31 @@ export class AuthService {
   }
 
   private async loadCurrentContext(accessToken: string): Promise<CurrentAuthContext> {
-    try {
-      const response = await firstValueFrom(this.authApi.getCurrentContext(accessToken));
-      this.authStore.setSession({ access_token: accessToken } as Session, response.data);
-      return response.data;
-    } catch (error) {
-      if (localStorage.getItem(this.localTokenKey) === accessToken)
-        localStorage.removeItem(this.localTokenKey);
-      else await this.supabase.auth.signOut({ scope: 'local' });
-      this.authStore.setAnonymous();
-      throw error;
+    const response = await firstValueFrom(this.authApi.getCurrentContext(accessToken));
+    this.authStore.setSession({ access_token: accessToken } as Session, response.data);
+    return response.data;
+  }
+
+  private async handleStoredSessionFailure(error: unknown, accessToken?: string): Promise<void> {
+    const details = parseApiError(
+      error,
+      'Sesi belum dapat diverifikasi. Muat ulang halaman untuk mencoba lagi.',
+    );
+    const shouldDiscard =
+      (details.status === 401 && details.code === 'INVALID_ACCESS_TOKEN') || details.status === 403;
+
+    if (shouldDiscard) await this.discardStoredSession(accessToken);
+    this.authStore.setAnonymous();
+
+    if (details.status === 401 && details.code === 'INVALID_ACCESS_TOKEN') return;
+    this.notifications.showError(details.message, details.requestId);
+  }
+
+  private async discardStoredSession(accessToken?: string): Promise<void> {
+    if (accessToken && localStorage.getItem(this.localTokenKey) === accessToken) {
+      localStorage.removeItem(this.localTokenKey);
+      return;
     }
+    await this.supabase.auth.signOut({ scope: 'local' });
   }
 }

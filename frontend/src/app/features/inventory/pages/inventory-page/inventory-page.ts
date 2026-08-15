@@ -1,6 +1,11 @@
 import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthStore } from '../../../../core/auth/auth.store';
+import { parseApiError } from '../../../../core/errors/api-error';
+import {
+  FeedbackBanner,
+  type FeedbackMessage,
+} from '../../../../shared/components/feedback-banner/feedback-banner';
 import { forkJoin } from 'rxjs';
 import {
   MasterDataApiService,
@@ -13,7 +18,6 @@ import {
   type InventoryTitleOption,
 } from '../../data-access/inventory-api.service';
 
-type Feedback = { type: 'success' | 'error'; message: string };
 type TitleField =
   | 'title'
   | 'isbn'
@@ -45,7 +49,7 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
 
 @Component({
   selector: 'sdi-inventory-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FeedbackBanner],
   template: `
     <section class="inventory-page page page--wide">
       <div class="page-header">
@@ -65,15 +69,13 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
       </div>
 
       @if (feedback()) {
-        <div
-          class="alert"
-          [class.alert--success]="feedback()?.type === 'success'"
-          [class.alert--error]="feedback()?.type === 'error'"
-          [attr.role]="feedback()?.type === 'error' ? 'alert' : 'status'"
-          [attr.aria-live]="feedback()?.type === 'error' ? 'assertive' : 'polite'"
-        >
-          <p>{{ feedback()?.message }}</p>
-        </div>
+        <sdi-feedback-banner
+          [tone]="feedback()!.tone"
+          [message]="feedback()!.message"
+          [requestId]="feedback()!.requestId"
+          [dismissible]="true"
+          (dismissed)="feedback.set(null)"
+        />
       }
 
       @if (loadMessage()) {
@@ -611,7 +613,7 @@ export class InventoryPage {
 
   protected readonly savingTitle = signal(false);
   protected readonly savingCopy = signal(false);
-  protected readonly feedback = signal<Feedback | null>(null);
+  protected readonly feedback = signal<FeedbackMessage | null>(null);
   protected readonly loadMessage = signal('');
   protected readonly lastCopyId = signal<string | null>(null);
   protected readonly categories = signal<MasterRow[]>([]);
@@ -679,16 +681,20 @@ export class InventoryPage {
         this.titles.update((items) => [this.titleOptionFromForm(r.data.id, v), ...items]);
         this.titleSubmitted.set(false);
         this.feedback.set({
-          type: 'success',
+          tone: 'success',
           message: `Judul "${v.title}" disimpan. Judul ini sudah dipilih pada form eksemplar.`,
         });
         this.savingTitle.set(false);
       },
-      error: () => {
+      error: (error) => {
+        const details = parseApiError(
+          error,
+          'Judul tidak dapat disimpan. Periksa kode katalog, ISBN, dan pilihan master data.',
+        );
         this.feedback.set({
-          type: 'error',
-          message:
-            'Judul tidak dapat disimpan. Periksa kode katalog, ISBN, dan pilihan master data.',
+          tone: 'error',
+          message: details.message,
+          ...(details.requestId ? { requestId: details.requestId } : {}),
         });
         this.savingTitle.set(false);
       },
@@ -710,17 +716,21 @@ export class InventoryPage {
         this.lastCopyId.set(r.data.id);
         this.copySubmitted.set(false);
         this.feedback.set({
-          type: 'success',
+          tone: 'success',
           message: `Eksemplar ${r.data.inventory_code} disimpan. Label barcode dan QR siap dicetak.`,
         });
         this.copyForm.controls.inventoryCode.reset();
         this.savingCopy.set(false);
       },
-      error: () => {
+      error: (error) => {
+        const details = parseApiError(
+          error,
+          'Eksemplar tidak dapat disimpan. Periksa judul, rak, status, dan duplikasi kode inventaris.',
+        );
         this.feedback.set({
-          type: 'error',
-          message:
-            'Eksemplar tidak dapat disimpan. Periksa judul, rak, status, dan duplikasi kode inventaris.',
+          tone: 'error',
+          message: details.message,
+          ...(details.requestId ? { requestId: details.requestId } : {}),
         });
         this.savingCopy.set(false);
       },
@@ -730,13 +740,31 @@ export class InventoryPage {
   protected printLast() {
     const id = this.lastCopyId();
     if (!id) return;
-    this.api.print([id]).subscribe((html) => {
-      const popup = window.open('', '_blank');
-      if (popup) {
+    this.api.print([id]).subscribe({
+      next: (html) => {
+        const popup = window.open('', '_blank');
+        if (!popup) {
+          this.feedback.set({
+            tone: 'warning',
+            message: 'Jendela cetak diblokir browser. Izinkan pop-up lalu coba cetak kembali.',
+          });
+          return;
+        }
         popup.document.write(html);
         popup.document.close();
         popup.print();
-      }
+      },
+      error: (error) => {
+        const details = parseApiError(
+          error,
+          'Label belum dapat dibuat. Periksa koneksi lalu coba cetak kembali.',
+        );
+        this.feedback.set({
+          tone: 'error',
+          message: details.message,
+          ...(details.requestId ? { requestId: details.requestId } : {}),
+        });
+      },
     });
   }
 

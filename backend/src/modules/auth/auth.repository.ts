@@ -63,9 +63,11 @@ export class AuthRepository {
   async verifyUser(accessToken: string): Promise<User> {
     const client = this.userClient(accessToken);
     const { data, error } = await client.auth.getUser(accessToken);
-    if (error || !data.user) {
-      throw new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
+    if (error) {
+      throw authProviderError(error);
     }
+    if (!data.user)
+      throw new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
     return data.user;
   }
 
@@ -74,8 +76,15 @@ export class AuthRepository {
       .from('profiles')
       .select('id, role, full_name, avatar_path, is_active, must_change_password')
       .eq('auth_user_id', userId)
-      .single();
-    if (error || !data)
+      .maybeSingle();
+    if (error)
+      throw new AppError(
+        503,
+        'PROFILE_LOOKUP_FAILED',
+        'Profil pengguna belum dapat dimuat. Coba kembali.',
+        error,
+      );
+    if (!data)
       throw new AppError(403, 'PROFILE_UNAVAILABLE', 'Profil pengguna tidak tersedia.');
     return mapProfile(data as ProfileRow);
   }
@@ -90,10 +99,9 @@ export class AuthRepository {
     return data ? mapMember(data as MemberRow) : null;
   }
 
-  async authenticateLocal(accessToken: string): Promise<AuthContext> {
+  async authenticateLocal(accessToken: string): Promise<AuthContext | null> {
     const token = verifyLocalSessionToken(this.config, accessToken);
-    if (!token)
-      throw new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
+    if (!token) return null;
     const tokenHash = hashSessionToken(accessToken);
     const now = new Date().toISOString();
     const { data: session, error: sessionError } = await this.adminClient
@@ -101,13 +109,15 @@ export class AuthRepository {
       .select('profile_id, expires_at, revoked_at')
       .eq('token_hash', tokenHash)
       .maybeSingle();
-    if (
-      sessionError ||
-      !session ||
-      session.profile_id !== token.sub ||
-      session.revoked_at ||
-      session.expires_at <= now
-    ) {
+    if (sessionError) {
+      throw new AppError(
+        503,
+        'SESSION_LOOKUP_FAILED',
+        'Sesi belum dapat diverifikasi. Coba kembali.',
+        sessionError,
+      );
+    }
+    if (!session || session.profile_id !== token.sub || session.revoked_at || session.expires_at <= now) {
       throw new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
     }
 
@@ -137,7 +147,14 @@ export class AuthRepository {
       )
       .ilike('username', username)
       .maybeSingle();
-    if (error || !data) throw invalidCredentials();
+    if (error)
+      throw new AppError(
+        503,
+        'AUTH_ACCOUNT_LOOKUP_FAILED',
+        'Akun belum dapat diperiksa. Coba kembali.',
+        error,
+      );
+    if (!data) throw invalidCredentials();
     const account = data as LocalAccountRow & { profiles: ProfileRow | ProfileRow[] };
     const profile = mapProfile(relatedProfile(account.profiles));
     if (
@@ -477,8 +494,15 @@ export class AuthRepository {
       .from('profiles')
       .select('id, role, full_name, avatar_path, is_active, must_change_password')
       .eq('id', profileId)
-      .single();
-    if (error || !data)
+      .maybeSingle();
+    if (error)
+      throw new AppError(
+        503,
+        'PROFILE_LOOKUP_FAILED',
+        'Profil pengguna belum dapat dimuat. Coba kembali.',
+        error,
+      );
+    if (!data)
       throw new AppError(403, 'PROFILE_UNAVAILABLE', 'Profil pengguna tidak tersedia.');
     return mapProfile(data as ProfileRow);
   }
@@ -586,4 +610,22 @@ function accountMutationError(code: string | undefined, message: string): AppErr
     );
   if (code === 'P0002') return new AppError(404, 'ACCOUNT_NOT_FOUND', 'Akun tidak ditemukan.');
   return new AppError(422, 'ACCOUNT_UPDATE_FAILED', message);
+}
+
+export function authProviderError(error: unknown): AppError {
+  if (isInvalidProviderToken(error)) {
+    return new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
+  }
+  return new AppError(
+    503,
+    'AUTH_PROVIDER_UNAVAILABLE',
+    'Layanan autentikasi belum tersedia. Coba kembali.',
+    error,
+  );
+}
+
+function isInvalidProviderToken(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('status' in error)) return false;
+  const status = (error as { status?: unknown }).status;
+  return status === 400 || status === 401 || status === 403;
 }

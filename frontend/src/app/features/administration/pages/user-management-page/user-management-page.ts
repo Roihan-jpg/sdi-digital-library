@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import type { AppRole } from '../../../../core/auth/auth.models';
+import { parseApiError } from '../../../../core/errors/api-error';
 import {
   AdministrationApiService,
   type ManagedProfile,
@@ -28,7 +29,14 @@ const roles: Array<{ value: AppRole; label: string }> = [
         <button class="secondary" type="button" (click)="load()">Muat ulang</button>
       </header>
       @if (message()) {
-        <div class="notice" [class.error]="hasError()" role="status">{{ message() }}</div>
+        <div
+          class="notice"
+          [class.error]="hasError()"
+          [attr.role]="hasError() ? 'alert' : 'status'"
+          aria-atomic="true"
+        >
+          {{ message() }}
+        </div>
       }
       <form class="panel form" [formGroup]="createForm" (ngSubmit)="create()" novalidate>
         <div class="panel-title">
@@ -142,7 +150,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
                               {{ role.label }}
                             </option>
                           }
-                        </select> 
+                        </select>
                       } @else {
                         <span>Master admin (Supabase Auth)</span>
                       }
@@ -474,8 +482,8 @@ export class UserManagementPage {
         this.api.listUsers({ search: this.search.value.trim() || undefined }),
       );
       this.users.set(response.data);
-    } catch {
-      this.show('Daftar pengguna belum dapat dimuat.', true);
+    } catch (error) {
+      this.show(apiMessage(error, 'Daftar pengguna belum dapat dimuat. Coba kembali.'), true);
     } finally {
       this.loading.set(false);
     }
@@ -504,8 +512,11 @@ export class UserManagementPage {
       });
       this.show('Akun berhasil dibuat.', false);
       await this.load();
-    } catch {
-      this.show('Akun belum dapat dibuat. Periksa username, role, dan ID member.', true);
+    } catch (error) {
+      this.show(
+        apiMessage(error, 'Akun belum dapat dibuat. Periksa username, role, dan ID member.'),
+        true,
+      );
     } finally {
       this.saving.set(false);
     }
@@ -516,8 +527,8 @@ export class UserManagementPage {
       await firstValueFrom(this.api.setRole(user.id, role));
       this.show('Role diperbarui.', false);
       await this.load();
-    } catch {
-      this.show('Role belum dapat diperbarui.', true);
+    } catch (error) {
+      this.show(apiMessage(error, 'Role belum dapat diperbarui. Coba kembali.'), true);
       await this.load();
     }
   }
@@ -547,8 +558,11 @@ export class UserManagementPage {
       this.show('Data pengguna berhasil diperbarui.', false);
       this.cancelEdit();
       await this.load();
-    } catch {
-      this.show('Data pengguna belum dapat diperbarui. Periksa username dan role.', true);
+    } catch (error) {
+      this.show(
+        apiMessage(error, 'Data pengguna belum dapat diperbarui. Periksa username dan role.'),
+        true,
+      );
     } finally {
       this.editing.set(false);
     }
@@ -567,9 +581,12 @@ export class UserManagementPage {
       if (this.editTarget()?.id === user.id) this.cancelEdit();
       this.show('Akun berhasil dihapus.', false);
       await this.load();
-    } catch {
+    } catch (error) {
       this.show(
-        'Akun tidak dapat dihapus. Jika memiliki histori transaksi, nonaktifkan akun.',
+        apiMessage(
+          error,
+          'Akun tidak dapat dihapus. Jika memiliki histori transaksi, nonaktifkan akun.',
+        ),
         true,
       );
     }
@@ -579,8 +596,8 @@ export class UserManagementPage {
       await firstValueFrom(this.api.setStatus(user.id, !user.isActive));
       this.show('Status akun diperbarui.', false);
       await this.load();
-    } catch {
-      this.show('Status akun belum dapat diperbarui.', true);
+    } catch (error) {
+      this.show(apiMessage(error, 'Status akun belum dapat diperbarui. Coba kembali.'), true);
     }
   }
   protected startMemberLink(user: ManagedProfile) {
@@ -604,8 +621,11 @@ export class UserManagementPage {
       this.show('Akun terhubung ke member.', false);
       this.cancelMemberLink();
       await this.load();
-    } catch {
-      this.show('Member belum dapat dihubungkan.', true);
+    } catch (error) {
+      this.show(
+        apiMessage(error, 'Member belum dapat dihubungkan. Periksa ID lalu coba lagi.'),
+        true,
+      );
     } finally {
       this.linking.set(false);
     }
@@ -622,12 +642,17 @@ export class UserManagementPage {
     try {
       await firstValueFrom(this.api.setPassword(user.id, password));
       this.show('Kata sandi berhasil diatur ulang.', false);
-    } catch {
-      this.show('Kata sandi belum dapat diatur ulang.', true);
+    } catch (error) {
+      this.show(apiMessage(error, 'Kata sandi belum dapat diatur ulang. Coba kembali.'), true);
     }
   }
   private show(message: string, error: boolean) {
     this.message.set(message);
     this.hasError.set(error);
   }
+}
+
+function apiMessage(error: unknown, fallback: string): string {
+  const details = parseApiError(error, fallback);
+  return details.requestId ? `${details.message} Referensi: ${details.requestId}` : details.message;
 }

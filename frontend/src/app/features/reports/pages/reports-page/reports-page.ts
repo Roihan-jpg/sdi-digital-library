@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, type ParamMap } from '@angular/router';
 import { AuthStore } from '../../../../core/auth/auth.store';
+import { parseApiError } from '../../../../core/errors/api-error';
 import {
   MasterDataApiService,
   type MasterRow,
@@ -738,11 +739,27 @@ export class ReportsPage {
       this.filters.setValue(filters, { emitEvent: false });
       this.load();
     });
-    this.master.list('classes').subscribe({ next: (r) => this.classes.set(r.data) });
-    this.master.list('study-groups').subscribe({ next: (r) => this.studyGroups.set(r.data) });
-    this.master.list('categories').subscribe({ next: (r) => this.categories.set(r.data) });
+    this.master.list('classes').subscribe({
+      next: (r) => this.classes.set(r.data),
+      error: (error) => this.setDependencyError(error, 'Pilihan kelas'),
+    });
+    this.master.list('study-groups').subscribe({
+      next: (r) => this.studyGroups.set(r.data),
+      error: (error) => this.setDependencyError(error, 'Pilihan rombel'),
+    });
+    this.master.list('categories').subscribe({
+      next: (r) => this.categories.set(r.data),
+      error: (error) => this.setDependencyError(error, 'Pilihan kategori'),
+    });
     if (this.isMaster())
-      this.api.schoolIdentity().subscribe({ next: (r) => this.setSchool(r.data) });
+      this.api.schoolIdentity().subscribe({
+        next: (r) => this.setSchool(r.data),
+        error: (error) => {
+          this.schoolError.set(
+            apiMessage(error, 'Identitas sekolah belum dapat dimuat. Coba muat ulang halaman.'),
+          );
+        },
+      });
   }
 
   protected applyFilters() {
@@ -775,8 +792,10 @@ export class ReportsPage {
         this.report.set(r.data);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Laporan belum dapat dimuat. Periksa filter lalu coba lagi.');
+      error: (error) => {
+        this.error.set(
+          apiMessage(error, 'Laporan belum dapat dimuat. Periksa filter lalu coba lagi.'),
+        );
         this.loading.set(false);
       },
     });
@@ -801,8 +820,10 @@ export class ReportsPage {
         }
         this.exportingFormat.set(null);
       },
-      error: () => {
-        this.error.set('File export belum dapat dibuat.');
+      error: (error) => {
+        this.error.set(
+          apiMessage(error, 'File export belum dapat dibuat. Periksa koneksi lalu coba lagi.'),
+        );
         this.exportingFormat.set(null);
       },
     });
@@ -894,8 +915,10 @@ export class ReportsPage {
         this.setSchool(r.data);
         this.savingSchool.set(false);
       },
-      error: () => {
-        this.schoolError.set('Identitas sekolah gagal disimpan.');
+      error: (error) => {
+        this.schoolError.set(
+          apiMessage(error, 'Identitas sekolah gagal disimpan. Periksa data lalu coba lagi.'),
+        );
         this.savingSchool.set(false);
         this.focusFirstSchoolError();
       },
@@ -919,6 +942,12 @@ export class ReportsPage {
       schoolEmail: value.schoolEmail ?? '',
       schoolLogoPath: value.schoolLogoPath ?? '',
     });
+  }
+
+  private setDependencyError(error: unknown, label: string): void {
+    this.error.set(
+      apiMessage(error, `${label} belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.`),
+    );
   }
 
   private focusFirstSchoolError() {
@@ -989,4 +1018,9 @@ function formatShortDate(value: string) {
 function fileName(header: string | null, fallback: string) {
   const match = header?.match(/filename="?([^";]+)"?/i);
   return match?.[1] ?? fallback;
+}
+
+function apiMessage(error: unknown, fallback: string): string {
+  const details = parseApiError(error, fallback);
+  return details.requestId ? `${details.message} Referensi: ${details.requestId}` : details.message;
 }
