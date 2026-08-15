@@ -106,19 +106,31 @@ import {
     label {
       display: grid;
       gap: var(--space-2);
-      font-weight: 700;
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: 400;
     }
     .wide {
       grid-column: span 2;
     }
     input,
+    select,
     textarea {
       font: inherit;
+      font-weight: 400;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       padding: var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-surface);
       color: var(--color-text);
+    }
+    input::placeholder,
+    textarea::placeholder {
+      font-weight: 400;
+      color: var(--color-text-muted);
     }
     button {
       min-height: var(--control-height);
@@ -128,6 +140,18 @@ import {
       background: var(--color-action-primary);
       color: var(--color-text-inverse);
       font-weight: 800;
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--color-accent);
+      outline: 0;
+      box-shadow: 0 0 0 3px var(--color-focus-outer);
     }
     .notice {
       padding: var(--space-3);
@@ -150,6 +174,15 @@ import {
       }
       .wide {
         grid-column: auto;
+      }
+    }
+    @media (max-width: 560px) {
+      .panel {
+        padding: var(--space-4);
+      }
+      .grid {
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
       }
     }
   `,

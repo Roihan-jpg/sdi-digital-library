@@ -6,7 +6,7 @@ import {
   linkMemberSchema,
   localLoginSchema,
   profileListQuerySchema,
-  setPasswordSchema,
+  updatePasswordSchema,
   updateAccountSchema,
   updateOwnProfileSchema,
   updateRoleSchema,
@@ -118,11 +118,11 @@ export function createProfileRouter(
   });
 
   router.patch('/:userId/password', authorize('master_admin'), async (req, res) => {
-    if (!profileService.setPassword) throw new Error('Pengaturan kata sandi akun belum tersedia.');
-    await profileService.setPassword(
+    if (!profileService.updatePassword) throw new Error('Pengaturan kata sandi akun belum tersedia.');
+    await profileService.updatePassword(
       req.auth!,
       userIdSchema.parse(req.params['userId']),
-      setPasswordSchema.parse(req.body).password,
+      updatePasswordSchema.parse(req.body).password,
     );
     res.status(204).send();
   });

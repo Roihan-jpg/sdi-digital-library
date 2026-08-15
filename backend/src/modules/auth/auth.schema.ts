@@ -73,4 +73,4 @@ export const localLoginSchema = z
     password: z.string().min(1).max(128),
   })
   .strict();
-export const setPasswordSchema = z.object({ password: strongPasswordSchema }).strict();
+export const updatePasswordSchema = z.object({ password: strongPasswordSchema }).strict();

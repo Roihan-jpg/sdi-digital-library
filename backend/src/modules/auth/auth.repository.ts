@@ -26,7 +26,6 @@ interface ProfileRow {
   full_name: string | null;
   avatar_path: string | null;
   is_active: boolean;
-  must_change_password: boolean;
   created_at: string;
 }
 
@@ -74,7 +73,7 @@ export class AuthRepository {
   async getProfile(accessToken: string, userId: string): Promise<AppProfile> {
     const { data, error } = await this.userClient(accessToken)
       .from('profiles')
-      .select('id, role, full_name, avatar_path, is_active, must_change_password')
+      .select('id, role, full_name, avatar_path, is_active')
       .eq('auth_user_id', userId)
       .maybeSingle();
     if (error)
@@ -143,7 +142,7 @@ export class AuthRepository {
     const { data, error } = await this.adminClient
       .from('local_user_accounts')
       .select(
-        'profile_id, username, password_hash, last_sign_in_at, profiles!inner(id, role, full_name, avatar_path, is_active, must_change_password)',
+        'profile_id, username, password_hash, last_sign_in_at, profiles!inner(id, role, full_name, avatar_path, is_active)',
       )
       .ilike('username', username)
       .maybeSingle();
@@ -200,7 +199,7 @@ export class AuthRepository {
       .from('profiles')
       .update(updates)
       .eq('id', context.profile.id)
-      .select('id, role, full_name, avatar_path, is_active, must_change_password')
+      .select('id, role, full_name, avatar_path, is_active')
       .single();
     if (error || !data)
       throw new AppError(422, 'PROFILE_UPDATE_FAILED', 'Profil tidak dapat diperbarui.');
@@ -216,7 +215,7 @@ export class AuthRepository {
     const { data, error } = await this.adminClient
       .from('profiles')
       .select(
-        'id, auth_user_id, role, full_name, avatar_path, is_active, must_change_password, created_at',
+        'id, auth_user_id, role, full_name, avatar_path, is_active, created_at',
       )
       .order('created_at', { ascending: false })
       .limit(1000);
@@ -307,10 +306,9 @@ export class AuthRepository {
         role: input.role,
         full_name: input.fullName,
         is_active: true,
-        must_change_password: true,
       })
       .select(
-        'id, auth_user_id, role, full_name, avatar_path, is_active, must_change_password, created_at',
+        'id, auth_user_id, role, full_name, avatar_path, is_active, created_at',
       )
       .single();
     if (profileError || !profileData)
@@ -400,7 +398,7 @@ export class AuthRepository {
       .from('profiles')
       .update({ is_active: isActive })
       .eq('id', userId)
-      .select('id, role, full_name, avatar_path, is_active, must_change_password')
+      .select('id, role, full_name, avatar_path, is_active')
       .single();
     if (error || !data)
       throw new AppError(422, 'STATUS_UPDATE_FAILED', 'Status pengguna tidak dapat diperbarui.');
@@ -447,13 +445,9 @@ export class AuthRepository {
       if (error)
         throw new AppError(422, 'PASSWORD_UPDATE_FAILED', 'Kata sandi belum dapat diperbarui.');
     }
-    await this.adminClient
-      .from('profiles')
-      .update({ must_change_password: false })
-      .eq('id', context.profile.id);
   }
 
-  async setPassword(actorProfileId: string, userId: string, password: string): Promise<void> {
+  async updatePassword(actorProfileId: string, userId: string, password: string): Promise<void> {
     const { data: profile, error: profileError } = await this.adminClient
       .from('profiles')
       .select('id, auth_user_id')
@@ -476,13 +470,12 @@ export class AuthRepository {
       .eq('profile_id', userId);
     if (error)
       throw new AppError(422, 'PASSWORD_UPDATE_FAILED', 'Kata sandi belum dapat diperbarui.');
-    await this.adminClient.from('profiles').update({ must_change_password: true }).eq('id', userId);
     await this.adminClient
       .from('local_auth_sessions')
       .update({ revoked_at: new Date().toISOString() })
       .eq('profile_id', userId)
       .is('revoked_at', null);
-    await this.recordAuthAudit(actorProfileId, userId, 'LOCAL_PASSWORD_RESET', {});
+    await this.recordAuthAudit(actorProfileId, userId, 'LOCAL_PASSWORD_UPDATED', {});
   }
 
   private userClient(accessToken: string): SupabaseClient {
@@ -492,7 +485,7 @@ export class AuthRepository {
   private async getProfileById(profileId: string): Promise<AppProfile> {
     const { data, error } = await this.adminClient
       .from('profiles')
-      .select('id, role, full_name, avatar_path, is_active, must_change_password')
+      .select('id, role, full_name, avatar_path, is_active')
       .eq('id', profileId)
       .maybeSingle();
     if (error)
@@ -568,7 +561,6 @@ function mapProfile(row: ProfileRow): AppProfile {
     fullName: row.full_name,
     avatarPath: row.avatar_path,
     isActive: row.is_active,
-    mustChangePassword: row.must_change_password,
   };
 }
 

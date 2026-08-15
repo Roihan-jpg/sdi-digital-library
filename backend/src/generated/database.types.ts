@@ -1385,7 +1385,6 @@ export type Database = {
           id: string
           is_active: boolean
           last_login_at: string | null
-          must_change_password: boolean
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
         }
@@ -1397,7 +1396,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_login_at?: string | null
-          must_change_password?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
@@ -1409,7 +1407,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_login_at?: string | null
-          must_change_password?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }

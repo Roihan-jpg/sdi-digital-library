@@ -15,7 +15,6 @@ export interface AppProfile {
   fullName: string | null;
   avatarPath: string | null;
   isActive: boolean;
-  mustChangePassword?: boolean;
 }
 
 export interface ManagedProfile extends AppProfile {
@@ -113,5 +112,5 @@ export interface ProfileServicePort {
     input: UpdateAccountInput,
   ): Promise<AppProfile>;
   deleteAccount?(context: AuthContext, userId: string): Promise<void>;
-  setPassword?(context: AuthContext, userId: string, password: string): Promise<void>;
+  updatePassword?(context: AuthContext, userId: string, password: string): Promise<void>;
 }

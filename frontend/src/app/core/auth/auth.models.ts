@@ -13,7 +13,6 @@ export interface AppProfile {
   fullName: string | null;
   avatarPath: string | null;
   isActive: boolean;
-  mustChangePassword?: boolean;
 }
 
 export interface MemberSummary {

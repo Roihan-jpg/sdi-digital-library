@@ -18,15 +18,6 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'atur-ulang-kata-sandi',
-    canActivate: [authGuard],
-    title: 'Atur ulang kata sandi · SDI Digital Library',
-    loadComponent: () =>
-      import('./features/auth/pages/change-password-page/change-password-page').then(
-        (module) => module.ChangePasswordPage,
-      ),
-  },
-  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>

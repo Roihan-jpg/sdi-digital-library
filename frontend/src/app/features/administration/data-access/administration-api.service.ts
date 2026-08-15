@@ -18,7 +18,6 @@ export interface ManagedProfile {
   fullName: string | null;
   role: AppRole;
   isActive: boolean;
-  mustChangePassword?: boolean;
   createdAt: string;
   lastSignInAt: string | null;
   invitedAt: string | null;
@@ -97,7 +96,7 @@ export class AdministrationApiService {
   linkMember(id: string, memberId: string) {
     return this.http.post<void>(`${this.base}/profiles/${id}/link-member`, { memberId });
   }
-  setPassword(id: string, password: string) {
+  updatePassword(id: string, password: string) {
     return this.http.patch<void>(`${this.base}/profiles/${id}/password`, { password });
   }
   updateUser(id: string, input: { username?: string; fullName?: string; role?: AppRole }) {

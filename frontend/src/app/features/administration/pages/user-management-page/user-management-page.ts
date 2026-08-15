@@ -24,9 +24,30 @@ const roles: Array<{ value: AppRole; label: string }> = [
         <div>
           <p class="eyebrow">Administrasi akun</p>
           <h1>User dan role</h1>
-          <p>Buat akun lokal, atur akses, hubungkan member, dan atur ulang kata sandi.</p>
+          <p>Buat akun lokal, atur akses, hubungkan member, dan kelola kata sandi.</p>
         </div>
-        <button class="secondary" type="button" (click)="load()">Muat ulang</button>
+        <button
+          class="icon-button refresh-button"
+          type="button"
+          [disabled]="loading()"
+          aria-label="Muat ulang daftar pengguna"
+          title="Muat ulang daftar pengguna"
+          (click)="load()"
+        >
+          <svg
+            class="refresh-icon"
+            [class.is-spinning]="loading()"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M20 11a8 8 0 0 0-14.8-4L4 9" />
+            <path d="M4 4v5h5" />
+            <path d="M4 13a8 8 0 0 0 14.8 4L20 15" />
+            <path d="M20 20v-5h-5" />
+          </svg>
+        </button>
       </header>
       @if (message()) {
         <div
@@ -45,11 +66,13 @@ const roles: Array<{ value: AppRole; label: string }> = [
             <h2>Tambahkan pengguna</h2>
           </div>
         </div>
-        <label><span>Nama lengkap</span><input formControlName="fullName" /></label>
+        <label class="field"><span>Nama lengkap</span><input formControlName="fullName" /></label>
         <label
+          class="field"
           ><span>Username</span><input formControlName="username" autocomplete="username"
         /></label>
         <label
+          class="field"
           ><span>Role</span
           ><select formControlName="role">
             @for (role of roles; track role.value) {
@@ -58,12 +81,41 @@ const roles: Array<{ value: AppRole; label: string }> = [
           </select></label
         >
         <label
-          ><span>Kata sandi sementara</span
-          ><input type="password" formControlName="password" autocomplete="new-password" /><small
+          class="field"
+          ><span>Kata sandi awal</span
+          ><span class="password-input"
+            ><input
+              id="create-password"
+              [type]="showInitialPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="new-password"
+            /><button
+              class="password-toggle"
+              type="button"
+              aria-controls="create-password"
+              [attr.aria-pressed]="showInitialPassword()"
+              [attr.aria-label]="
+                showInitialPassword() ? 'Sembunyikan kata sandi awal' : 'Tampilkan kata sandi awal'
+              "
+              (click)="toggleInitialPasswordVisibility()"
+            >
+              @if (showInitialPassword()) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 3.8 9.5 7a10.5 10.5 0 0 1-3.1 4.8M6.2 6.2C4.3 7.5 3.1 9.4 2.5 12c1 3.2 4.5 7 9.5 7 1.1 0 2.1-.2 3-.5" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            </button></span
+          ><small
             >Minimal 8 karakter: huruf besar, huruf kecil, dan angka.</small
           ></label
         >
         <label
+          class="field"
           ><span>ID member (opsional)</span
           ><input formControlName="memberId" placeholder="UUID member"
         /></label>
@@ -83,21 +135,26 @@ const roles: Array<{ value: AppRole; label: string }> = [
               Batal
             </button>
           </div>
-          <label>
+          <label class="field">
             <span>Nama lengkap</span>
             <input formControlName="fullName" autocomplete="name" />
           </label>
-          <label>
+          <label class="field">
             <span>Username</span>
             <input formControlName="username" autocomplete="username" />
           </label>
-          <label>
+          <label class="field">
             <span>Role</span>
             <select formControlName="role">
               @for (role of roles; track role.value) {
                 <option [value]="role.value">{{ role.label }}</option>
               }
             </select>
+          </label>
+          <label class="field">
+            <span>Kata sandi baru (opsional)</span>
+            <input type="password" formControlName="password" autocomplete="new-password" />
+            <small>Isi hanya jika ingin mengubah kata sandi.</small>
           </label>
           <button class="primary" type="submit" [disabled]="editing()">
             {{ editing() ? 'Menyimpan...' : 'Simpan perubahan' }}
@@ -111,7 +168,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
             <p class="eyebrow">Direktori</p>
             <h2>Daftar pengguna</h2>
           </div>
-          <label class="search"
+          <label class="search field"
             ><span>Cari</span
             ><input [formControl]="search" (keydown.enter)="load()" placeholder="Nama atau email"
           /></label>
@@ -138,9 +195,6 @@ const roles: Array<{ value: AppRole; label: string }> = [
                     <td>
                       <strong>{{ user.fullName || 'Tanpa nama' }}</strong
                       ><small>{{ user.username || user.email || 'Tanpa username' }}</small>
-                      @if (user.mustChangePassword) {
-                        <em>Wajib ganti kata sandi</em>
-                      }
                     </td>
                     <td>
                       @if (user.authSource === 'local') {
@@ -156,14 +210,30 @@ const roles: Array<{ value: AppRole; label: string }> = [
                       }
                     </td>
                     <td>
-                      <button
-                        class="status"
-                        type="button"
-                        [class.inactive]="!user.isActive"
-                        (click)="toggleStatus(user)"
-                      >
-                        {{ user.isActive ? 'Aktif' : 'Nonaktif' }}
-                      </button>
+                      <label class="switch">
+                        <input
+                          type="checkbox"
+                          [checked]="user.isActive"
+                          [disabled]="statusUpdatingId() === user.id"
+                          [attr.aria-label]="
+                            user.isActive
+                              ? 'Nonaktifkan akun ' + (user.fullName || user.username || 'pengguna')
+                              : 'Aktifkan akun ' + (user.fullName || user.username || 'pengguna')
+                          "
+                          (change)="toggleStatus(user, $event)"
+                        />
+                        <span class="slider">
+                          <svg
+                            class="slider-icon"
+                            viewBox="0 0 32 32"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                            role="presentation"
+                          >
+                            <path fill="none" d="m4 16.5 8 8 16-16"></path>
+                          </svg>
+                        </span>
+                      </label>
                     </td>
                     <td>
                       <span>{{ user.member?.memberCode || 'Belum terhubung' }}</span
@@ -174,14 +244,34 @@ const roles: Array<{ value: AppRole; label: string }> = [
                     <td>
                       @if (user.authSource === 'local') {
                         <div class="account-actions">
-                          <button class="link" type="button" (click)="startEdit(user)">Edit</button>
-                          <button class="link danger" type="button" (click)="deleteUser(user)">
-                            Hapus
+                          <button
+                            class="icon-action"
+                            type="button"
+                            [attr.aria-label]="
+                              'Edit akun ' + (user.fullName || user.username || 'pengguna')
+                            "
+                            title="Edit akun"
+                            (click)="startEdit(user)"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                              <path d="m4 16.5-.8 3.8 3.8-.8L18.5 8a2.8 2.8 0 0 0-4-4L4 16.5Z" />
+                              <path d="m13 5 6 6" />
+                            </svg>
+                          </button>
+                          <button
+                            class="icon-action danger"
+                            type="button"
+                            [attr.aria-label]="
+                              'Hapus akun ' + (user.fullName || user.username || 'pengguna')
+                            "
+                            title="Hapus akun"
+                            (click)="deleteUser(user)"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                              <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+                            </svg>
                           </button>
                         </div>
-                        <button class="link" type="button" (click)="resetPassword(user)">
-                          Atur ulang kata sandi
-                        </button>
                       } @else {
                         <small>Dikelola di Supabase Auth</small>
                       }
@@ -202,7 +292,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
               Masukkan UUID member yang sudah ada. Satu akun hanya dapat terhubung ke satu member.
             </p>
           </div>
-          <label
+          <label class="field"
             ><span>ID member</span><input [formControl]="linkMemberId" autocomplete="off"
           /></label>
           <div class="link-actions">
@@ -282,14 +372,57 @@ const roles: Array<{ value: AppRole; label: string }> = [
       display: flex;
       gap: var(--space-2);
     }
-    label {
+    .field {
       display: grid;
       gap: var(--space-2);
-      font-weight: 700;
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: 400;
     }
-    input,
+    .field small {
+      color: var(--color-text-muted);
+      font-size: 0.72rem;
+      font-weight: 400;
+    }
+    .password-input {
+      position: relative;
+      display: block;
+    }
+    .password-input input {
+      width: 100%;
+      padding-right: 3.25rem;
+    }
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 0.25rem;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+    .password-toggle:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-text);
+    }
+    .password-toggle svg {
+      width: 1.15rem;
+      height: 1.15rem;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.7;
+    }
+    input:not([type='checkbox']),
     select {
       font: inherit;
+      font-weight: 400;
       padding: var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
@@ -297,14 +430,20 @@ const roles: Array<{ value: AppRole; label: string }> = [
       color: var(--color-text);
     }
     .primary,
-    .secondary,
-    .status {
+    .secondary {
       border: 0;
       min-height: var(--control-height);
       padding: 0.65rem var(--space-4);
       border-radius: var(--radius-md);
       font-weight: 800;
       cursor: pointer;
+    }
+    .primary:disabled,
+    .secondary:disabled,
+    .icon-button:disabled,
+    .icon-action:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
     }
     .primary {
       background: var(--color-action-primary);
@@ -315,6 +454,41 @@ const roles: Array<{ value: AppRole; label: string }> = [
       border: 1px solid var(--color-border-strong);
       background: var(--color-surface);
       color: var(--color-brand-800);
+    }
+    .icon-button,
+    .icon-action {
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      min-height: 44px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: 50%;
+      background: var(--color-surface);
+      color: var(--color-brand-800);
+      cursor: pointer;
+    }
+    .icon-button:hover:not(:disabled),
+    .icon-action:hover:not(:disabled) {
+      background: var(--color-surface-hover);
+      border-color: var(--color-brand-700);
+    }
+    .refresh-icon,
+    .icon-action svg {
+      width: 1.2rem;
+      height: 1.2rem;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+    }
+    .refresh-icon.is-spinning {
+      animation: refresh-spin 0.9s linear infinite;
+    }
+    @keyframes refresh-spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
     .notice {
       padding: var(--space-3);
@@ -357,14 +531,6 @@ const roles: Array<{ value: AppRole; label: string }> = [
     td small {
       color: var(--color-text-muted);
     }
-    .status {
-      background: var(--color-success-surface);
-      color: var(--color-success);
-    }
-    .status.inactive {
-      background: var(--color-error-surface);
-      color: var(--color-error);
-    }
     .link {
       display: block;
       border: 0;
@@ -376,14 +542,88 @@ const roles: Array<{ value: AppRole; label: string }> = [
     }
     .account-actions {
       display: flex;
-      gap: var(--space-3);
+      gap: var(--space-2);
+      align-items: center;
     }
-    .link.danger {
+    .icon-action.danger {
       color: var(--color-danger);
+      border-color: var(--color-danger-surface);
+      background: var(--color-danger-surface);
+    }
+    .icon-action.danger:hover:not(:disabled) {
+      background: var(--color-danger-surface-hover);
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 3.5em;
+      height: 2em;
+      font-size: 17px;
+    }
+    .switch input {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+    }
+    .slider {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      border: 1px solid var(--color-border-strong);
+      border-radius: 32px;
+      outline: none;
+      background: var(--color-surface-subtle);
+      transition: 0.3s;
+    }
+    .slider::before {
+      position: absolute;
+      content: '';
+      width: 2rem;
+      height: 2rem;
+      left: -1px;
+      bottom: -1px;
+      border-radius: 50%;
+      outline: 2px solid var(--color-border-strong);
+      background: var(--color-surface);
+      transition: transform 0.25s ease-in-out;
+    }
+    .slider-icon {
+      position: absolute;
+      z-index: 1;
+      top: 30%;
+      right: 60%;
+      width: 12px;
+      height: 12px;
+      opacity: 0;
+      stroke: var(--color-text-inverse);
+      stroke-width: 8;
+      transition: right 0.3s ease-in-out, opacity 0.15s ease-in-out;
+    }
+    .switch input:checked + .slider {
+      border-color: var(--color-action-primary);
+      background: var(--color-action-primary);
+    }
+    .switch input:checked + .slider .slider-icon {
+      right: 20%;
+      opacity: 1;
+    }
+    .switch input:checked + .slider::before {
+      transform: translateX(1.5em);
+      outline-color: var(--color-action-primary);
+    }
+    .switch input:focus-visible + .slider {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 3px var(--color-focus-outer);
+    }
+    .switch input:disabled + .slider {
+      cursor: wait;
+      opacity: 0.65;
     }
     .edit-panel {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(180px, 0.7fr) auto;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
       gap: var(--space-4);
       align-items: end;
     }
@@ -394,6 +634,17 @@ const roles: Array<{ value: AppRole; label: string }> = [
       padding: 35px;
       text-align: center;
       color: var(--color-text-muted);
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
     @media (max-width: 850px) {
       .form {
@@ -416,6 +667,26 @@ const roles: Array<{ value: AppRole; label: string }> = [
         min-width: 0;
       }
     }
+    @media (max-width: 560px) {
+      .panel {
+        padding: var(--space-4);
+      }
+      .admin-page {
+        width: min(100% - 1.25rem, var(--container-wide));
+      }
+      table {
+        min-width: 780px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .refresh-icon.is-spinning,
+      .slider,
+      .slider::before,
+      .slider-icon {
+        animation: none;
+        transition: none;
+      }
+    }
   `,
 })
 export class UserManagementPage {
@@ -424,10 +695,12 @@ export class UserManagementPage {
   protected readonly users = signal<ManagedProfile[]>([]);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
+  protected readonly showInitialPassword = signal(false);
   protected readonly editing = signal(false);
   protected readonly linking = signal(false);
   protected readonly message = signal('');
   protected readonly hasError = signal(false);
+  protected readonly statusUpdatingId = signal<string | null>(null);
   protected readonly search = new FormControl('', { nonNullable: true });
   protected readonly linkTarget = signal<ManagedProfile | null>(null);
   protected readonly editTarget = signal<ManagedProfile | null>(null);
@@ -471,9 +744,16 @@ export class UserManagementPage {
       ],
     }),
     role: new FormControl<AppRole>('member', { nonNullable: true }),
+    password: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)],
+    }),
   });
   constructor() {
     void this.load();
+  }
+  protected toggleInitialPasswordVisibility() {
+    this.showInitialPassword.update((visible) => !visible);
   }
   protected async load() {
     this.loading.set(true);
@@ -492,7 +772,7 @@ export class UserManagementPage {
     if (this.createForm.invalid) return this.show('Lengkapi nama dan username yang valid.', true);
     const value = this.createForm.getRawValue();
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value.password))
-      return this.show('Kata sandi sementara belum memenuhi ketentuan.', true);
+      return this.show('Kata sandi awal belum memenuhi ketentuan.', true);
     const input: Record<string, unknown> = {
       username: value.username,
       fullName: value.fullName,
@@ -510,6 +790,7 @@ export class UserManagementPage {
         password: '',
         memberId: '',
       });
+      this.showInitialPassword.set(false);
       this.show('Akun berhasil dibuat.', false);
       await this.load();
     } catch (error) {
@@ -539,28 +820,43 @@ export class UserManagementPage {
       fullName: user.fullName ?? '',
       username: user.username ?? '',
       role: user.role === 'master_admin' ? 'member' : user.role,
+      password: '',
     });
   }
   protected cancelEdit() {
     this.editTarget.set(null);
-    this.editForm.reset({ fullName: '', username: '', role: 'member' });
+    this.editForm.reset({ fullName: '', username: '', role: 'member', password: '' });
   }
   protected async saveEdit() {
     const target = this.editTarget();
     if (!target || this.editForm.invalid) {
-      this.show('Lengkapi nama, username, dan role yang valid.', true);
+      this.show('Lengkapi data akun dan pastikan kata sandi baru memenuhi ketentuan.', true);
       return;
     }
     const value = this.editForm.getRawValue();
+    const { password, ...account } = value;
+    let accountSaved = false;
     this.editing.set(true);
     try {
-      await firstValueFrom(this.api.updateUser(target.id, value));
-      this.show('Data pengguna berhasil diperbarui.', false);
+      await firstValueFrom(this.api.updateUser(target.id, account));
+      accountSaved = true;
+      if (password) await firstValueFrom(this.api.updatePassword(target.id, password));
+      this.show(
+        password
+          ? 'Data pengguna dan kata sandi berhasil diperbarui.'
+          : 'Data pengguna berhasil diperbarui.',
+        false,
+      );
       this.cancelEdit();
       await this.load();
     } catch (error) {
       this.show(
-        apiMessage(error, 'Data pengguna belum dapat diperbarui. Periksa username dan role.'),
+        apiMessage(
+          error,
+          accountSaved
+            ? 'Data pengguna tersimpan, tetapi kata sandi belum dapat diperbarui.'
+            : 'Data pengguna belum dapat diperbarui. Periksa username dan role.',
+        ),
         true,
       );
     } finally {
@@ -591,13 +887,18 @@ export class UserManagementPage {
       );
     }
   }
-  protected async toggleStatus(user: ManagedProfile) {
+  protected async toggleStatus(user: ManagedProfile, event: Event) {
+    const isActive = (event.target as HTMLInputElement).checked;
+    this.statusUpdatingId.set(user.id);
     try {
-      await firstValueFrom(this.api.setStatus(user.id, !user.isActive));
+      await firstValueFrom(this.api.setStatus(user.id, isActive));
       this.show('Status akun diperbarui.', false);
       await this.load();
     } catch (error) {
       this.show(apiMessage(error, 'Status akun belum dapat diperbarui. Coba kembali.'), true);
+      await this.load();
+    } finally {
+      this.statusUpdatingId.set(null);
     }
   }
   protected startMemberLink(user: ManagedProfile) {
@@ -628,22 +929,6 @@ export class UserManagementPage {
       );
     } finally {
       this.linking.set(false);
-    }
-  }
-  protected async resetPassword(user: ManagedProfile) {
-    const password = window.prompt(
-      'Masukkan kata sandi baru (minimal 8 karakter, huruf besar, huruf kecil, dan angka).',
-    );
-    if (!password) return;
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
-      this.show('Kata sandi belum memenuhi ketentuan.', true);
-      return;
-    }
-    try {
-      await firstValueFrom(this.api.setPassword(user.id, password));
-      this.show('Kata sandi berhasil diatur ulang.', false);
-    } catch (error) {
-      this.show(apiMessage(error, 'Kata sandi belum dapat diatur ulang. Coba kembali.'), true);
     }
   }
   private show(message: string, error: boolean) {
