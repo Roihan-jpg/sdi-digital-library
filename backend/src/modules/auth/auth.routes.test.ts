@@ -46,12 +46,6 @@ class FakeAuthService implements AuthServicePort {
   async authenticate(accessToken: string): Promise<AuthContext> {
     if (accessToken === 'master-token') return context(masterId, 'master_admin', accessToken);
     if (accessToken === 'member-token') return context(memberId, 'member', accessToken);
-    if (accessToken === 'temporary-token') {
-      return {
-        ...context(targetId, 'guest', accessToken),
-        profile: { ...profile(targetId, 'guest', true), mustChangePassword: true },
-      };
-    }
     throw new AppError(401, 'INVALID_ACCESS_TOKEN', 'Sesi tidak valid atau sudah berakhir.');
   }
 
@@ -249,42 +243,7 @@ describe('auth and profile routes', () => {
     assert.equal(authService.loggedOutToken, 'member-token');
   });
 
-  it('blocks temporary-password accounts outside the allowed auth endpoints', async () => {
-    const response = await request('/api/profiles/me', 'temporary-token');
-    const body = (await response.json()) as { error: { code: string } };
-
-    assert.equal(response.status, 403);
-    assert.equal(body.error.code, 'PASSWORD_CHANGE_REQUIRED');
-  });
-
-  it('validates and changes a temporary password through the backend', async () => {
-    const weak = await request('/api/auth/password', 'temporary-token', {
-      method: 'PATCH',
-      body: JSON.stringify({ password: 'terlalulemah' }),
-    });
-    assert.equal(weak.status, 400);
-
-    const strongPassword = 'Perpustakaan2026';
-    const accepted = await request('/api/auth/password', 'temporary-token', {
-      method: 'PATCH',
-      body: JSON.stringify({ password: strongPassword }),
-    });
-
-    assert.equal(accepted.status, 204);
-    assert.equal(authService.changedPassword, strongPassword);
-  });
-
-  it('accepts a password with uppercase, lowercase, and numbers without a symbol', async () => {
-    const response = await request('/api/auth/password', 'temporary-token', {
-      method: 'PATCH',
-      body: JSON.stringify({ password: 'KataSandi2026' }),
-    });
-
-    assert.equal(response.status, 204);
-    assert.equal(authService.changedPassword, 'KataSandi2026');
-  });
-
-  it('allows master admin to create a local account with a temporary password', async () => {
+  it('allows master admin to create a local account with an initial password', async () => {
     const response = await request('/api/profiles', 'master-token', {
       method: 'POST',
       body: JSON.stringify({

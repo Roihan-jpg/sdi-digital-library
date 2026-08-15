@@ -77,8 +77,9 @@
 
 .links {
   display: flex;
-  justify-content: center;
-  gap: clamp(0.25rem, 1vw, 0.85rem);
+  justify-content: flex-end;
+  gap: clamp(0.15rem, 0.6vw, 0.6rem);
+  padding-right: clamp(0.15rem, 0.6vw, 0.75rem);
 }
 
 .links > a,

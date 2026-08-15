@@ -103,7 +103,7 @@ export class ProfileService implements ProfileServicePort {
     await this.repository.deleteAccount(context.profile.id, userId);
   }
 
-  async setPassword(context: AuthContext, userId: string, password: string): Promise<void> {
-    await this.repository.setPassword(context.profile.id, userId, password);
+  async updatePassword(context: AuthContext, userId: string, password: string): Promise<void> {
+    await this.repository.updatePassword(context.profile.id, userId, password);
   }
 }

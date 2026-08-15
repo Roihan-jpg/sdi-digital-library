@@ -12,9 +12,6 @@ export const authGuard: CanActivateFn = (_route, state) => {
   if (!authStore.isAuthenticated()) {
     return router.createUrlTree(['/masuk'], { queryParams: { redirect: state.url } });
   }
-  if (authStore.context()?.profile.mustChangePassword && state.url !== '/ganti-kata-sandi') {
-    return router.parseUrl('/ganti-kata-sandi');
-  }
   return true;
 };
 
