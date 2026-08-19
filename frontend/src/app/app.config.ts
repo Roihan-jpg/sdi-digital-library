@@ -38,7 +38,9 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([requestIdInterceptor, authInterceptor, queryCacheInterceptor]),
     ),
 
-    provideAppInitializer(() => inject(AuthService).initialize()),
+    provideAppInitializer(() => {
+      void inject(AuthService).initialize();
+    }),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
 };

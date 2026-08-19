@@ -18,6 +18,7 @@ export interface MasterRow {
   name: string;
   code?: string;
   grade_level?: number;
+  school_year_id?: string | null;
   class_id?: string;
   is_active?: boolean;
 }

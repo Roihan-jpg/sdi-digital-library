@@ -20,7 +20,7 @@ interface FieldConfig {
   label: string;
   helper: string;
   required: boolean;
-  type?: 'text' | 'number';
+  type?: 'text' | 'number' | 'select';
 }
 
 @Component({
@@ -42,12 +42,7 @@ interface FieldConfig {
       <div class="workspace">
         <aside class="kind-panel card card--indexed" aria-labelledby="master-kind-title">
           <div class="panel-heading">
-            <p class="eyebrow">Jenis data</p>
             <h2 id="master-kind-title">Pilih referensi</h2>
-            <p>
-              Form di sebelah kanan akan menyesuaikan jenis data. Fokus tetap berada di pilihan ini
-              setelah jenis diganti.
-            </p>
           </div>
 
           <label class="field" for="master-kind">
@@ -63,13 +58,7 @@ interface FieldConfig {
                 <option [value]="option.value">{{ option.label }}</option>
               }
             </select>
-            <span id="master-kind-help" class="field__hint">{{ selectedKindDescription() }}</span>
           </label>
-
-          <div class="impact-note" role="note">
-            <strong>Perlu hati-hati saat menghapus.</strong>
-            Data master dapat dipakai oleh buku, eksemplar, member, laporan, atau transaksi lama.
-          </div>
         </aside>
 
         <form
@@ -80,12 +69,7 @@ interface FieldConfig {
           (ngSubmit)="save()"
         >
           <div class="panel-heading">
-            <p class="eyebrow">{{ selectedKindLabel() }}</p>
             <h2>{{ editingId() ? 'Ubah data referensi' : 'Tambah data referensi' }}</h2>
-            <p id="form-helper">
-              Isi field yang ditandai wajib. Perubahan akan dipakai oleh fitur lain setelah
-              disimpan.
-            </p>
           </div>
 
           @if (submitted() && hasFormErrors()) {
@@ -107,19 +91,61 @@ interface FieldConfig {
                     <span class="sr-only">wajib diisi</span>
                   }
                 </span>
-                <input
-                  [id]="fieldId(field.name)"
-                  [name]="field.name"
-                  [type]="field.type ?? 'text'"
-                  [formControlName]="field.name"
-                  [attr.inputmode]="field.type === 'number' ? 'numeric' : null"
-                  [attr.aria-describedby]="fieldDescribedBy(field)"
-                  [attr.aria-invalid]="isInvalid(field.name)"
-                  [attr.min]="field.name === 'gradeLevel' ? 1 : null"
-                  [attr.max]="field.name === 'gradeLevel' ? 6 : null"
-                  autocomplete="off"
-                  spellcheck="false"
-                />
+                @if (field.name === 'schoolYearId') {
+                  <select
+                    [id]="fieldId(field.name)"
+                    [name]="field.name"
+                    [formControlName]="field.name"
+                    [attr.aria-describedby]="fieldDescribedBy(field)"
+                    [attr.aria-invalid]="isInvalid(field.name)"
+                  >
+                    <option [ngValue]="null">Pilih tahun ajaran aktif</option>
+                    @for (schoolYear of activeSchoolYears(); track schoolYear.id) {
+                      <option [ngValue]="schoolYear.id">
+                        {{ schoolYear.name }} (Aktif)
+                      </option>
+                    }
+                    @if (activeSchoolYears().length === 0) {
+                      <option [ngValue]="null" disabled>
+                        Belum ada tahun ajaran aktif
+                      </option>
+                    }
+                  </select>
+                } @else if (field.name === 'classId') {
+                  <select
+                    [id]="fieldId(field.name)"
+                    [name]="field.name"
+                    [formControlName]="field.name"
+                    [attr.aria-describedby]="fieldDescribedBy(field)"
+                    [attr.aria-invalid]="isInvalid(field.name)"
+                  >
+                    <option [ngValue]="null">Pilih kelas aktif</option>
+                    @for (classItem of activeClasses(); track classItem.id) {
+                      <option [ngValue]="classItem.id">
+                        {{ classItem.name }} (Aktif)
+                      </option>
+                    }
+                    @if (activeClasses().length === 0) {
+                      <option [ngValue]="null" disabled>
+                        Belum ada kelas aktif
+                      </option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    [id]="fieldId(field.name)"
+                    [name]="field.name"
+                    [type]="field.type ?? 'text'"
+                    [formControlName]="field.name"
+                    [attr.inputmode]="field.type === 'number' ? 'numeric' : null"
+                    [attr.aria-describedby]="fieldDescribedBy(field)"
+                    [attr.aria-invalid]="isInvalid(field.name)"
+                    [attr.min]="field.name === 'gradeLevel' ? 1 : null"
+                    [attr.max]="field.name === 'gradeLevel' ? 6 : null"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                }
                 <span [id]="fieldHelpId(field.name)" class="field__hint">{{ field.helper }}</span>
                 @if (isInvalid(field.name)) {
                   <span [id]="fieldErrorId(field.name)" class="validation-message" role="alert">
@@ -548,52 +574,46 @@ export class MasterDataPage {
 
   @ViewChild('deleteDialog') private deleteDialog?: ElementRef<HTMLElement>;
 
-  protected readonly kinds: readonly { value: MasterKind; label: string; description: string }[] = [
+  protected readonly kinds: readonly { value: MasterKind; label: string }[] = [
     {
       value: 'school-years',
       label: 'Tahun ajaran',
-      description: 'Dipakai untuk mengelompokkan kelas dan laporan periode sekolah.',
     },
     {
       value: 'classes',
       label: 'Kelas',
-      description: 'Tingkat kelas siswa, misalnya kelas 1 sampai 6.',
     },
     {
       value: 'study-groups',
       label: 'Rombongan belajar',
-      description: 'Rombel di dalam kelas, termasuk wali kelas bila tersedia.',
     },
     {
       value: 'categories',
       label: 'Kategori',
-      description: 'Kategori koleksi untuk katalog, inventaris, dan laporan.',
     },
     {
       value: 'authors',
       label: 'Pengarang',
-      description: 'Nama pengarang yang dipakai saat menambah judul buku.',
     },
     {
       value: 'publishers',
       label: 'Penerbit',
-      description: 'Nama penerbit untuk metadata judul dan koleksi.',
     },
     {
       value: 'shelves',
       label: 'Rak',
-      description: 'Lokasi fisik rak; kode rak harus mudah dikenali petugas.',
     },
     {
       value: 'replacement-cost-categories',
       label: 'Kategori biaya penggantian',
-      description: 'Referensi biaya rusak atau hilang saat pengembalian.',
     },
   ];
 
   protected readonly kind = new FormControl<MasterKind>('school-years', { nonNullable: true });
   protected readonly currentKind = signal<MasterKind>('school-years');
   protected readonly rows = signal<MasterRow[]>([]);
+  protected readonly schoolYears = signal<MasterRow[]>([]);
+  protected readonly classes = signal<MasterRow[]>([]);
   protected readonly editingId = signal<string | null>(null);
   protected readonly message = signal<PageMessage | null>(null);
   protected readonly loading = signal(false);
@@ -623,10 +643,12 @@ export class MasterDataPage {
     () => this.kinds.find((option) => option.value === this.currentKind())?.label ?? 'Master data',
   );
 
-  protected readonly selectedKindDescription = computed(
-    () =>
-      this.kinds.find((option) => option.value === this.currentKind())?.description ??
-      'Pilih jenis data yang akan dikelola.',
+  protected readonly activeSchoolYears = computed(() =>
+    this.schoolYears().filter((schoolYear) => schoolYear.is_active === true),
+  );
+
+  protected readonly activeClasses = computed(() =>
+    this.classes().filter((classItem) => classItem.is_active === true),
   );
 
   protected readonly visibleFields = computed<FieldConfig[]>(() => {
@@ -654,7 +676,7 @@ export class MasterDataPage {
           label: 'Slug',
           helper: 'Gunakan huruf kecil dan tanda hubung bila slug dibutuhkan katalog publik.',
           required: false,
-        });
+        }); 
         break;
       case 'classes':
         fields.push(
@@ -667,9 +689,10 @@ export class MasterDataPage {
           },
           {
             name: 'schoolYearId',
-            label: 'ID tahun ajaran',
-            helper: 'Isi ID tahun ajaran bila kelas harus dikaitkan ke periode tertentu.',
+            label: 'Tahun ajaran',
+            helper: 'Pilih tahun ajaran aktif bila kelas harus dikaitkan ke periode tertentu.',
             required: false,
+            type: 'select',
           },
         );
         break;
@@ -677,9 +700,10 @@ export class MasterDataPage {
         fields.push(
           {
             name: 'classId',
-            label: 'ID kelas',
-            helper: 'Pilih ID kelas dari data kelas yang sudah dibuat.',
+            label: 'Kelas',
+            helper: 'Pilih kelas aktif yang sudah dibuat.',
             required: true,
+            type: 'select',
           },
           {
             name: 'homeroomTeacherName',
@@ -697,6 +721,7 @@ export class MasterDataPage {
   constructor() {
     this.updateValidatorsForKind();
     this.load(false);
+    this.loadClasses();
   }
 
   protected changeKind(event?: Event) {
@@ -719,10 +744,22 @@ export class MasterDataPage {
     this.api.list(this.currentKind()).subscribe({
       next: (response) => {
         this.rows.set(response.data);
+        if (this.currentKind() === 'school-years') {
+          this.schoolYears.set(response.data);
+        }
+        if (this.currentKind() === 'classes') {
+          this.classes.set(response.data);
+        }
         this.loading.set(false);
       },
       error: () => {
         this.rows.set([]);
+        if (this.currentKind() === 'school-years') {
+          this.schoolYears.set([]);
+        }
+        if (this.currentKind() === 'classes') {
+          this.classes.set([]);
+        }
         this.loading.set(false);
         this.loadError.set(true);
         this.message.set({
@@ -813,6 +850,7 @@ export class MasterDataPage {
       code: row.code ?? '',
       slug: '',
       gradeLevel: row.grade_level ?? 1,
+      schoolYearId: row.school_year_id ?? null,
       classId: row.class_id ?? null,
       isActive: row.is_active ?? true,
     });
@@ -979,6 +1017,13 @@ export class MasterDataPage {
     for (const control of Object.values(this.form.controls)) {
       control.updateValueAndValidity({ emitEvent: false });
     }
+  }
+
+  private loadClasses() {
+    this.api.list('classes').subscribe({
+      next: (response) => this.classes.set(response.data),
+      error: () => this.classes.set([]),
+    });
   }
 
   private focusFirstInvalid() {

@@ -75,7 +75,7 @@ Angular berjalan di `http://localhost:4200` dan meneruskan request `/api` ke bac
 
 ## Autentikasi dan profile
 
-Hanya `master_admin` yang login melalui Supabase Auth. `head_librarian`, `librarian`, `member`, dan `guest` login dengan username serta kata sandi akun lokal. Backend menyimpan password dengan hash `scrypt`, menerbitkan sesi JWT singkat yang tervalidasi terhadap tabel sesi, dan selalu mengambil role aktif dari tabel `profiles`; role dari request frontend tidak dipercaya. JWT secret tidak pernah dikirim ke Angular.
+`master_admin` login melalui Supabase Auth dan dapat memiliki beberapa akun untuk kontinuitas operasional. `head_librarian`, `librarian`, `member`, dan `guest` login dengan username serta kata sandi akun lokal. Backend menyimpan password dengan hash `scrypt`, menerbitkan sesi JWT singkat yang tervalidasi terhadap tabel sesi, dan selalu mengambil role aktif dari tabel `profiles`; role dari request frontend tidak dipercaya. JWT secret tidak pernah dikirim ke Angular.
 
 | Endpoint | Akses | Fungsi |
 |---|---|---|
@@ -124,7 +124,7 @@ Setelah membuat akun Auth pertama, bootstrap master admin melalui SQL Editor:
 select public.bootstrap_master_admin('email-admin@sekolah.sch.id');
 ```
 
-User Auth pertama otomatis memperoleh profile `master_admin`. Sesudah satu master admin aktif ada, trigger database menolak user Auth tambahan; akun role lain dibuat dari menu administrasi sebagai akun lokal. Fungsi bootstrap tidak dapat dipanggil melalui public API dan hanya dijalankan dari SQL Editor dengan hak administratif.
+Setiap user Auth baru otomatis memperoleh profile `master_admin`; gunakan Supabase Auth Admin API/Dashboard untuk membuat akun tambahan dan pastikan email terkonfirmasi sesuai kebijakan deployment. Fungsi bootstrap tetap tersedia untuk menghubungkan akun pertama ke profile `master_admin`, tidak dapat dipanggil melalui public API, dan hanya dijalankan dari SQL Editor dengan hak administratif. Sistem tetap menjaga agar minimal satu master admin aktif selalu tersedia.
 
 ## Quality checks
 

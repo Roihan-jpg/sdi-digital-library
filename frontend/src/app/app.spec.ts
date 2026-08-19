@@ -16,6 +16,13 @@ describe('App', () => {
     expect(fixture.nativeElement.querySelector('router-outlet')).toBeTruthy();
   });
 
+  it('shows the SDI splash while authentication is initializing', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('sdi-auth-splash')).toBeTruthy();
+  });
+
   it('applies the unified theme class on the application host', () => {
     localStorage.setItem('sdi-theme', 'dark');
     const fixture = TestBed.createComponent(App);

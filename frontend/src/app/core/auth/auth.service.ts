@@ -18,9 +18,17 @@ export class AuthService {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly destroyRef = inject(DestroyRef);
   private synchronization: { token: string; promise: Promise<CurrentAuthContext> } | null = null;
+  private initialization: Promise<void> | null = null;
   private readonly localTokenKey = 'sdi_local_access_token';
 
   async initialize(): Promise<void> {
+    if (this.initialization) return this.initialization;
+
+    this.initialization = this.initializeSession();
+    return this.initialization;
+  }
+
+  private async initializeSession(): Promise<void> {
     if (!this.browser) {
       this.authStore.setAnonymous();
       return;

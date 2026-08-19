@@ -5,24 +5,59 @@ import { Router, provideRouter } from '@angular/router';
 import type { AppRole } from './auth.models';
 import { roleHomePath } from './auth.models';
 import { authGuard, dashboardRedirectGuard, roleGuard } from './auth.guard';
+import { AuthService } from './auth.service';
 import { AuthStore } from './auth.store';
 
 describe('auth and role guards', () => {
   const authenticated = signal(false);
   const currentRole = signal<AppRole | null>(null);
+  const status = signal<'initializing' | 'authenticated' | 'anonymous'>('anonymous');
+  let finishInitialization: () => void = () => undefined;
+  const initialize = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finishInitialization = () => {
+          status.set('authenticated');
+          authenticated.set(true);
+          currentRole.set('librarian');
+          resolve();
+        };
+      }),
+  );
 
   beforeEach(() => {
     authenticated.set(false);
     currentRole.set(null);
+    status.set('anonymous');
+    initialize.mockClear();
+    finishInitialization = () => undefined;
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         {
           provide: AuthStore,
-          useValue: { isAuthenticated: authenticated, currentRole },
+          useValue: { isAuthenticated: authenticated, currentRole, status },
         },
+        { provide: AuthService, useValue: { initialize } },
       ],
     });
+  });
+
+  it('waits for auth initialization before redirecting a refreshed dashboard to login', async () => {
+    status.set('initializing');
+
+    const resultPromise = TestBed.runInInjectionContext(() =>
+      authGuard(
+        {} as ActivatedRouteSnapshot,
+        { url: '/dashboard/operasional' } as RouterStateSnapshot,
+      ),
+    );
+
+    expect(initialize).toHaveBeenCalledOnce();
+    finishInitialization();
+
+    const result = await resultPromise;
+    expect(result).toBe(true);
   });
 
   it('redirects anonymous users to login with their target URL', () => {

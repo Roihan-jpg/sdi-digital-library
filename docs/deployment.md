@@ -38,13 +38,13 @@ Frontend hanya boleh berisi `apiBaseUrl`, `supabaseUrl`, dan publishable key pad
    ```
 
 3. Jalankan Security Advisor dan Performance Advisor di Dashboard. Pastikan tidak ada policy/grant baru yang tidak ditinjau.
-4. Buat satu akun Auth master admin, lalu jalankan sekali dari SQL Editor administratif:
+4. Buat akun Auth master admin pertama, lalu jalankan sekali dari SQL Editor administratif:
 
    ```sql
    select public.bootstrap_master_admin('admin@contoh.sch.id');
    ```
 
-   Migration akun lokal menghapus seluruh user Auth non-master-admin yang lama. Data profile, member, audit, dan transaksi dipertahankan, tetapi master admin harus menetapkan kata sandi baru untuk tiap akun lokal sebelum pengguna dapat masuk.
+   User Auth baru berikutnya juga otomatis menjadi `master_admin`. Migration akun lokal menghapus seluruh user Auth non-master-admin yang lama. Data profile, member, audit, dan transaksi dipertahankan, tetapi master admin harus menetapkan kata sandi baru untuk tiap akun lokal sebelum pengguna dapat masuk.
 
 5. Clone/copy source ke `/var/www/sdi-digital-library`, install Node.js LTS, npm, PM2, Nginx, PostgreSQL client, dan Certbot. Buat `backend/.env` berizin `0600`.
 6. Sesuaikan `frontend/src/environments/environment.production.ts`, kemudian install dan build:

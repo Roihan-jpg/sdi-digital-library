@@ -23,23 +23,24 @@ begin
     raise exception 'first Supabase Auth user must become master admin';
   end if;
 
-  begin
-    insert into auth.users (
-      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-      raw_app_meta_data, raw_user_meta_data, created_at, updated_at
-    ) values (
-      '00000000-0000-0000-0000-000000000000',
-      '71000000-0000-4000-8000-000000000002',
-      'authenticated', 'authenticated', 'non-master-auth@example.test', 'not-used', now(),
-      '{}', '{}', now(), now()
-    );
-    raise exception 'additional Supabase Auth users must be rejected';
-  exception
-    when others then
-      if position('reserved for an existing master admin account' in sqlerrm) = 0 then
-        raise;
-      end if;
-  end;
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+  ) values (
+    '00000000-0000-0000-0000-000000000000',
+    '71000000-0000-4000-8000-000000000002',
+    'authenticated', 'authenticated', 'second-master-auth@example.test', 'not-used', now(),
+    '{}', '{}', now(), now()
+  );
+
+  if not exists (
+    select 1
+    from public.profiles
+    where auth_user_id = '71000000-0000-4000-8000-000000000002'
+      and role = 'master_admin'
+  ) then
+    raise exception 'additional Supabase Auth user must become master admin';
+  end if;
 
   insert into public.profiles (role, full_name)
   values ('librarian', 'Akun Lokal Uji')
