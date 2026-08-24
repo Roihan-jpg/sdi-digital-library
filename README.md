@@ -75,7 +75,7 @@ Angular berjalan di `http://localhost:4200` dan meneruskan request `/api` ke bac
 
 ## Autentikasi dan profile
 
-`master_admin` login melalui Supabase Auth dan dapat memiliki beberapa akun untuk kontinuitas operasional. `head_librarian`, `librarian`, `member`, dan `guest` login dengan username serta kata sandi akun lokal. Backend menyimpan password dengan hash `scrypt`, menerbitkan sesi JWT singkat yang tervalidasi terhadap tabel sesi, dan selalu mengambil role aktif dari tabel `profiles`; role dari request frontend tidak dipercaya. JWT secret tidak pernah dikirim ke Angular.
+`master_admin` login melalui Supabase Auth dan dapat memiliki beberapa akun untuk kontinuitas operasional. `head_librarian`, `librarian`, `member`, dan `guest` login dengan username serta kata sandi akun lokal. Backend menyimpan password dengan hash `scrypt`, menerbitkan sesi JWT singkat yang tervalidasi terhadap tabel sesi, dan selalu mengambil role aktif dari tabel `profiles`; role dari request frontend tidak dipercaya. Saat profile ber-role `member` dibuat atau dipromosikan, database otomatis membuat data anggota sementara yang aktif agar akun dapat langsung reservasi. JWT secret tidak pernah dikirim ke Angular.
 
 | Endpoint | Akses | Fungsi |
 |---|---|---|
@@ -86,10 +86,11 @@ Angular berjalan di `http://localhost:4200` dan meneruskan request `/api` ke bac
 | `GET /api/profiles/me` | Semua akun aktif | Profile pengguna saat ini |
 | `PATCH /api/profiles/me` | Semua akun aktif | Ubah nama/avatar sendiri; tidak menerima role/status |
 | `GET /api/profiles` | `master_admin` | Daftar profile dengan pagination |
-| `POST /api/profiles` | `master_admin` | Buat akun lokal non-master-admin dengan username dan kata sandi sementara |
+| `GET /api/profiles/member-link-candidates` | `master_admin`, `librarian` | Kandidat koreksi data legacy; tidak diperlukan dalam alur akun member normal |
+| `POST /api/profiles` | `master_admin` | Buat akun lokal non-master-admin; role `member` otomatis memperoleh data anggota sementara |
 | `PATCH /api/profiles/:id/role` | `master_admin` | Ubah role akun lokal; master admin tidak dapat dipindahkan dari Supabase Auth |
 | `PATCH /api/profiles/:id/status` | `master_admin` | Aktifkan/nonaktifkan akun |
-| `POST /api/profiles/:id/link-member` | `master_admin`, `librarian` | Hubungkan akun aplikasi dengan member |
+| `POST /api/profiles/:id/link-member` | `master_admin`, `librarian` | Koreksi administratif untuk data legacy, bukan langkah pembuatan akun member normal |
 | `PATCH /api/profiles/:id/password` | `master_admin` | Atur ulang kata sandi akun lokal |
 
 Navigasi dan dashboard diarahkan berdasarkan role `master_admin`, `head_librarian`, `librarian`, `member`, atau `guest`. Guest tetap berada di katalog publik dan tidak memiliki dashboard. Otorisasi sebenarnya tetap ditegakkan di backend dan RLS, bukan melalui menu Angular.

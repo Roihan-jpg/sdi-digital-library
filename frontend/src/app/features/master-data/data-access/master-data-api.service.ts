@@ -17,6 +17,7 @@ export interface MasterRow {
   id: string;
   name: string;
   code?: string;
+  slug?: string;
   grade_level?: number;
   school_year_id?: string | null;
   class_id?: string;

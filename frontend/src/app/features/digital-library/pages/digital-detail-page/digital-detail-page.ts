@@ -103,15 +103,12 @@ import type { DigitalCollection } from '../../models/digital-collection.model';
           </article>
         </div>
         @if (mediaUrl()) {
-          <section class="viewer" aria-labelledby="viewer-title">
+          <section id="digital-viewer" class="viewer" tabindex="-1" aria-labelledby="viewer-title">
             <div class="viewer-head">
               <div>
                 <p class="eyebrow">Ruang baca aman</p>
                 <h2 id="viewer-title">{{ collection.title }}</h2>
               </div>
-              <a [href]="mediaUrl()" target="_blank" rel="noopener">
-                Buka di tab baru <span aria-hidden="true">&nearr;</span>
-              </a>
             </div>
             @if (collection.media_type === 'video') {
               <video controls [src]="mediaUrl()">Browser tidak dapat memutar video ini.</video>
@@ -310,6 +307,10 @@ import type { DigitalCollection } from '../../models/digital-collection.model';
       background: var(--color-surface);
       box-shadow: var(--shadow-md);
     }
+    .viewer:focus {
+      outline: 0.2rem solid var(--color-focus-outer);
+      outline-offset: 0.35rem;
+    }
     .viewer-head {
       display: flex;
       justify-content: space-between;
@@ -388,7 +389,7 @@ import type { DigitalCollection } from '../../models/digital-collection.model';
       }
       .viewer video,
       .viewer iframe {
-        min-height: 20rem;
+        min-height: min(70svh, 32rem);
       }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -436,6 +437,7 @@ export class DigitalDetailPage {
         this.mediaUrl.set(response.data.url);
         this.safeMediaUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(response.data.url));
         this.opening.set(false);
+        this.focusViewer();
       },
       error: () => {
         this.error.set('File tidak dapat dibuka. Silakan coba lagi.');
@@ -457,6 +459,14 @@ export class DigitalDetailPage {
         this.error.set('File tidak dapat diunduh.');
         this.opening.set(false);
       },
+    });
+  }
+
+  private focusViewer() {
+    setTimeout(() => {
+      const viewer = document.getElementById('digital-viewer');
+      viewer?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      viewer?.focus?.({ preventScroll: true });
     });
   }
 }

@@ -32,10 +32,6 @@ import {
         <div>
           <p class="eyebrow">Data utama</p>
           <h1>Manajemen member</h1>
-          <p>
-            Cari, tambah, dan ubah data siswa maupun non-siswa. Nomor identitas penting tetap
-            ditampilkan penuh agar mudah diverifikasi petugas.
-          </p>
         </div>
         @if (canWrite()) {
           <button class="button" type="button" (click)="startCreate()">Tambah member</button>
@@ -46,7 +42,6 @@ import {
         <div class="panel-heading">
           <div>
             <h2 id="member-filter-title">Pencarian dan filter</h2>
-            <p>Gunakan nama, NIS, NISN, kode member, atau nomor kartu.</p>
           </div>
           @if (loading()) {
             <span class="loading-state" role="status">Memperbarui daftar</span>
@@ -107,16 +102,12 @@ import {
           class="card card--indexed editor"
           [formGroup]="form"
           (ngSubmit)="save()"
-          aria-describedby="member-form-summary"
           novalidate
         >
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Editor member</p>
               <h2>{{ editingId() ? 'Ubah data member' : 'Tambah member baru' }}</h2>
-              <p id="member-form-summary">
-                Field bertanda wajib harus diisi. Validasi akhir tetap dilakukan oleh server.
-              </p>
             </div>
             <button class="button button--secondary" type="button" (click)="closeForm()">
               Tutup
@@ -142,11 +133,8 @@ import {
                 autocomplete="off"
                 spellcheck="false"
                 [attr.aria-invalid]="isInvalid('memberCode')"
-                aria-describedby="member-code-hint member-code-error"
+                [attr.aria-describedby]="isInvalid('memberCode') ? 'member-code-error' : null"
               />
-              <span id="member-code-hint" class="field__hint"
-                >Kode unik anggota, gunakan persis sesuai data sekolah.</span
-              >
               @if (isInvalid('memberCode')) {
                 <p id="member-code-error" class="validation-message">Kode member wajib diisi.</p>
               }
@@ -163,11 +151,10 @@ import {
                 autocomplete="off"
                 spellcheck="false"
                 [attr.aria-invalid]="isInvalid('libraryCardNumber')"
-                aria-describedby="library-card-hint library-card-error"
+                [attr.aria-describedby]="
+                  isInvalid('libraryCardNumber') ? 'library-card-error' : null
+                "
               />
-              <span id="library-card-hint" class="field__hint"
-                >Nomor pada kartu anggota perpustakaan.</span
-              >
               @if (isInvalid('libraryCardNumber')) {
                 <p id="library-card-error" class="validation-message">
                   Nomor kartu perpustakaan wajib diisi.
@@ -183,11 +170,8 @@ import {
                 formControlName="fullName"
                 autocomplete="name"
                 [attr.aria-invalid]="isInvalid('fullName')"
-                aria-describedby="full-name-hint full-name-error"
+                [attr.aria-describedby]="isInvalid('fullName') ? 'full-name-error' : null"
               />
-              <span id="full-name-hint" class="field__hint"
-                >Tulis nama sesuai kartu pelajar atau identitas resmi.</span
-              >
               @if (isInvalid('fullName')) {
                 <p id="full-name-error" class="validation-message">Nama lengkap wajib diisi.</p>
               }
@@ -199,9 +183,6 @@ import {
                 <option [ngValue]="true">Siswa</option>
                 <option [ngValue]="false">Non-siswa</option>
               </select>
-              <span class="field__hint"
-                >Siswa membutuhkan NIS, NISN, kelas, rombel, dan kartu.</span
-              >
             </label>
 
             <label class="field" for="gender">
@@ -216,10 +197,6 @@ import {
 
           <fieldset class="student-section">
             <legend>Identitas siswa</legend>
-            <p>
-              Untuk siswa, seluruh field di bagian ini wajib diisi. Untuk non-siswa, bagian ini
-              tetap terlihat sebagai pembanding tetapi tidak dipakai saat disimpan.
-            </p>
             <div class="form-grid">
               <label class="field" for="nis">
                 <span class="field__label"
@@ -236,9 +213,8 @@ import {
                   autocomplete="off"
                   spellcheck="false"
                   [attr.aria-invalid]="isInvalid('nis')"
-                  aria-describedby="nis-hint nis-error"
+                  [attr.aria-describedby]="isInvalid('nis') ? 'nis-error' : null"
                 />
-                <span id="nis-hint" class="field__hint">Nomor induk siswa dari sekolah.</span>
                 @if (isInvalid('nis')) {
                   <p id="nis-error" class="validation-message">NIS wajib diisi untuk siswa.</p>
                 }
@@ -259,9 +235,8 @@ import {
                   autocomplete="off"
                   spellcheck="false"
                   [attr.aria-invalid]="isInvalid('nisn')"
-                  aria-describedby="nisn-hint nisn-error"
+                  [attr.aria-describedby]="isInvalid('nisn') ? 'nisn-error' : null"
                 />
-                <span id="nisn-hint" class="field__hint">Nomor induk siswa nasional.</span>
                 @if (isInvalid('nisn')) {
                   <p id="nisn-error" class="validation-message">NISN wajib diisi untuk siswa.</p>
                 }
@@ -281,11 +256,10 @@ import {
                   autocomplete="off"
                   spellcheck="false"
                   [attr.aria-invalid]="isInvalid('studentCardNumber')"
-                  aria-describedby="student-card-hint student-card-error"
+                  [attr.aria-describedby]="
+                    isInvalid('studentCardNumber') ? 'student-card-error' : null
+                  "
                 />
-                <span id="student-card-hint" class="field__hint"
-                  >Nomor pada kartu pelajar siswa.</span
-                >
                 @if (isInvalid('studentCardNumber')) {
                   <p id="student-card-error" class="validation-message">
                     Nomor kartu pelajar wajib diisi untuk siswa.
@@ -305,16 +279,13 @@ import {
                   name="classId"
                   formControlName="classId"
                   [attr.aria-invalid]="isInvalid('classId')"
-                  aria-describedby="class-id-hint class-id-error"
+                  [attr.aria-describedby]="isInvalid('classId') ? 'class-id-error' : null"
                 >
                   <option [ngValue]="null">Pilih kelas</option>
                   @for (item of activeClasses(); track item.id) {
                     <option [ngValue]="item.id">{{ classLabel(item) }}</option>
                   }
                 </select>
-                <span id="class-id-hint" class="field__hint"
-                  >Diambil dari master data kelas aktif.</span
-                >
                 @if (isInvalid('classId')) {
                   <p id="class-id-error" class="validation-message">
                     Kelas wajib dipilih untuk siswa.
@@ -334,7 +305,11 @@ import {
                   name="studyGroupId"
                   formControlName="studyGroupId"
                   [attr.aria-invalid]="isInvalid('studyGroupId')"
-                  aria-describedby="study-group-id-hint study-group-id-error"
+                  [attr.aria-describedby]="
+                    isInvalid('studyGroupId')
+                      ? 'study-group-id-hint study-group-id-error'
+                      : 'study-group-id-hint'
+                  "
                 >
                   <option [ngValue]="null">Pilih rombel</option>
                   @for (item of formStudyGroups(); track item.id) {
@@ -399,8 +374,6 @@ import {
         <div class="table-wrap members-table" tabindex="0" aria-label="Tabel daftar member">
           <table>
             <caption>
-              Daftar member perpustakaan berisi kode, identitas siswa, nomor kartu, status, dan aksi
-              edit.
             </caption>
             <thead>
               <tr>
@@ -551,6 +524,7 @@ import {
     }
 
     .editor {
+      min-width: 0;
       max-width: var(--container-content);
     }
 
@@ -558,6 +532,7 @@ import {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-4);
+      min-width: 0;
     }
 
     .field--wide {
@@ -566,10 +541,10 @@ import {
 
     .student-section {
       display: grid;
-      gap: var(--space-4);
+      gap: var(--space-3);
       min-width: 0;
       margin: 0;
-      padding: var(--space-4);
+      padding: var(--space-3);
       border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-brand-50);
@@ -589,9 +564,38 @@ import {
       margin: 0;
     }
 
+    .member-page .field,
+    .member-page .field__label,
+    .member-page .check-field {
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
+    }
+
+    .member-page :is(input, select, textarea),
+    .member-page :is(input, textarea)::placeholder {
+      font-weight: var(--weight-regular);
+    }
+
+    .member-page .field__hint,
+    .member-page .validation-message,
+    .student-section > p {
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
+      line-height: 1.5;
+    }
+
+    .student-section > p {
+      color: var(--color-text-muted);
+    }
+
     .check-field span {
       display: grid;
       gap: var(--space-1);
+    }
+
+    .check-field strong {
+      font-weight: var(--weight-regular);
     }
 
     .members-table table {
@@ -680,6 +684,14 @@ import {
       .search-field,
       .filter-actions {
         grid-column: 1 / -1;
+      }
+
+      .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .field--wide {
+        grid-column: auto;
       }
     }
 

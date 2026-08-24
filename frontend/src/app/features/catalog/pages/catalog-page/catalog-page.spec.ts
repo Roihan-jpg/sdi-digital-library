@@ -1,6 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { AuthStore } from '../../../../core/auth/auth.store';
 import { CirculationApiService } from '../../../circulation/data-access/circulation-api.service';
 import { CatalogApiService, type CatalogBook } from '../../data-access/catalog-api.service';
@@ -97,6 +98,56 @@ describe('CatalogPage', () => {
     expect(createReservation).toHaveBeenCalledTimes(1);
     expect(fixture.nativeElement.textContent).toContain('Reservasi dibuat.');
     expect(fixture.nativeElement.querySelector('[role="status"]')).not.toBeNull();
+  });
+
+  it('shows the safe backend reservation error instead of the generic fallback', async () => {
+    const params = convertToParamMap({});
+    const createReservation = vi.fn(() =>
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 422,
+            error: {
+              error: {
+                code: 'RESERVATION_REJECTED',
+                message: 'Akun member belum siap untuk reservasi.',
+                requestId: 'request-123',
+              },
+            },
+          }),
+      ),
+    );
+
+    await TestBed.configureTestingModule({
+      imports: [CatalogPage],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { queryParamMap: of(params), snapshot: { queryParamMap: params } },
+        },
+        {
+          provide: CatalogApiService,
+          useValue: {
+            list: vi.fn(() => of({ data: books, pagination: { page: 1, limit: 20, total: 1 } })),
+          },
+        },
+        { provide: CirculationApiService, useValue: { createReservation } },
+        {
+          provide: AuthStore,
+          useValue: { currentRole: () => 'member', isAuthenticated: () => true },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(CatalogPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.nativeElement.querySelector('.reserve').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Akun member belum siap untuk reservasi.');
+    expect(fixture.nativeElement.textContent).not.toContain('Reservasi belum dapat dibuat.');
   });
 
   it('writes search and view mode back to the existing query-param interface', async () => {

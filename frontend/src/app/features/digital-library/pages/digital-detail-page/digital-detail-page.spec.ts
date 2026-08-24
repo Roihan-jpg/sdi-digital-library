@@ -60,4 +60,45 @@ describe('DigitalDetailPage', () => {
     expect(element.querySelector('.viewer')).toBeNull();
     expect(await axeViolations(element)).toEqual([]);
   }, 15_000);
+
+  it('opens a member PDF preview inline without offering a new-tab route', async () => {
+    const access = vi.fn(() =>
+      of({
+        data: {
+          url: 'https://storage.example.test/signed-file.pdf',
+          expiresIn: 300,
+          mimeType: 'application/pdf',
+        },
+      }),
+    );
+
+    await TestBed.configureTestingModule({
+      imports: [DigitalDetailPage],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ slug: collection.slug }) } },
+        },
+        { provide: AuthStore, useValue: { isAuthenticated: () => true } },
+        {
+          provide: DigitalLibraryApiService,
+          useValue: { detail: () => of({ data: collection }), access },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(DigitalDetailPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.actions .button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const element: HTMLElement = fixture.nativeElement;
+    expect(access).toHaveBeenCalledWith(collection.id, 'view');
+    expect(element.querySelector('.viewer iframe')).not.toBeNull();
+    expect(element.querySelector('.viewer a[target="_blank"]')).toBeNull();
+  });
 });

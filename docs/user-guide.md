@@ -6,7 +6,7 @@ Katalog fisik dan metadata koleksi digital published dapat dibuka tanpa login. G
 
 ## Member
 
-1. Login menggunakan akun yang sudah ditautkan petugas ke data member.
+1. Login menggunakan akun dengan role `member`; sistem menyediakan data anggota sementara secara otomatis saat akun dibuat atau role-nya diubah menjadi member.
 2. Buka **Portal member** untuk melihat pinjaman, jatuh tempo, reservasi, dan denda.
 3. Reservasi hanya tersedia untuk member aktif. Guest tidak dapat meminjam atau membuat reservasi.
 4. Pada koleksi digital, tombol download hanya tampil jika koleksi published dan `is_downloadable` aktif. Tautan akses bersifat sementara; muat ulang halaman bila kedaluwarsa.

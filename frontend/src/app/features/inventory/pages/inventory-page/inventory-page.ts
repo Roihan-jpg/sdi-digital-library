@@ -56,15 +56,11 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
         <div>
           <p class="eyebrow">Katalog operasional</p>
           <h1>Judul buku dan eksemplar</h1>
-          <p>
-            Tambahkan metadata judul, lalu daftarkan eksemplar fisik dengan kode inventaris yang
-            sama persis dengan isi barcode atau QR.
-          </p>
         </div>
         <aside class="code-note" aria-label="Catatan kode inventaris">
-          <span class="code-note__label">Payload label</span>
+          <span class="code-note__label">Kode inventaris</span>
           <code>inventory_code</code>
-          <p>Kode ini tidak diganti menjadi ID internal saat dicetak.</p>
+          <span class="code-note__hint">Harus sama dengan barcode/QR.</span>
         </aside>
       </div>
 
@@ -93,11 +89,7 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
           novalidate
         >
           <div class="form-heading">
-            <div>
-              <h2>Data judul</h2>
-              <p>Isi informasi yang melekat pada satu judul buku, bukan eksemplar fisik.</p>
-            </div>
-            <span class="form-chip">Metadata</span>
+            <h2>Data judul</h2>
           </div>
 
           @if (titleSubmitted() && titleForm.invalid) {
@@ -116,11 +108,8 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                 formControlName="title"
                 autocomplete="off"
                 [attr.aria-invalid]="titleError('title') ? 'true' : null"
-                aria-describedby="title-title-hint title-title-error"
+                [attr.aria-describedby]="titleError('title') ? 'title-title-error' : null"
               />
-              <span id="title-title-hint" class="field__hint"
-                >Nama buku seperti tercetak di sampul.</span
-              >
               @if (titleError('title')) {
                 <span id="title-title-error" class="validation-message">{{
                   titleError('title')
@@ -138,11 +127,8 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                   autocomplete="off"
                   inputmode="text"
                   [attr.aria-invalid]="titleError('isbn') ? 'true' : null"
-                  aria-describedby="title-isbn-hint title-isbn-error"
+                  [attr.aria-describedby]="titleError('isbn') ? 'title-isbn-error' : null"
                 />
-                <span id="title-isbn-hint" class="field__hint"
-                  >Kosongkan bila buku tidak punya ISBN.</span
-                >
                 @if (titleError('isbn')) {
                   <span id="title-isbn-error" class="validation-message">{{
                     titleError('isbn')
@@ -159,11 +145,10 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                   autocomplete="off"
                   class="data-input"
                   [attr.aria-invalid]="titleError('catalogCode') ? 'true' : null"
-                  aria-describedby="title-catalog-code-hint title-catalog-code-error"
+                  [attr.aria-describedby]="
+                    titleError('catalogCode') ? 'title-catalog-code-error' : null
+                  "
                 />
-                <span id="title-catalog-code-hint" class="field__hint"
-                  >Kode pengelompokan katalog, bukan kode eksemplar.</span
-                >
                 @if (titleError('catalogCode')) {
                   <span id="title-catalog-code-error" class="validation-message">{{
                     titleError('catalogCode')
@@ -184,7 +169,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                     <option [value]="category.id">{{ masterLabel(category) }}</option>
                   }
                 </select>
-                <span class="field__hint">Diambil dari master data kategori.</span>
               </label>
 
               <label class="field" for="title-publisher">
@@ -195,7 +179,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                     <option [value]="publisher.id">{{ masterLabel(publisher) }}</option>
                   }
                 </select>
-                <span class="field__hint">Gunakan master data, bukan ID yang diketik manual.</span>
               </label>
             </div>
 
@@ -208,7 +191,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                     <option [value]="shelf.id">{{ masterLabel(shelf) }}</option>
                   }
                 </select>
-                <span class="field__hint">Rak awal untuk eksemplar baru bila belum dipindah.</span>
               </label>
 
               <label class="field" for="title-author">
@@ -219,7 +201,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                     <option [value]="author.id">{{ masterLabel(author) }}</option>
                   }
                 </select>
-                <span class="field__hint">Satu pengarang utama ditautkan dari master data.</span>
               </label>
             </div>
 
@@ -232,11 +213,10 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                 inputmode="numeric"
                 formControlName="publicationYear"
                 [attr.aria-invalid]="titleError('publicationYear') ? 'true' : null"
-                aria-describedby="title-publication-year-hint title-publication-year-error"
+                [attr.aria-describedby]="
+                  titleError('publicationYear') ? 'title-publication-year-error' : null
+                "
               />
-              <span id="title-publication-year-hint" class="field__hint"
-                >Gunakan 4 digit tahun, misalnya 2024.</span
-              >
               @if (titleError('publicationYear')) {
                 <span id="title-publication-year-error" class="validation-message">{{
                   titleError('publicationYear')
@@ -260,13 +240,7 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
           novalidate
         >
           <div class="form-heading">
-            <div>
-              <h2>Data eksemplar</h2>
-              <p>
-                Isi identitas fisik buku: judul asal, kode inventaris, rak, kondisi, dan status.
-              </p>
-            </div>
-            <span class="form-chip form-chip--copy">Fisik</span>
+            <h2>Data eksemplar</h2>
           </div>
 
           @if (copySubmitted() && copyForm.invalid) {
@@ -284,16 +258,15 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                 name="book-title"
                 formControlName="bookTitleId"
                 [attr.aria-invalid]="copyError('bookTitleId') ? 'true' : null"
-                aria-describedby="copy-book-title-hint copy-book-title-error"
+                [attr.aria-describedby]="
+                  copyError('bookTitleId') ? 'copy-book-title-error' : null
+                "
               >
                 <option value="">Pilih judul buku</option>
                 @for (book of titles(); track book.id) {
                   <option [value]="book.id">{{ titleLabel(book) }}</option>
                 }
               </select>
-              <span id="copy-book-title-hint" class="field__hint"
-                >Daftar judul diambil dari katalog yang sudah tersimpan.</span
-              >
               @if (copyError('bookTitleId')) {
                 <span id="copy-book-title-error" class="validation-message">{{
                   copyError('bookTitleId')
@@ -314,10 +287,14 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                 spellcheck="false"
                 class="data-input data-input--prominent"
                 [attr.aria-invalid]="copyError('inventoryCode') ? 'true' : null"
-                aria-describedby="copy-inventory-code-hint copy-inventory-code-error"
+                [attr.aria-describedby]="
+                  copyError('inventoryCode')
+                    ? 'copy-inventory-code-hint copy-inventory-code-error'
+                    : 'copy-inventory-code-hint'
+                "
               />
               <span id="copy-inventory-code-hint" class="field__hint">
-                Kode ini adalah payload barcode/QR persis. Jangan isi dengan UUID atau ID internal.
+                Gunakan nilai barcode/QR persis.
               </span>
               @if (copyError('inventoryCode')) {
                 <span id="copy-inventory-code-error" class="validation-message">{{
@@ -330,12 +307,11 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
               <span class="field__label">Rak eksemplar</span>
               <select id="copy-shelf" name="copy-shelf" formControlName="shelfId">
                 <option [ngValue]="null">Ikuti rak default judul</option>
-                @for (shelf of shelves(); track shelf.id) {
-                  <option [value]="shelf.id">{{ masterLabel(shelf) }}</option>
-                }
-              </select>
-              <span class="field__hint">Pilih bila eksemplar ditempatkan di rak berbeda.</span>
-            </label>
+                  @for (shelf of shelves(); track shelf.id) {
+                    <option [value]="shelf.id">{{ masterLabel(shelf) }}</option>
+                  }
+                </select>
+              </label>
           </fieldset>
 
           <fieldset>
@@ -348,7 +324,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                     <option [value]="condition">{{ conditionLabels[condition] }}</option>
                   }
                 </select>
-                <span class="field__hint">Kondisi fisik saat eksemplar didaftarkan.</span>
               </label>
 
               <label class="field" for="copy-status">
@@ -358,7 +333,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
                     <option [value]="status">{{ statusLabels[status] }}</option>
                   }
                 </select>
-                <span class="field__hint">Status operasional sesuai aturan inventory.</span>
               </label>
             </div>
           </fieldset>
@@ -421,36 +395,28 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
     }
 
     .page-header h1,
-    .page-header p,
     .form-heading h2,
-    .form-heading p,
     .alert p {
       margin: 0;
     }
 
     .page-header h1 {
-      margin-bottom: var(--space-2);
-    }
-
-    .page-header p,
-    .form-heading p {
-      max-width: var(--content-measure);
-      color: var(--color-text-muted);
+      margin-top: var(--space-1);
     }
 
     .code-note {
       display: grid;
-      gap: var(--space-2);
+      grid-template-columns: auto auto;
+      gap: var(--space-1) var(--space-2);
       align-content: center;
-      padding: var(--space-4);
+      padding: var(--space-3) var(--space-4);
       border: var(--border-width) solid var(--color-border);
       border-inline-start: var(--border-width-accent) solid var(--color-brand-700);
       border-radius: var(--radius-lg);
       background: var(--color-surface);
     }
 
-    .code-note__label,
-    .form-chip {
+    .code-note__label {
       color: var(--color-text-muted);
       font-size: var(--text-xs);
       font-weight: var(--weight-extrabold);
@@ -465,7 +431,6 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
     }
 
     .code-note code {
-      width: fit-content;
       padding: var(--space-1) var(--space-2);
       border-radius: var(--radius-sm);
       background: var(--color-brand-50);
@@ -474,10 +439,11 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
       font-weight: var(--weight-bold);
     }
 
-    .code-note p {
-      margin: 0;
+    .code-note__hint {
+      grid-column: 1 / -1;
       color: var(--color-text-muted);
-      font-size: var(--text-sm);
+      font-size: 0.8rem;
+      font-weight: 400;
     }
 
     .inventory-grid {
@@ -489,35 +455,39 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
 
     .inventory-form {
       display: grid;
-      gap: var(--space-5);
+      gap: var(--space-4);
+    }
+
+    .inventory-page .field,
+    .inventory-page .field__label {
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+
+    .inventory-page :is(input, select, textarea) {
+      font-weight: 400;
+    }
+
+    .inventory-page :is(input, textarea)::placeholder {
+      font-weight: 400;
+    }
+
+    .inventory-page .field__hint {
+      font-size: 0.8rem;
+      font-weight: 400;
+      line-height: 1.5;
     }
 
     .form-heading {
-      display: flex;
-      gap: var(--space-3);
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-
-    .form-chip {
-      flex: 0 0 auto;
-      padding: var(--space-1) var(--space-2);
-      border: var(--border-width) solid var(--color-border);
-      border-radius: var(--radius-pill);
-      background: var(--color-brand-50);
-      color: var(--color-brand-800);
-    }
-
-    .form-chip--copy {
-      background: var(--color-success-surface);
-      color: var(--color-success);
+      min-width: 0;
     }
 
     fieldset {
       display: grid;
-      gap: var(--space-4);
+      gap: var(--space-3);
       min-width: 0;
-      padding: var(--space-4);
+      padding: var(--space-3);
       border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-neutral-surface);
@@ -541,7 +511,7 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
 
     .data-input--prominent {
       color: var(--color-brand-950);
-      font-weight: var(--weight-bold);
+      font-weight: 400;
       letter-spacing: 0;
     }
 
@@ -576,22 +546,17 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
       }
     }
 
-    @media (min-width: 64rem) {
+    @media (min-width: 72rem) {
       .inventory-grid {
-        grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+        grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
       }
     }
 
     @media (max-width: 36rem) {
-      .form-heading,
       .form-actions,
       .form-actions--split {
         align-items: stretch;
         flex-direction: column;
-      }
-
-      .form-chip {
-        width: fit-content;
       }
 
       .button {
@@ -600,6 +565,10 @@ const statusLabels: Record<BookCopyPayload['status'], string> = {
 
       .compact-field {
         max-width: none;
+      }
+
+      fieldset {
+        padding: var(--space-3);
       }
     }
   `,

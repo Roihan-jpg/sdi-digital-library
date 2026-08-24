@@ -43,9 +43,32 @@ export const digitalActionSchema = z.object({
   action: z.enum(['view', 'play', 'download']),
 });
 
+const uploadFileSchema = z.object({
+  name: z.string().trim().min(1).max(180),
+  mimeType: z.string().trim().min(1).max(100),
+  size: z.number().int().positive(),
+});
+
+export const digitalUploadSessionSchema = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('create'),
+    mediaType: z.enum(['ebook', 'module', 'video']),
+    mainFile: uploadFileSchema,
+    coverFile: uploadFileSchema.optional(),
+  }),
+  z.object({
+    operation: z.literal('update'),
+    collectionId: z.uuid(),
+    mediaType: z.enum(['ebook', 'module', 'video']),
+    mainFile: uploadFileSchema.optional(),
+    coverFile: uploadFileSchema.optional(),
+  }),
+]);
+
 export const idSchema = z.uuid();
 export const slugSchema = z.string().trim().min(1).max(250).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 export type DigitalCollectionInput = z.infer<typeof digitalCollectionInputSchema>;
 export type DigitalCatalogQuery = z.infer<typeof digitalCatalogQuerySchema>;
 export type DigitalAction = z.infer<typeof digitalActionSchema>['action'];
+export type DigitalUploadSessionInput = z.infer<typeof digitalUploadSessionSchema>;

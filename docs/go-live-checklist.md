@@ -42,7 +42,7 @@
 
 ## Environment smoke UAT
 
-Isi `SMOKE_API_URL`, `SMOKE_SUPABASE_URL`, `SMOKE_SUPABASE_ANON_KEY`, `SMOKE_TARGET`, `SMOKE_CONFIRM=CREATE_DISPOSABLE_TEST_DATA`, serta email/password untuk prefix `SMOKE_MASTER_ADMIN`, `SMOKE_HEAD_LIBRARIAN`, `SMOKE_LIBRARIAN`, `SMOKE_MEMBER`, dan `SMOKE_GUEST`. Akun member harus tertaut ke record member. Untuk skenario penuh isi juga `SMOKE_OVERDUE_INVENTORY_CODE` dan `SMOKE_DIGITAL_SLUG` dari fixture staging.
+Isi `SMOKE_API_URL`, `SMOKE_SUPABASE_URL`, `SMOKE_SUPABASE_ANON_KEY`, `SMOKE_TARGET`, `SMOKE_CONFIRM=CREATE_DISPOSABLE_TEST_DATA`, serta email/password untuk prefix `SMOKE_MASTER_ADMIN`, `SMOKE_HEAD_LIBRARIAN`, `SMOKE_LIBRARIAN`, `SMOKE_MEMBER`, dan `SMOKE_GUEST`. Akun member harus otomatis memiliki record member aktif. Untuk skenario penuh isi juga `SMOKE_OVERDUE_INVENTORY_CODE` dan `SMOKE_DIGITAL_SLUG` dari fixture staging.
 
 ## Sesudah deployment
 

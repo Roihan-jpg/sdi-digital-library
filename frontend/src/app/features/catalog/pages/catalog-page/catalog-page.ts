@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -6,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CatalogApiService, type CatalogBook } from '../../data-access/catalog-api.service';
 import { AuthStore } from '../../../../core/auth/auth.store';
+import { parseApiError } from '../../../../core/errors/api-error';
 import { CirculationApiService } from '../../../circulation/data-access/circulation-api.service';
 
 @Component({
@@ -207,20 +207,6 @@ export class CatalogPage {
   }
 
   private errorText(error: unknown, fallback: string) {
-    if (error instanceof HttpErrorResponse) {
-      const message = this.responseMessage(error.error);
-      if (message) return message;
-    }
-    return fallback;
+    return parseApiError(error, fallback).message;
   }
-
-  private responseMessage(value: unknown) {
-    if (!isRecord(value)) return '';
-    const message = value['message'];
-    return typeof message === 'string' && message.trim() ? message : '';
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

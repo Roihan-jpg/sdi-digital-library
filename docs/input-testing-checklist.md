@@ -11,7 +11,7 @@ Untuk setiap poin: buka menu terkait, isi data, klik **Simpan/Proses**, lalu cek
 | Data yang diisi               | Harus sudah ada / dampaknya                                                               |
 | ----------------------------- | ----------------------------------------------------------------------------------------- |
 | Tahun ajaran → kelas → rombel | Kelas dapat memakai tahun ajaran; rombel harus memilih kelas.                             |
-| Member                        | Siswa memilih kelas dan rombel; satu member dapat dihubungkan ke satu akun profile.       |
+| Member                        | Siswa memilih kelas dan rombel; akun ber-role member otomatis memperoleh satu record anggota. |
 | Judul buku                    | Dapat memakai kategori, pengarang, penerbit, rak default, dan kategori biaya penggantian. |
 | Eksemplar buku                | Wajib memilih judul buku; dapat memilih rak. Satu judul bisa memiliki banyak eksemplar.   |
 | Peminjaman                    | Memilih member dan satu/lebih eksemplar; menghasilkan item pinjaman.                      |
@@ -27,7 +27,8 @@ Gunakan `master_admin`.
 
 - Buat akun: email valid, nama lengkap, role, dan undangan atau kata sandi sementara.
 - Uji email salah/duplikat dan kata sandi yang kurang dari 12 karakter atau tidak memiliki huruf besar, kecil, angka, dan simbol.
-- Hubungkan akun ke member; coba hubungkan member yang sama ke akun lain. Harus ditolak.
+- Buat akun member dan ubah role akun guest menjadi member; masing-masing harus otomatis memiliki tepat satu member aktif tanpa duplikasi.
+- Dari akun member dengan data sementara, gunakan **Hubungkan member** untuk memilih anggota aktif yang belum terhubung; data sementara harus terganti dan akun tetap ber-role `member`.
 - Ubah role/status akun; coba lakukan sebagai role selain master admin. Harus ditolak.
 - Uji pengaturan: batas pinjaman, hari pinjam, jumlah/hari perpanjangan, denda per hari, lama hold reservasi, nama sekolah, email sekolah, dan timezone.
 - Isi angka nol, negatif, desimal, atau melewati batas; sistem harus menolak. Setelah setting valid disimpan, cek transaksi baru mengikuti setting tersebut.

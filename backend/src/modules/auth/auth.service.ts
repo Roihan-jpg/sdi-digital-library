@@ -6,6 +6,7 @@ import type {
   AuthContext,
   AuthServicePort,
   CreateAccountInput,
+  MemberLinkCandidateFilters,
   ManagedProfile,
   ProfileListFilters,
   ProfileServicePort,
@@ -76,7 +77,11 @@ export class ProfileService implements ProfileServicePort {
   }
 
   async linkMember(context: AuthContext, userId: string, memberId: string): Promise<void> {
-    await this.repository.linkMember(context.accessToken, userId, memberId);
+    await this.repository.linkMember(context.profile.id, userId, memberId);
+  }
+
+  async listMemberLinkCandidates(context: AuthContext, filters: MemberLinkCandidateFilters) {
+    return this.repository.listMemberLinkCandidates(context.accessToken, filters);
   }
 
   async listManagedProfiles(

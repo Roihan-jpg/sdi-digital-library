@@ -74,6 +74,14 @@ class FakeProfileService implements ProfileServicePort {
   createdAccount: { username: string; fullName: string; role: AppRole } | null = null;
   updatedAccount: { userId: string; input: UpdateAccountInput } | null = null;
   deletedAccount: string | null = null;
+  readonly memberLinkCandidates = [
+    {
+      id: memberId,
+      memberCode: 'M-0001',
+      fullName: 'Siswa Uji',
+      isStudent: true,
+    },
+  ];
 
   async listProfiles(
     authContext: AuthContext,
@@ -107,6 +115,10 @@ class FakeProfileService implements ProfileServicePort {
   }
 
   async linkMember(_context: AuthContext, _userId: string, _memberId: string): Promise<void> {}
+
+  async listMemberLinkCandidates() {
+    return { items: this.memberLinkCandidates, total: this.memberLinkCandidates.length };
+  }
 
   async createAccount(
     _context: AuthContext,
@@ -200,6 +212,20 @@ describe('auth and profile routes', () => {
     assert.equal(allowed.status, 200);
   });
 
+  it('lets a master admin search active members that are available to link', async () => {
+    const response = await request('/api/profiles/member-link-candidates?search=siswa', 'master-token');
+    const body = (await response.json()) as {
+      data: Array<{ memberCode: string; fullName: string; isStudent: boolean }>;
+      pagination: { total: number };
+    };
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.data, [
+      { id: memberId, memberCode: 'M-0001', fullName: 'Siswa Uji', isStudent: true },
+    ]);
+    assert.equal(body.pagination.total, 1);
+  });
+
   it('allows a master admin to call the protected role RPC flow', async () => {
     const response = await request(`/api/profiles/${targetId}/role`, 'master-token', {
       method: 'PATCH',
@@ -263,6 +289,22 @@ describe('auth and profile routes', () => {
       fullName: 'Kepala Baru',
       role: 'head_librarian',
     });
+  });
+
+  it('rejects the retired manual member-link field when creating an account', async () => {
+    const response = await request('/api/profiles', 'master-token', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: 'member.baru',
+        fullName: 'Member Baru',
+        role: 'member',
+        password: 'MemberBaru2026',
+        memberId: memberId,
+      }),
+    });
+
+    assert.equal(response.status, 400);
+    assert.equal(profileService.createdAccount?.username, 'kepala.baru');
   });
 
   function request(path: string, token: string, init: RequestInit = {}): Promise<Response> {

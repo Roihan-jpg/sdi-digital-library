@@ -12,6 +12,8 @@ import type {
   AuthContext,
   CreateAccountInput,
   LocalLoginResult,
+  MemberLinkCandidate,
+  MemberLinkCandidateFilters,
   ManagedProfile,
   MemberSummary,
   ProfileListFilters,
@@ -321,13 +323,14 @@ export class AuthRepository {
       password_updated_at: new Date().toISOString(),
     });
     if (accountError) {
-      await this.adminClient.from('profiles').update({ is_active: false }).eq('id', profile.id);
+      await this.adminClient.from('members').delete().eq('user_id', profile.id);
+      await this.adminClient.from('profiles').delete().eq('id', profile.id);
       throw databaseWriteError(
         accountError.code,
         'Username sudah digunakan atau akun belum dapat dibuat.',
       );
     }
-    if (input.memberId) await this.linkMemberByProfileId(profile.id, input.memberId);
+    const member = input.role === 'member' ? await this.getMemberByProfileId(profile.id) : null;
     await this.recordAuthAudit(context.profile.id, profile.id, 'LOCAL_ACCOUNT_CREATED', {
       username: input.username,
       role: input.role,
@@ -340,7 +343,9 @@ export class AuthRepository {
       createdAt: profile.created_at,
       lastSignInAt: null,
       invitedAt: null,
-      member: null,
+      member: member
+        ? { id: member.id, memberCode: member.memberCode, fullName: member.fullName }
+        : null,
     };
   }
 
@@ -411,8 +416,49 @@ export class AuthRepository {
     return mapProfile(data as ProfileRow);
   }
 
-  async linkMember(_accessToken: string, userId: string, memberId: string): Promise<void> {
-    await this.linkMemberByProfileId(userId, memberId);
+  async linkMember(actorProfileId: string, userId: string, memberId: string): Promise<void> {
+    const { error } = await this.adminClient.rpc('link_member_account', {
+      p_actor_profile_id: actorProfileId,
+      p_member_id: memberId,
+      p_user_id: userId,
+    });
+    if (error) {
+      throw new AppError(422, 'MEMBER_LINK_FAILED', 'Akun tidak dapat dihubungkan ke anggota.');
+    }
+  }
+
+  async listMemberLinkCandidates(
+    _accessToken: string,
+    filters: MemberLinkCandidateFilters,
+  ): Promise<{ items: MemberLinkCandidate[]; total: number }> {
+    const from = (filters.page - 1) * filters.limit;
+    let query = this.adminClient
+      .from('members')
+      .select('id, member_code, full_name, is_student', { count: 'exact' })
+      .eq('is_active', true)
+      .is('user_id', null)
+      .order('full_name', { ascending: true })
+      .range(from, from + filters.limit - 1);
+    if (filters.search) {
+      query = query.textSearch(
+        'search_vector',
+        filters.search.split(/\s+/).join(' & '),
+        { type: 'plain' },
+      );
+    }
+    const { data, error, count } = await query;
+    if (error) {
+      throw new AppError(503, 'MEMBER_LINK_CANDIDATES_FAILED', 'Daftar member belum dapat dimuat.');
+    }
+    return {
+      items: (data ?? []).map((row) => ({
+        id: String(row.id),
+        memberCode: String(row.member_code),
+        fullName: String(row.full_name),
+        isStudent: Boolean(row.is_student),
+      })),
+      total: count ?? 0,
+    };
   }
 
   async logout(accessToken: string): Promise<void> {
@@ -508,25 +554,6 @@ export class AuthRepository {
       .maybeSingle();
     if (error) throw new AppError(503, 'MEMBER_LOOKUP_FAILED', 'Data anggota belum dapat dimuat.');
     return data ? mapMember(data as MemberRow) : null;
-  }
-
-  private async linkMemberByProfileId(profileId: string, memberId: string): Promise<void> {
-    const { data: profile, error: profileError } = await this.adminClient
-      .from('profiles')
-      .select('id, role, is_active')
-      .eq('id', profileId)
-      .single();
-    if (profileError || !profile || !profile.is_active)
-      throw new AppError(422, 'MEMBER_LINK_FAILED', 'Akun aktif tidak ditemukan.');
-    const { error } = await this.adminClient
-      .from('members')
-      .update({ user_id: profileId })
-      .eq('id', memberId)
-      .or(`user_id.is.null,user_id.eq.${profileId}`);
-    if (error)
-      throw new AppError(422, 'MEMBER_LINK_FAILED', 'Akun tidak dapat dihubungkan ke anggota.');
-    if (profile.role === 'guest')
-      await this.adminClient.from('profiles').update({ role: 'member' }).eq('id', profileId);
   }
 
   private async recordAuthAudit(

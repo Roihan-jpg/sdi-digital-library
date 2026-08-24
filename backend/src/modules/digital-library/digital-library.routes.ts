@@ -7,11 +7,17 @@ import {
   digitalActionSchema,
   digitalCatalogQuerySchema,
   digitalCollectionInputSchema,
+  digitalUploadSessionSchema,
   idSchema,
   slugSchema,
 } from './digital-library.schema.js';
 import type { AuthContext } from '../auth/auth.types.js';
-import type { DigitalAction, DigitalCatalogQuery, DigitalCollectionInput } from './digital-library.schema.js';
+import type {
+  DigitalAction,
+  DigitalCatalogQuery,
+  DigitalCollectionInput,
+  DigitalUploadSessionInput,
+} from './digital-library.schema.js';
 
 export interface DigitalLibraryServicePort {
   listPublic(query: DigitalCatalogQuery): Promise<{ items: unknown[]; total: number }>;
@@ -19,6 +25,9 @@ export interface DigitalLibraryServicePort {
   listManagement(): Promise<unknown[]>;
   create(context: AuthContext, input: DigitalCollectionInput, file: Express.Multer.File, cover?: Express.Multer.File): Promise<unknown>;
   update(context: AuthContext, id: string, input: DigitalCollectionInput, file?: Express.Multer.File, cover?: Express.Multer.File): Promise<unknown>;
+  createUploadSession(context: AuthContext, input: DigitalUploadSessionInput): Promise<unknown>;
+  finalizeUploadSession(context: AuthContext, id: string, input: DigitalCollectionInput): Promise<unknown>;
+  cancelUploadSession(context: AuthContext, id: string): Promise<void>;
   remove(context: AuthContext, id: string): Promise<void>;
   access(context: AuthContext, id: string, action: DigitalAction): Promise<unknown>;
 }
@@ -46,6 +55,39 @@ export function createDigitalLibraryRouter(
     authenticate(authService),
     authorize('head_librarian', 'librarian'),
     async (_req, res) => res.json({ data: await service.listManagement() }),
+  );
+  router.post(
+    '/upload-sessions',
+    authenticate(authService),
+    authorize('librarian'),
+    async (req, res) => {
+      res.status(201).json({
+        data: await service.createUploadSession(req.auth!, digitalUploadSessionSchema.parse(req.body)),
+      });
+    },
+  );
+  router.patch(
+    '/upload-sessions/:id',
+    authenticate(authService),
+    authorize('librarian'),
+    async (req, res) => {
+      res.json({
+        data: await service.finalizeUploadSession(
+          req.auth!,
+          idSchema.parse(req.params['id']),
+          digitalCollectionInputSchema.parse(req.body),
+        ),
+      });
+    },
+  );
+  router.delete(
+    '/upload-sessions/:id',
+    authenticate(authService),
+    authorize('librarian'),
+    async (req, res) => {
+      await service.cancelUploadSession(req.auth!, idSchema.parse(req.params['id']));
+      res.status(204).send();
+    },
   );
   router.post(
     '/',

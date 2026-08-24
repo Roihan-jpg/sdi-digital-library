@@ -24,6 +24,13 @@ export interface ManagedProfile {
   member: { id: string; memberCode: string; fullName: string } | null;
 }
 
+export interface MemberLinkCandidate {
+  id: string;
+  memberCode: string;
+  fullName: string;
+  isStudent: boolean;
+}
+
 export interface LibrarySettings {
   maxActiveLoans: number;
   loanPeriodDays: number;
@@ -93,9 +100,6 @@ export class AdministrationApiService {
       isActive,
     });
   }
-  linkMember(id: string, memberId: string) {
-    return this.http.post<void>(`${this.base}/profiles/${id}/link-member`, { memberId });
-  }
   updatePassword(id: string, password: string) {
     return this.http.patch<void>(`${this.base}/profiles/${id}/password`, { password });
   }
@@ -104,6 +108,19 @@ export class AdministrationApiService {
   }
   deleteUser(id: string) {
     return this.http.delete<void>(`${this.base}/profiles/${id}`);
+  }
+  listMemberLinkCandidates(search = '') {
+    const params = new HttpParams().set('page', 1).set('limit', 20).set('search', search);
+    return this.http.get<PaginatedResponse<MemberLinkCandidate>>(
+      `${this.base}/profiles/member-link-candidates`,
+      { params },
+    );
+  }
+  linkMember(userId: string, memberId: string) {
+    return this.http.post<ApiResponse<{ userId: string; memberId: string }>>(
+      `${this.base}/profiles/${userId}/link-member`,
+      { memberId },
+    );
   }
   getSettings() {
     return this.http.get<ApiResponse<LibrarySettings>>(`${this.base}/settings/library`);

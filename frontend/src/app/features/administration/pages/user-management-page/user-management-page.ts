@@ -5,6 +5,7 @@ import type { AppRole } from '../../../../core/auth/auth.models';
 import { parseApiError } from '../../../../core/errors/api-error';
 import {
   AdministrationApiService,
+  type MemberLinkCandidate,
   type ManagedProfile,
 } from '../../data-access/administration-api.service';
 
@@ -24,7 +25,7 @@ const roles: Array<{ value: AppRole; label: string }> = [
         <div>
           <p class="eyebrow">Administrasi akun</p>
           <h1>User dan role</h1>
-          <p>Buat akun lokal, atur akses, hubungkan member, dan kelola kata sandi.</p>
+          <p>Buat akun lokal, atur akses, dan kelola kata sandi.</p>
         </div>
         <button
           class="icon-button refresh-button"
@@ -67,12 +68,10 @@ const roles: Array<{ value: AppRole; label: string }> = [
           </div>
         </div>
         <label class="field"><span>Nama lengkap</span><input formControlName="fullName" /></label>
-        <label
-          class="field"
+        <label class="field"
           ><span>Username</span><input formControlName="username" autocomplete="username"
         /></label>
-        <label
-          class="field"
+        <label class="field"
           ><span>Role</span
           ><select formControlName="role">
             @for (role of roles; track role.value) {
@@ -80,16 +79,14 @@ const roles: Array<{ value: AppRole; label: string }> = [
             }
           </select></label
         >
-        <label
-          class="field"
+        <label class="field"
           ><span>Kata sandi awal</span
           ><span class="password-input"
             ><input
               id="create-password"
               [type]="showInitialPassword() ? 'text' : 'password'"
               formControlName="password"
-              autocomplete="new-password"
-            /><button
+              autocomplete="new-password" /><button
               class="password-toggle"
               type="button"
               aria-controls="create-password"
@@ -101,24 +98,22 @@ const roles: Array<{ value: AppRole; label: string }> = [
             >
               @if (showInitialPassword()) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                  <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 3.8 9.5 7a10.5 10.5 0 0 1-3.1 4.8M6.2 6.2C4.3 7.5 3.1 9.4 2.5 12c1 3.2 4.5 7 9.5 7 1.1 0 2.1-.2 3-.5" />
+                  <path
+                    d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 3.8 9.5 7a10.5 10.5 0 0 1-3.1 4.8M6.2 6.2C4.3 7.5 3.1 9.4 2.5 12c1 3.2 4.5 7 9.5 7 1.1 0 2.1-.2 3-.5"
+                  />
                 </svg>
               } @else {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-              }
-            </button></span
-          ><small
-            >Minimal 8 karakter: huruf besar, huruf kecil, dan angka.</small
-          ></label
+              }</button></span
+          ><small>Minimal 8 karakter: huruf besar, huruf kecil, dan angka.</small></label
         >
-        <label
-          class="field"
-          ><span>ID member (opsional)</span
-          ><input formControlName="memberId" placeholder="UUID member"
-        /></label>
+        <p class="form-hint">
+          Akun ber-role member otomatis memperoleh data anggota sementara. Lengkapi data siswa bila
+          diperlukan.
+        </p>
         <button class="primary" type="submit" [disabled]="saving()">
           {{ saving() ? 'Membuat...' : 'Buat akun' }}
         </button>
@@ -236,10 +231,18 @@ const roles: Array<{ value: AppRole; label: string }> = [
                       </label>
                     </td>
                     <td>
-                      <span>{{ user.member?.memberCode || 'Belum terhubung' }}</span
-                      ><button class="link" type="button" (click)="startMemberLink(user)">
-                        Hubungkan
-                      </button>
+                      @if (user.member) {
+                        <span>{{ user.member.memberCode }}</span>
+                      } @else {
+                        <span>{{
+                          user.role === 'member' ? 'Anggota otomatis sedang disiapkan' : '—'
+                        }}</span>
+                      }
+                      @if (canLinkMember(user)) {
+                        <button class="link" type="button" (click)="startMemberLink(user)">
+                          Hubungkan member
+                        </button>
+                      }
                     </td>
                     <td>
                       @if (user.authSource === 'local') {
@@ -253,7 +256,12 @@ const roles: Array<{ value: AppRole; label: string }> = [
                             title="Edit akun"
                             (click)="startEdit(user)"
                           >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              aria-hidden="true"
+                            >
                               <path d="m4 16.5-.8 3.8 3.8-.8L18.5 8a2.8 2.8 0 0 0-4-4L4 16.5Z" />
                               <path d="m13 5 6 6" />
                             </svg>
@@ -267,7 +275,12 @@ const roles: Array<{ value: AppRole; label: string }> = [
                             title="Hapus akun"
                             (click)="deleteUser(user)"
                           >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              aria-hidden="true"
+                            >
                               <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
                             </svg>
                           </button>
@@ -283,22 +296,18 @@ const roles: Array<{ value: AppRole; label: string }> = [
           </div>
         }
       </section>
+
       @if (linkTarget(); as target) {
-        <form class="panel link-panel" (ngSubmit)="confirmMemberLink()" novalidate>
-          <div>
-            <p class="eyebrow">Tautkan member</p>
-            <h2>{{ target.fullName || target.email }}</h2>
-            <p>
-              Masukkan UUID member yang sudah ada. Satu akun hanya dapat terhubung ke satu member.
-            </p>
-          </div>
-          <label class="field"
-            ><span>ID member</span><input [formControl]="linkMemberId" autocomplete="off"
-          /></label>
-          <div class="link-actions">
-            <button class="primary" type="submit" [disabled]="linking()">
-              {{ linking() ? 'Menghubungkan...' : 'Hubungkan member' }}
-            </button>
+        <section class="panel link-panel" aria-labelledby="member-link-title">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">Koreksi anggota</p>
+              <h2 id="member-link-title">Hubungkan member</h2>
+              <p>
+                Pilih data anggota untuk {{ target.fullName || target.username || 'akun ini' }}.
+                Data anggota sementara akan diganti.
+              </p>
+            </div>
             <button
               class="secondary"
               type="button"
@@ -308,7 +317,43 @@ const roles: Array<{ value: AppRole; label: string }> = [
               Batal
             </button>
           </div>
-        </form>
+          <form class="member-search" (ngSubmit)="loadMemberLinkCandidates()">
+            <label class="field">
+              <span>Cari anggota</span>
+              <input [formControl]="memberLinkSearch" placeholder="Nama, kode, NIS, atau NISN" />
+            </label>
+            <button class="secondary" type="submit" [disabled]="linkCandidatesLoading()">
+              Cari
+            </button>
+          </form>
+          @if (linkCandidatesLoading()) {
+            <p class="state">Memuat kandidat anggota...</p>
+          } @else if (memberLinkCandidates().length === 0) {
+            <p class="state">Tidak ada anggota aktif yang belum terhubung.</p>
+          } @else {
+            <div class="member-candidates">
+              @for (candidate of memberLinkCandidates(); track candidate.id) {
+                <article>
+                  <div>
+                    <strong>{{ candidate.fullName }}</strong>
+                    <small
+                      >{{ candidate.memberCode }} ·
+                      {{ candidate.isStudent ? 'Siswa' : 'Non-siswa' }}</small
+                    >
+                  </div>
+                  <button
+                    class="secondary"
+                    type="button"
+                    [disabled]="linking()"
+                    (click)="linkCandidate(candidate)"
+                  >
+                    {{ linking() ? 'Menghubungkan...' : 'Pilih' }}
+                  </button>
+                </article>
+              }
+            </div>
+          }
+        </section>
       }
     </section>
   `,
@@ -359,18 +404,9 @@ const roles: Array<{ value: AppRole; label: string }> = [
     .form .panel-title {
       grid-column: 1/-1;
     }
-    .link-panel {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr) auto;
-      gap: var(--space-4);
-      align-items: end;
-    }
-    .link-panel p {
-      margin-bottom: 0;
-    }
-    .link-actions {
-      display: flex;
-      gap: var(--space-2);
+    .form-hint {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
     }
     .field {
       display: grid;
@@ -531,19 +567,56 @@ const roles: Array<{ value: AppRole; label: string }> = [
     td small {
       color: var(--color-text-muted);
     }
-    .link {
-      display: block;
-      border: 0;
-      background: none;
-      color: var(--color-info);
-      text-decoration: underline;
-      padding: 4px 0;
-      cursor: pointer;
-    }
     .account-actions {
       display: flex;
       gap: var(--space-2);
       align-items: center;
+    }
+    .link {
+      margin-top: var(--space-2);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--color-brand-800);
+      font: inherit;
+      font-weight: 700;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .link-panel > .panel-title p:last-child {
+      margin-bottom: 0;
+      color: var(--color-text-muted);
+    }
+    .member-search {
+      display: flex;
+      gap: var(--space-3);
+      align-items: end;
+      margin-top: var(--space-4);
+    }
+    .member-search .field {
+      flex: 1;
+    }
+    .member-candidates {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+    .member-candidates article {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-4);
+      align-items: center;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+    }
+    .member-candidates strong,
+    .member-candidates small {
+      display: block;
+    }
+    .member-candidates small {
+      margin-top: var(--space-1);
+      color: var(--color-text-muted);
     }
     .icon-action.danger {
       color: var(--color-danger);
@@ -598,7 +671,9 @@ const roles: Array<{ value: AppRole; label: string }> = [
       opacity: 0;
       stroke: var(--color-text-inverse);
       stroke-width: 8;
-      transition: right 0.3s ease-in-out, opacity 0.15s ease-in-out;
+      transition:
+        right 0.3s ease-in-out,
+        opacity 0.15s ease-in-out;
     }
     .switch input:checked + .slider {
       border-color: var(--color-action-primary);
@@ -650,9 +725,6 @@ const roles: Array<{ value: AppRole; label: string }> = [
       .form {
         grid-template-columns: 1fr;
       }
-      .link-panel {
-        grid-template-columns: 1fr;
-      }
       .edit-panel {
         grid-template-columns: 1fr;
       }
@@ -665,6 +737,10 @@ const roles: Array<{ value: AppRole; label: string }> = [
       }
       .search {
         min-width: 0;
+      }
+      .member-search,
+      .member-candidates article {
+        display: grid;
       }
     }
     @media (max-width: 560px) {
@@ -697,22 +773,16 @@ export class UserManagementPage {
   protected readonly saving = signal(false);
   protected readonly showInitialPassword = signal(false);
   protected readonly editing = signal(false);
-  protected readonly linking = signal(false);
   protected readonly message = signal('');
   protected readonly hasError = signal(false);
   protected readonly statusUpdatingId = signal<string | null>(null);
   protected readonly search = new FormControl('', { nonNullable: true });
-  protected readonly linkTarget = signal<ManagedProfile | null>(null);
   protected readonly editTarget = signal<ManagedProfile | null>(null);
-  protected readonly linkMemberId = new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required,
-      Validators.pattern(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      ),
-    ],
-  });
+  protected readonly linkTarget = signal<ManagedProfile | null>(null);
+  protected readonly memberLinkCandidates = signal<MemberLinkCandidate[]>([]);
+  protected readonly linkCandidatesLoading = signal(false);
+  protected readonly linking = signal(false);
+  protected readonly memberLinkSearch = new FormControl('', { nonNullable: true });
   protected readonly createForm = new FormGroup({
     fullName: new FormControl('', {
       nonNullable: true,
@@ -728,7 +798,6 @@ export class UserManagementPage {
     }),
     role: new FormControl<AppRole>('member', { nonNullable: true }),
     password: new FormControl('', { nonNullable: true }),
-    memberId: new FormControl('', { nonNullable: true }),
   });
   protected readonly editForm = new FormGroup({
     fullName: new FormControl('', {
@@ -779,7 +848,6 @@ export class UserManagementPage {
       role: value.role,
       password: value.password,
     };
-    if (value.memberId) input['memberId'] = value.memberId;
     this.saving.set(true);
     try {
       await firstValueFrom(this.api.createUser(input));
@@ -788,14 +856,13 @@ export class UserManagementPage {
         username: '',
         role: 'member',
         password: '',
-        memberId: '',
       });
       this.showInitialPassword.set(false);
       this.show('Akun berhasil dibuat.', false);
       await this.load();
     } catch (error) {
       this.show(
-        apiMessage(error, 'Akun belum dapat dibuat. Periksa username, role, dan ID member.'),
+        apiMessage(error, 'Akun belum dapat dibuat. Periksa username, role, dan kata sandi.'),
         true,
       );
     } finally {
@@ -826,6 +893,58 @@ export class UserManagementPage {
   protected cancelEdit() {
     this.editTarget.set(null);
     this.editForm.reset({ fullName: '', username: '', role: 'member', password: '' });
+  }
+  protected canLinkMember(user: ManagedProfile): boolean {
+    return (
+      user.authSource === 'local' &&
+      (user.role === 'member' || user.role === 'guest') &&
+      (!user.member || user.member.memberCode.startsWith('AUTO-MEMBER-'))
+    );
+  }
+  protected async startMemberLink(user: ManagedProfile) {
+    if (!this.canLinkMember(user)) return;
+    this.linkTarget.set(user);
+    this.memberLinkSearch.setValue('');
+    await this.loadMemberLinkCandidates();
+  }
+  protected cancelMemberLink() {
+    this.linkTarget.set(null);
+    this.memberLinkCandidates.set([]);
+    this.memberLinkSearch.setValue('');
+  }
+  protected async loadMemberLinkCandidates() {
+    this.linkCandidatesLoading.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.api.listMemberLinkCandidates(this.memberLinkSearch.value.trim()),
+      );
+      this.memberLinkCandidates.set(response.data);
+    } catch (error) {
+      this.show(apiMessage(error, 'Daftar kandidat anggota belum dapat dimuat.'), true);
+    } finally {
+      this.linkCandidatesLoading.set(false);
+    }
+  }
+  protected async linkCandidate(candidate: MemberLinkCandidate) {
+    const target = this.linkTarget();
+    if (!target) return;
+    if (
+      !window.confirm(
+        `Hubungkan ${target.fullName || target.username || 'akun ini'} ke ${candidate.fullName}? Data anggota sementara akan diganti.`,
+      )
+    )
+      return;
+    this.linking.set(true);
+    try {
+      await firstValueFrom(this.api.linkMember(target.id, candidate.id));
+      this.show('Akun berhasil dihubungkan ke data anggota.', false);
+      this.cancelMemberLink();
+      await this.load();
+    } catch (error) {
+      this.show(apiMessage(error, 'Akun belum dapat dihubungkan ke anggota.'), true);
+    } finally {
+      this.linking.set(false);
+    }
   }
   protected async saveEdit() {
     const target = this.editTarget();
@@ -899,36 +1018,6 @@ export class UserManagementPage {
       await this.load();
     } finally {
       this.statusUpdatingId.set(null);
-    }
-  }
-  protected startMemberLink(user: ManagedProfile) {
-    this.linkTarget.set(user);
-    this.linkMemberId.setValue(user.member?.id ?? '');
-  }
-  protected cancelMemberLink() {
-    this.linkTarget.set(null);
-    this.linkMemberId.reset('');
-  }
-  protected async confirmMemberLink() {
-    const target = this.linkTarget();
-    if (!target || this.linkMemberId.invalid) {
-      this.linkMemberId.markAsTouched();
-      this.show('ID member harus berupa UUID yang valid.', true);
-      return;
-    }
-    this.linking.set(true);
-    try {
-      await firstValueFrom(this.api.linkMember(target.id, this.linkMemberId.value.trim()));
-      this.show('Akun terhubung ke member.', false);
-      this.cancelMemberLink();
-      await this.load();
-    } catch (error) {
-      this.show(
-        apiMessage(error, 'Member belum dapat dihubungkan. Periksa ID lalu coba lagi.'),
-        true,
-      );
-    } finally {
-      this.linking.set(false);
     }
   }
   private show(message: string, error: boolean) {

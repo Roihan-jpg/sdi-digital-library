@@ -604,6 +604,75 @@ export type Database = {
           },
         ]
       }
+      digital_upload_sessions: {
+        Row: {
+          cancelled_at: string | null
+          cover_mime_type: string | null
+          cover_path: string | null
+          cover_size_bytes: number | null
+          created_at: string
+          created_by: string
+          expires_at: string
+          finalized_at: string | null
+          id: string
+          main_mime_type: string | null
+          main_path: string | null
+          main_size_bytes: number | null
+          operation: string
+          status: string
+          target_collection_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cover_mime_type?: string | null
+          cover_path?: string | null
+          cover_size_bytes?: number | null
+          created_at?: string
+          created_by: string
+          expires_at: string
+          finalized_at?: string | null
+          id?: string
+          main_mime_type?: string | null
+          main_path?: string | null
+          main_size_bytes?: number | null
+          operation: string
+          status?: string
+          target_collection_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          cover_mime_type?: string | null
+          cover_path?: string | null
+          cover_size_bytes?: number | null
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          finalized_at?: string | null
+          id?: string
+          main_mime_type?: string | null
+          main_path?: string | null
+          main_size_bytes?: number | null
+          operation?: string
+          status?: string
+          target_collection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_upload_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "digital_upload_sessions_target_collection_id_fkey"
+            columns: ["target_collection_id"]
+            isOneToOne: false
+            referencedRelation: "digital_collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fine_payments: {
         Row: {
           amount: number
@@ -2085,7 +2154,7 @@ export type Database = {
       is_master_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
       link_member_account: {
-        Args: { p_member_id: string; p_user_id: string }
+        Args: { p_actor_profile_id: string; p_member_id: string; p_user_id: string }
         Returns: undefined
       }
       lookup_book_copy_by_code: {

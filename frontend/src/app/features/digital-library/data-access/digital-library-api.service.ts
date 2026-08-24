@@ -15,6 +15,49 @@ export interface DigitalFilters {
   categoryId?: string;
   sort?: 'latest' | 'popular' | 'title';
 }
+export interface DigitalUploadFile {
+  name: string;
+  mimeType: string;
+  size: number;
+}
+export interface DigitalUploadTarget {
+  bucket: 'covers' | 'digital-library';
+  path: string;
+  token: string;
+}
+export interface DigitalUploadSession {
+  id: string;
+  expiresAt: string;
+  mainUpload: DigitalUploadTarget | null;
+  coverUpload: DigitalUploadTarget | null;
+}
+export type DigitalUploadSessionRequest =
+  | {
+      operation: 'create';
+      mediaType: DigitalMediaType;
+      mainFile: DigitalUploadFile;
+      coverFile?: DigitalUploadFile;
+    }
+  | {
+      operation: 'update';
+      collectionId: string;
+      mediaType: DigitalMediaType;
+      mainFile?: DigitalUploadFile;
+      coverFile?: DigitalUploadFile;
+    };
+export interface DigitalCollectionPayload {
+  title: string;
+  slug: string;
+  description: string;
+  mediaType: DigitalMediaType;
+  categoryId: string;
+  authorText: string;
+  publisherText: string;
+  publicationYear: number | null;
+  durationSeconds: number | null;
+  isDownloadable: boolean;
+  isPublished: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DigitalLibraryApiService {
@@ -40,6 +83,18 @@ export class DigitalLibraryApiService {
   }
   update(id: string, form: FormData) {
     return this.http.put<Response<DigitalCollection>>(`${this.baseUrl}/${id}`, form);
+  }
+  createUploadSession(input: DigitalUploadSessionRequest) {
+    return this.http.post<Response<DigitalUploadSession>>(`${this.baseUrl}/upload-sessions`, input);
+  }
+  finalizeUploadSession(id: string, input: DigitalCollectionPayload) {
+    return this.http.patch<Response<DigitalCollection>>(
+      `${this.baseUrl}/upload-sessions/${encodeURIComponent(id)}`,
+      input,
+    );
+  }
+  cancelUploadSession(id: string) {
+    return this.http.delete(`${this.baseUrl}/upload-sessions/${encodeURIComponent(id)}`);
   }
   remove(id: string) {
     return this.http.delete(`${this.baseUrl}/${id}`);

@@ -35,12 +35,24 @@ export interface ProfileListFilters {
   isActive?: boolean | undefined;
 }
 
+export interface MemberLinkCandidate {
+  id: string;
+  memberCode: string;
+  fullName: string;
+  isStudent: boolean;
+}
+
+export interface MemberLinkCandidateFilters {
+  page: number;
+  limit: number;
+  search: string;
+}
+
 interface CreateAccountBase {
   username: string;
   fullName: string;
   role: AppRole;
   password: string;
-  memberId?: string | undefined;
 }
 
 export type CreateAccountInput = CreateAccountBase;
@@ -98,6 +110,10 @@ export interface ProfileServicePort {
   setRole(context: AuthContext, userId: string, role: AppRole): Promise<void>;
   setActive(context: AuthContext, userId: string, isActive: boolean): Promise<AppProfile>;
   linkMember(context: AuthContext, userId: string, memberId: string): Promise<void>;
+  listMemberLinkCandidates?(
+    context: AuthContext,
+    filters: MemberLinkCandidateFilters,
+  ): Promise<{ items: MemberLinkCandidate[]; total: number }>;
   listManagedProfiles?(
     context: AuthContext,
     filters: ProfileListFilters,

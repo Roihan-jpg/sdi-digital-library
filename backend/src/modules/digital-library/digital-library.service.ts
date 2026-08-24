@@ -11,6 +11,7 @@ import type {
   DigitalAction,
   DigitalCatalogQuery,
   DigitalCollectionInput,
+  DigitalUploadSessionInput,
 } from './digital-library.schema.js';
 
 const mainMimeTypes = new Set([
@@ -21,6 +22,7 @@ const mainMimeTypes = new Set([
 const coverMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const fileLimit = 100 * 1024 * 1024;
 const coverLimit = 5 * 1024 * 1024;
+const uploadSessionTtlMs = 110 * 60 * 1000;
 const selectFields =
   'id,category_id,title,slug,description,media_type,author_text,publisher_text,publication_year,cover_path,mime_type,file_size_bytes,duration_seconds,is_downloadable,is_published,published_at,created_at,updated_at,categories(name)';
 
@@ -150,6 +152,184 @@ export class DigitalLibraryService {
     }
   }
 
+  async createUploadSession(context: AuthContext, input: DigitalUploadSessionInput) {
+    if (input.mainFile) validateMainDescriptor(input.mainFile, input.mediaType);
+    if (input.coverFile) validateCoverDescriptor(input.coverFile);
+    if (input.operation === 'update') await this.findManaged(input.collectionId);
+
+    const id = randomUUID();
+    const mainPath = input.mainFile ? objectPath(id, 'file', input.mainFile.name) : null;
+    const coverPath = input.coverFile ? objectPath(id, 'cover', input.coverFile.name) : null;
+    const expiresAt = new Date(Date.now() + uploadSessionTtlMs).toISOString();
+    const { error: insertError } = await this.admin.from('digital_upload_sessions').insert({
+      id,
+      created_by: context.user.id,
+      target_collection_id: input.operation === 'update' ? input.collectionId : null,
+      operation: input.operation,
+      main_path: mainPath,
+      main_mime_type: input.mainFile?.mimeType ?? null,
+      main_size_bytes: input.mainFile?.size ?? null,
+      cover_path: coverPath,
+      cover_mime_type: input.coverFile?.mimeType ?? null,
+      cover_size_bytes: input.coverFile?.size ?? null,
+      expires_at: expiresAt,
+    });
+    if (insertError) throw unavailable('Sesi unggah belum dapat disiapkan.');
+
+    try {
+      const [mainUpload, coverUpload] = await Promise.all([
+        mainPath ? this.signedUpload('digital-library', mainPath) : null,
+        coverPath ? this.signedUpload('covers', coverPath) : null,
+      ]);
+      return { id, expiresAt, mainUpload, coverUpload };
+    } catch (error) {
+      await this.admin.from('digital_upload_sessions').delete().eq('id', id);
+      throw error;
+    }
+  }
+
+  async finalizeUploadSession(context: AuthContext, id: string, input: DigitalCollectionInput) {
+    const session = await this.claimUploadSession(context, id);
+    const operation = String(session['operation']);
+    const mainPath = nullableString(session['main_path']);
+    const coverPath = nullableString(session['cover_path']);
+    let collectionWritten = false;
+    let previousMainPath: string | null = null;
+    let previousCoverPath: string | null = null;
+    try {
+      await this.assertSessionActive(session, 'finalizing');
+      const mainFile = mainPath
+        ? await this.assertStoredObject('digital-library', mainPath, session, 'main')
+        : null;
+      if (coverPath) await this.assertStoredObject('covers', coverPath, session, 'cover');
+      let result: Record<string, unknown>;
+      if (operation === 'create') {
+        if (!mainPath || !mainFile) {
+          throw new AppError(409, 'DIGITAL_UPLOAD_INCOMPLETE', 'File utama belum selesai diunggah.');
+        }
+        const { data, error } = await this.user(context)
+          .from('digital_collections')
+          .insert({
+            id: randomUUID(),
+            ...databaseInput(input),
+            published_at: input.isPublished ? new Date().toISOString() : null,
+            file_path: mainPath,
+            cover_path: coverPath,
+            mime_type: mainFile.mimeType,
+            file_size_bytes: mainFile.size,
+            created_by: context.user.id,
+          })
+          .select(selectFields)
+          .single();
+        if (error || !data) throw writeError(error?.code);
+        result = data as Record<string, unknown>;
+        collectionWritten = true;
+      } else {
+        const collectionId = nullableString(session['target_collection_id']);
+        if (!collectionId) throw new AppError(409, 'DIGITAL_UPLOAD_SESSION_INVALID', 'Sesi unggah tidak valid.');
+        const existing = await this.findManaged(collectionId);
+        const { data, error } = await this.user(context)
+          .from('digital_collections')
+          .update({
+            ...databaseInput(input),
+            published_at: input.isPublished
+              ? existing['is_published']
+                ? existing['published_at']
+                : new Date().toISOString()
+              : null,
+            ...(mainPath && mainFile
+              ? { file_path: mainPath, mime_type: mainFile.mimeType, file_size_bytes: mainFile.size }
+              : {}),
+            ...(coverPath ? { cover_path: coverPath } : {}),
+          })
+          .eq('id', collectionId)
+          .select(selectFields)
+          .single();
+        if (error || !data) throw writeError(error?.code);
+        result = data as Record<string, unknown>;
+        collectionWritten = true;
+        previousMainPath = mainPath ? nullableString(existing['file_path']) : null;
+        previousCoverPath = coverPath ? nullableString(existing['cover_path']) : null;
+      }
+      const { error: sessionError } = await this.admin
+        .from('digital_upload_sessions')
+        .update({ status: 'finalized', finalized_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('created_by', context.user.id)
+        .eq('status', 'finalizing');
+      if (sessionError) throw unavailable('Status unggahan belum dapat diselesaikan.');
+      await this.removeObjects(previousMainPath, previousCoverPath);
+      return publicDto(result, this.coverUrl(nullableString(result['cover_path'])), 0);
+    } catch (error) {
+      if (!collectionWritten) {
+        await this.removeObjects(mainPath, coverPath);
+        await this.admin
+          .from('digital_upload_sessions')
+          .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('created_by', context.user.id)
+          .eq('status', 'finalizing');
+      }
+      throw error;
+    }
+  }
+
+  async cancelUploadSession(context: AuthContext, id: string) {
+    const session = await this.findOwnedUploadSession(context, id);
+    await this.assertSessionActive(session);
+    await this.removeObjects(nullableString(session['main_path']), nullableString(session['cover_path']));
+    const { error } = await this.admin
+      .from('digital_upload_sessions')
+      .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('created_by', context.user.id)
+      .eq('status', 'pending');
+    if (error) throw unavailable('Sesi unggah belum dapat dibatalkan.');
+  }
+
+  async purgeExpiredUploadSessions() {
+    const now = new Date().toISOString();
+    const { data: expired, error: expiredError } = await this.admin
+      .from('digital_upload_sessions')
+      .select('id,status,main_path,cover_path')
+      .in('status', ['pending', 'finalizing'])
+      .lt('expires_at', now)
+      .limit(100);
+    const { data: inactive, error: inactiveError } = await this.admin
+      .from('digital_upload_sessions')
+      .select('id,status,main_path,cover_path')
+      .in('status', ['cancelled', 'expired'])
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (expiredError || inactiveError) {
+      throw unavailable('Sesi unggah kedaluwarsa belum dapat dibersihkan.');
+    }
+    for (const session of [...(expired ?? []), ...(inactive ?? [])]) {
+      const row = session as Record<string, unknown>;
+      const mainPath = nullableString(row['main_path']);
+      const coverPath = nullableString(row['cover_path']);
+      if (
+        String(row['status']) === 'finalizing' &&
+        await this.uploadPathsAreReferenced(mainPath, coverPath)
+      ) {
+        await this.admin
+          .from('digital_upload_sessions')
+          .update({ status: 'finalized', finalized_at: new Date().toISOString() })
+          .eq('id', String(row['id']))
+          .eq('status', 'finalizing');
+        continue;
+      }
+      await this.removeObjects(mainPath, coverPath);
+      if (!['pending', 'finalizing'].includes(String(row['status']))) continue;
+      await this.admin
+        .from('digital_upload_sessions')
+        .update({ status: 'expired' })
+        .eq('id', String(row['id']))
+        .in('status', ['pending', 'finalizing']);
+    }
+    return { expired: expired?.length ?? 0, cleanedInactive: inactive?.length ?? 0 };
+  }
+
   async remove(context: AuthContext, id: string) {
     const existing = await this.findManaged(id);
     const { error } = await this.user(context).from('digital_collections').delete().eq('id', id);
@@ -217,6 +397,99 @@ export class DigitalLibraryService {
     return data as Record<string, unknown>;
   }
 
+  private async findOwnedUploadSession(context: AuthContext, id: string) {
+    const { data, error } = await this.admin
+      .from('digital_upload_sessions')
+      .select('*')
+      .eq('id', id)
+      .eq('created_by', context.user.id)
+      .single();
+    if (error || !data) {
+      throw new AppError(404, 'DIGITAL_UPLOAD_SESSION_NOT_FOUND', 'Sesi unggah tidak ditemukan.');
+    }
+    return data as Record<string, unknown>;
+  }
+
+  private async claimUploadSession(context: AuthContext, id: string) {
+    const { data, error } = await this.admin
+      .from('digital_upload_sessions')
+      .update({ status: 'finalizing' })
+      .eq('id', id)
+      .eq('created_by', context.user.id)
+      .eq('status', 'pending')
+      .select('*')
+      .maybeSingle();
+    if (error || !data) {
+      throw new AppError(409, 'DIGITAL_UPLOAD_SESSION_INACTIVE', 'Sesi unggah sudah tidak aktif.');
+    }
+    return data as Record<string, unknown>;
+  }
+
+  private async assertSessionActive(
+    session: Record<string, unknown>,
+    expectedStatus: 'pending' | 'finalizing' = 'pending',
+  ) {
+    if (String(session['status']) !== expectedStatus) {
+      throw new AppError(409, 'DIGITAL_UPLOAD_SESSION_INACTIVE', 'Sesi unggah sudah tidak aktif.');
+    }
+    if (new Date(String(session['expires_at'])).getTime() <= Date.now()) {
+      await this.removeObjects(nullableString(session['main_path']), nullableString(session['cover_path']));
+      await this.admin
+        .from('digital_upload_sessions')
+        .update({ status: 'expired' })
+        .eq('id', String(session['id']))
+        .eq('status', expectedStatus);
+      throw new AppError(409, 'DIGITAL_UPLOAD_SESSION_EXPIRED', 'Sesi unggah telah kedaluwarsa. Mulai unggahan lagi.');
+    }
+  }
+
+  private async signedUpload(bucket: 'covers' | 'digital-library', path: string) {
+    const { data, error } = await this.admin.storage.from(bucket).createSignedUploadUrl(path);
+    if (error || !data) throw unavailable('Token unggah belum dapat dibuat.');
+    return { bucket, path, token: data.token };
+  }
+
+  private async assertStoredObject(
+    bucket: 'covers' | 'digital-library',
+    path: string,
+    session: Record<string, unknown>,
+    kind: 'main' | 'cover',
+  ) {
+    const slashIndex = path.lastIndexOf('/');
+    const directory = path.slice(0, slashIndex);
+    const filename = path.slice(slashIndex + 1);
+    const { data, error } = await this.admin.storage.from(bucket).list(directory, { search: filename });
+    const object = (data ?? []).find((entry) => entry.name === filename);
+    const metadata = object?.metadata;
+    const expectedMime = nullableString(session[`${kind}_mime_type`]);
+    const expectedSize = Number(session[`${kind}_size_bytes`]);
+    const mimeType = metadata?.mimetype ?? null;
+    const size = metadata?.size ?? Number.NaN;
+    if (error || !object || !expectedMime || !Number.isFinite(expectedSize) || mimeType !== expectedMime || size !== expectedSize) {
+      throw new AppError(409, 'DIGITAL_UPLOAD_INCOMPLETE', 'File unggahan belum lengkap atau tidak sesuai. Unggah kembali file tersebut.');
+    }
+    return { mimeType: expectedMime, size: expectedSize };
+  }
+
+  private async uploadPathsAreReferenced(mainPath: string | null, coverPath: string | null) {
+    const conditions = [
+      ...(mainPath ? [`file_path.eq.${mainPath}`] : []),
+      ...(coverPath ? [`cover_path.eq.${coverPath}`] : []),
+    ];
+    if (!conditions.length) return false;
+    const { data } = await this.admin
+      .from('digital_collections')
+      .select('file_path,cover_path')
+      .or(conditions.join(','))
+      .limit(1);
+    return Boolean(
+      data?.some(
+        (collection) =>
+          collection.file_path === mainPath || collection.cover_path === coverPath,
+      ),
+    );
+  }
+
   private async upload(bucket: 'covers' | 'digital-library', path: string, file: Express.Multer.File) {
     const { error } = await this.admin.storage.from(bucket).upload(path, file.buffer, {
       contentType: file.mimetype,
@@ -251,6 +524,25 @@ export function validateMainFile(file: Express.Multer.File, mediaType: string) {
 
 export function validateCover(file: Express.Multer.File) {
   if (!coverMimeTypes.has(file.mimetype) || file.size > coverLimit || !safeName(file.originalname) || !hasExpectedSignature(file)) {
+    throw new AppError(400, 'DIGITAL_COVER_INVALID', 'Cover harus JPG, PNG, atau WebP maksimal 5 MB.');
+  }
+}
+
+function validateMainDescriptor(
+  file: { name: string; mimeType: string; size: number },
+  mediaType: string,
+) {
+  if (!mainMimeTypes.has(file.mimeType) || file.size > fileLimit || !safeName(file.name)) {
+    throw new AppError(400, 'DIGITAL_FILE_INVALID', 'Format, nama, atau ukuran file utama tidak valid (maksimal 100 MB).');
+  }
+  const validForType =
+    ((mediaType === 'ebook' || mediaType === 'module') && file.mimeType === 'application/pdf') ||
+    (mediaType === 'video' && file.mimeType.startsWith('video/'));
+  if (!validForType) throw new AppError(400, 'DIGITAL_MEDIA_MISMATCH', 'Jenis media tidak sesuai dengan file utama.');
+}
+
+function validateCoverDescriptor(file: { name: string; mimeType: string; size: number }) {
+  if (!coverMimeTypes.has(file.mimeType) || file.size > coverLimit || !safeName(file.name)) {
     throw new AppError(400, 'DIGITAL_COVER_INVALID', 'Cover harus JPG, PNG, atau WebP maksimal 5 MB.');
   }
 }

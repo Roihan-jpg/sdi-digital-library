@@ -5,6 +5,7 @@ import {
   createAccountSchema,
   linkMemberSchema,
   localLoginSchema,
+  memberLinkCandidateListSchema,
   profileListQuerySchema,
   updatePasswordSchema,
   updateAccountSchema,
@@ -63,6 +64,18 @@ export function createProfileRouter(
     res.status(200).json({
       data: result.items,
       pagination: { page: result.page, limit: result.limit, total: result.total },
+    });
+  });
+
+  router.get('/member-link-candidates', authorize('master_admin', 'librarian'), async (req, res) => {
+    if (!profileService.listMemberLinkCandidates) {
+      throw new Error('Daftar kandidat member belum tersedia.');
+    }
+    const filters = memberLinkCandidateListSchema.parse(req.query);
+    const result = await profileService.listMemberLinkCandidates(req.auth!, filters);
+    res.status(200).json({
+      data: result.items,
+      pagination: { page: filters.page, limit: filters.limit, total: result.total },
     });
   });
 

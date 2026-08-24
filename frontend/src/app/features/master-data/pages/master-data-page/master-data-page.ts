@@ -18,7 +18,6 @@ interface PageMessage {
 interface FieldConfig {
   name: FieldName;
   label: string;
-  helper: string;
   required: boolean;
   type?: 'text' | 'number' | 'select';
 }
@@ -39,19 +38,18 @@ interface FieldConfig {
         </div>
       </header>
 
-      <div class="workspace">
-        <aside class="kind-panel card card--indexed" aria-labelledby="master-kind-title">
+      <div class="workspace card">
+        <aside class="kind-panel" aria-labelledby="master-kind-title">
           <div class="panel-heading">
             <h2 id="master-kind-title">Pilih referensi</h2>
           </div>
 
-          <label class="field" for="master-kind">
+          <label class="field field--select" for="master-kind">
             <span class="field__label">Jenis master data</span>
             <select
               id="master-kind"
               name="master-kind"
               [formControl]="kind"
-              aria-describedby="master-kind-help"
               (change)="changeKind($event)"
             >
               @for (option of kinds; track option.value) {
@@ -63,9 +61,9 @@ interface FieldConfig {
 
         <form
           [hidden]="!canWrite()"
-          class="card editor-card"
+          class="editor-card"
           [formGroup]="form"
-          aria-describedby="form-helper form-feedback"
+          aria-describedby="form-feedback"
           (ngSubmit)="save()"
         >
           <div class="panel-heading">
@@ -83,7 +81,7 @@ interface FieldConfig {
 
           <div class="form-grid">
             @for (field of visibleFields(); track field.name) {
-              <label class="field" [for]="fieldId(field.name)">
+              <label class="field" [class.field--select]="field.type === 'select'" [for]="fieldId(field.name)">
                 <span class="field__label">
                   {{ field.label }}
                   @if (field.required) {
@@ -96,7 +94,7 @@ interface FieldConfig {
                     [id]="fieldId(field.name)"
                     [name]="field.name"
                     [formControlName]="field.name"
-                    [attr.aria-describedby]="fieldDescribedBy(field)"
+                    [attr.aria-describedby]="fieldErrorDescription(field.name)"
                     [attr.aria-invalid]="isInvalid(field.name)"
                   >
                     <option [ngValue]="null">Pilih tahun ajaran aktif</option>
@@ -116,7 +114,7 @@ interface FieldConfig {
                     [id]="fieldId(field.name)"
                     [name]="field.name"
                     [formControlName]="field.name"
-                    [attr.aria-describedby]="fieldDescribedBy(field)"
+                    [attr.aria-describedby]="fieldErrorDescription(field.name)"
                     [attr.aria-invalid]="isInvalid(field.name)"
                   >
                     <option [ngValue]="null">Pilih kelas aktif</option>
@@ -138,7 +136,7 @@ interface FieldConfig {
                     [type]="field.type ?? 'text'"
                     [formControlName]="field.name"
                     [attr.inputmode]="field.type === 'number' ? 'numeric' : null"
-                    [attr.aria-describedby]="fieldDescribedBy(field)"
+                    [attr.aria-describedby]="fieldErrorDescription(field.name)"
                     [attr.aria-invalid]="isInvalid(field.name)"
                     [attr.min]="field.name === 'gradeLevel' ? 1 : null"
                     [attr.max]="field.name === 'gradeLevel' ? 6 : null"
@@ -146,7 +144,6 @@ interface FieldConfig {
                     spellcheck="false"
                   />
                 }
-                <span [id]="fieldHelpId(field.name)" class="field__hint">{{ field.helper }}</span>
                 @if (isInvalid(field.name)) {
                   <span [id]="fieldErrorId(field.name)" class="validation-message" role="alert">
                     {{ errorMessage(field.name) }}
@@ -176,7 +173,7 @@ interface FieldConfig {
           </div>
         </form>
         @if (!canWrite()) {
-          <div class="card editor-card">
+          <div class="editor-card">
             <p class="eyebrow">Mode baca</p>
             <h2>Referensi operasional</h2>
             <p>
@@ -214,11 +211,6 @@ interface FieldConfig {
         <div class="table-wrap" tabindex="0" aria-label="Tabel master data dapat digeser mendatar">
           <table>
             <caption>
-              Daftar
-              {{
-                selectedKindLabel().toLowerCase()
-              }}
-              beserta status dan aksi pengelolaan.
             </caption>
             <thead>
               <tr>
@@ -423,7 +415,50 @@ interface FieldConfig {
 
     .form-grid {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--space-4);
+    }
+
+    .form-grid .field {
+      align-content: start;
+    }
+
+    .field--select {
+      position: relative;
+    }
+
+    .field--select::after {
+      position: absolute;
+      inset-inline-end: var(--space-4);
+      top: 3rem;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-inline-end: var(--border-width) solid var(--color-text-muted);
+      border-block-end: var(--border-width) solid var(--color-text-muted);
+      content: '';
+      pointer-events: none;
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .field--select select {
+      appearance: none;
+      padding-inline-end: calc(var(--space-4) + var(--space-5));
+    }
+
+    .master-page .field,
+    .master-page .check-field,
+    .master-page .field__label,
+    .master-page .check-field strong,
+    .master-page .check-field span {
+      font-weight: 400;
+    }
+
+    .master-page :is(input, select, textarea) {
+      font-weight: 400;
+    }
+
+    .master-page :is(input, textarea)::placeholder {
+      font-weight: 400;
     }
 
     .required-marker {
@@ -454,6 +489,10 @@ interface FieldConfig {
 
     .table-card .table-wrap table {
       min-width: 46rem;
+    }
+
+    .table-card .table-wrap {
+      scrollbar-gutter: auto;
     }
 
     caption {
@@ -542,6 +581,18 @@ interface FieldConfig {
       .workspace {
         grid-template-columns: minmax(18rem, 0.8fr) minmax(0, 1.2fr);
         align-items: start;
+      }
+
+      .editor-card {
+        min-width: 0;
+        padding-inline-start: var(--space-6);
+        border-inline-start: var(--border-width) solid var(--color-border);
+      }
+    }
+
+    @media (min-width: 48.0625rem) {
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -656,7 +707,6 @@ export class MasterDataPage {
       {
         name: 'name',
         label: 'Nama',
-        helper: 'Gunakan nama yang mudah dikenali petugas dan konsisten dengan data lama.',
         required: true,
       },
     ];
@@ -666,7 +716,6 @@ export class MasterDataPage {
         fields.push({
           name: 'code',
           label: 'Kode rak',
-          helper: 'Contoh: RAK-A1. Kode ini membantu petugas menemukan lokasi fisik buku.',
           required: true,
         });
         break;
@@ -674,23 +723,20 @@ export class MasterDataPage {
         fields.push({
           name: 'slug',
           label: 'Slug',
-          helper: 'Gunakan huruf kecil dan tanda hubung bila slug dibutuhkan katalog publik.',
           required: false,
-        }); 
+        });
         break;
       case 'classes':
         fields.push(
           {
             name: 'gradeLevel',
             label: 'Tingkat kelas',
-            helper: 'Isi angka 1 sampai 6.',
             required: true,
             type: 'number',
           },
           {
             name: 'schoolYearId',
             label: 'Tahun ajaran',
-            helper: 'Pilih tahun ajaran aktif bila kelas harus dikaitkan ke periode tertentu.',
             required: false,
             type: 'select',
           },
@@ -701,14 +747,12 @@ export class MasterDataPage {
           {
             name: 'classId',
             label: 'Kelas',
-            helper: 'Pilih kelas aktif yang sudah dibuat.',
             required: true,
             type: 'select',
           },
           {
             name: 'homeroomTeacherName',
             label: 'Wali kelas',
-            helper: 'Isi nama guru pendamping bila tersedia.',
             required: false,
           },
         );
@@ -935,20 +979,12 @@ export class MasterDataPage {
     return `master-${String(name).replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase())}`;
   }
 
-  protected fieldHelpId(name: FieldName) {
-    return `${this.fieldId(name)}-help`;
-  }
-
   protected fieldErrorId(name: FieldName) {
     return `${this.fieldId(name)}-error`;
   }
 
-  protected fieldDescribedBy(field: FieldConfig) {
-    const ids = [this.fieldHelpId(field.name)];
-    if (this.isInvalid(field.name)) {
-      ids.push(this.fieldErrorId(field.name));
-    }
-    return ids.join(' ');
+  protected fieldErrorDescription(name: FieldName) {
+    return this.isInvalid(name) ? this.fieldErrorId(name) : null;
   }
 
   protected rowSecondaryValue(row: MasterRow) {

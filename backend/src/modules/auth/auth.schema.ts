@@ -38,6 +38,11 @@ export const profileListQuerySchema = z.object({
     .transform((value) => value === 'true')
     .optional(),
 });
+export const memberLinkCandidateListSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().max(100).default(''),
+});
 
 const accountBaseSchema = z.object({
   username: z
@@ -50,7 +55,6 @@ const accountBaseSchema = z.object({
   fullName: z.string().trim().min(2).max(150),
   role: z.enum(['head_librarian', 'librarian', 'member', 'guest']),
   password: strongPasswordSchema,
-  memberId: z.uuid().optional(),
 });
 
 export const createAccountSchema = accountBaseSchema.strict();

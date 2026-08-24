@@ -76,6 +76,8 @@ Frontend hanya boleh berisi `apiBaseUrl`, `supabaseUrl`, dan publishable key pad
 
 Nginx menerima maksimum 101 MB agar upload digital 100 MB tidak terpotong oleh overhead multipart. Bucket database tetap membatasi cover 5 MB, digital 100 MB, import 10 MB, dan export 50 MB. Ubah batas aplikasi, bucket, dan Nginx bersamaan.
 
+Form **Koleksi digital** membuat sesi singkat melalui API, lalu browser mengunggah file utama langsung ke endpoint Storage Supabase (`<project-ref>.storage.supabase.co`) menggunakan token bertenggat dan path yang dibatasi. Pastikan perangkat petugas dapat menjangkau domain tersebut lewat HTTPS; jangan memproksikan byte file itu kembali melalui Cloudflare Tunnel/Nginx aplikasi. API hanya menerima metadata sesi dan finalisasi. Endpoint multipart lama tetap dipertahankan sementara untuk kompatibilitas, sehingga batas Nginx di atas masih diperlukan sampai endpoint tersebut dipensiunkan.
+
 ## Backup
 
 `scripts/backup-database.sh` menghasilkan custom PostgreSQL dump, roles dump, dan checksum. Jalankan harian ke disk terenkripsi, lalu salin ke lokasi off-site dengan retensi minimal 30 harian dan 12 bulanan. Uji restore secara berkala.

@@ -6,7 +6,7 @@ Role yang didukung: `master_admin`, `head_librarian`, `librarian`, `member`, dan
 
 Bootstrap master admin pertama dilakukan sekali melalui SQL Editor administratif. Semua akun `master_admin` memakai Supabase Auth dan dapat dibuat lebih dari satu melalui Supabase Auth Admin API/Dashboard. Role lain tetap dibuat sebagai akun lokal melalui menu akun; jangan mengubah `profiles.role` dari frontend atau membagikan service role key.
 
-Menu administrasi menyediakan pembuatan akun lokal dengan username dan kata sandi sementara. Kata sandi wajib minimal 8 karakter serta memuat huruf besar, huruf kecil, dan angka; simbol tidak diwajibkan. Pengguna dipaksa menggantinya sebelum membuka fitur lain. Gunakan nonaktifkan akun, bukan menghapus histori pengguna.
+Menu administrasi menyediakan pembuatan akun lokal dengan username dan kata sandi sementara. Akun dengan role `member` otomatis memperoleh data anggota sementara yang aktif, kode member, dan nomor kartu; petugas melengkapi NIS, NISN, kelas, rombel, atau kartu pelajar bila akun tersebut milik siswa. Akses **Hubungkan member** tetap tersedia untuk master admin sebagai koreksi: pilih data anggota aktif yang belum terhubung untuk mengganti data sementara. Jangan lakukan koreksi ini setelah anggota mempunyai transaksi aktif. Kata sandi wajib minimal 8 karakter serta memuat huruf besar, huruf kecil, dan angka; simbol tidak diwajibkan. Pengguna dipaksa menggantinya sebelum membuka fitur lain. Gunakan nonaktifkan akun, bukan menghapus histori pengguna.
 
 Audit detail menyamarkan kredensial, path privat, dan identitas sensitif. Halaman status sistem hanya menampilkan konfigurasi aman. Event warning/error disimpan 30 hari dan dibersihkan oleh job maintenance.
 
@@ -41,6 +41,6 @@ Identitas sekolah di laporan dikonfigurasi master admin. Angka dashboard berasal
 
 ## Uji terima disposable
 
-1. Reset database lokal, buat satu atau beberapa akun Auth master admin, lalu siapkan akun lokal untuk role lain dan link member yang sesuai.
+1. Reset database lokal, buat satu atau beberapa akun Auth master admin, lalu siapkan akun lokal untuk role lain. Pastikan akun `member` otomatis memiliki data anggota sementara dan dapat melakukan reservasi.
 2. Isi seluruh `SMOKE_*` environment variable yang didokumentasikan di `docs/go-live-checklist.md`.
 3. Jalankan `npm run smoke:uat` hanya dengan `SMOKE_TARGET=local` atau `staging`. Script menolak target lain dan membuat data berawalan `SMOKE-`.

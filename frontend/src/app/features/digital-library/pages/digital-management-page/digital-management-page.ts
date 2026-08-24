@@ -1,5 +1,6 @@
 import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../../../core/auth/auth.store';
 import { parseApiError } from '../../../../core/errors/api-error';
 import {
@@ -10,7 +11,12 @@ import {
   MasterDataApiService,
   type MasterRow,
 } from '../../../master-data/data-access/master-data-api.service';
-import { DigitalLibraryApiService } from '../../data-access/digital-library-api.service';
+import {
+  DigitalLibraryApiService,
+  type DigitalUploadSession,
+  type DigitalUploadSessionRequest,
+} from '../../data-access/digital-library-api.service';
+import { DigitalUploadService } from '../../data-access/digital-upload.service';
 import type { DigitalCollection, DigitalMediaType } from '../../models/digital-collection.model';
 
 type DigitalFormValue = ReturnType<DigitalManagementPage['form']['getRawValue']>;
@@ -103,12 +109,13 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
               <label class="field">
                 <span>Slug URL <span aria-hidden="true">*</span></span>
                 <input
-                  formControlName="slug"
-                  data-control-name="slug"
-                  autocomplete="off"
-                  placeholder="contoh-modul-matematika"
-                  [attr.aria-invalid]="isInvalid('slug')"
-                  aria-describedby="slug-helper slug-error"
+                formControlName="slug"
+                data-control-name="slug"
+                autocomplete="off"
+                placeholder="contoh-modul-matematika"
+                (input)="markSlugEdited()"
+                [attr.aria-invalid]="isInvalid('slug')"
+                aria-describedby="slug-helper slug-error"
                 />
                 <span id="slug-helper" class="field-helper"
                   >Gunakan huruf kecil, angka, dan tanda hubung.</span
@@ -120,7 +127,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
 
               <label class="field">
                 <span>Kategori</span>
-                <select formControlName="categoryId">
+                <select formControlName="categoryId" (change)="updateCategorySlug($event)">
                   <option value="">Tanpa kategori</option>
                   @for (category of categories(); track category.id) {
                     <option [value]="category.id">{{ category.name }}</option>
@@ -130,12 +137,35 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
 
               <label class="field">
                 <span>Penulis</span>
-                <input formControlName="authorText" autocomplete="off" />
+                <select formControlName="authorText">
+                  <option value="">Tidak dicatat</option>
+                  @if (form.controls.authorText.value && !hasMasterValue(authors(), form.controls.authorText.value)) {
+                    <option [value]="form.controls.authorText.value">
+                      Nilai tersimpan: {{ form.controls.authorText.value }}
+                    </option>
+                  }
+                  @for (author of authors(); track author.id) {
+                    <option [value]="author.name">{{ author.name }}</option>
+                  }
+                </select>
               </label>
 
               <label class="field">
                 <span>Penerbit</span>
-                <input formControlName="publisherText" autocomplete="off" />
+                <select formControlName="publisherText">
+                  <option value="">Tidak dicatat</option>
+                  @if (
+                    form.controls.publisherText.value &&
+                    !hasMasterValue(publishers(), form.controls.publisherText.value)
+                  ) {
+                    <option [value]="form.controls.publisherText.value">
+                      Nilai tersimpan: {{ form.controls.publisherText.value }}
+                    </option>
+                  }
+                  @for (publisher of publishers(); track publisher.id) {
+                    <option [value]="publisher.name">{{ publisher.name }}</option>
+                  }
+                </select>
               </label>
 
               <label class="field">
@@ -206,6 +236,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
                   data-control-name="mainFile"
                   (change)="pickFile($event)"
                   accept="application/pdf,video/mp4,video/webm"
+                  [disabled]="saving()"
                   [attr.aria-invalid]="mainFileError() ? 'true' : 'false'"
                   aria-describedby="main-file-helper main-file-error main-file-preview"
                 />
@@ -229,6 +260,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
                   type="file"
                   (change)="pickCover($event)"
                   accept="image/jpeg,image/png,image/webp"
+                  [disabled]="saving()"
                   [attr.aria-invalid]="coverFileError() ? 'true' : 'false'"
                   aria-describedby="cover-helper cover-error cover-preview"
                 />
@@ -262,11 +294,27 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
           </fieldset>
 
           <div class="actions">
+            @if (saving()) {
+              <div class="upload-status" role="status" aria-live="polite">
+                <span>{{ uploadStage() }}</span>
+                @if (uploadProgress() > 0) {
+                  <progress [value]="uploadProgress()" max="100">
+                    {{ uploadProgress() }}%
+                  </progress>
+                  <small>{{ uploadProgress() }}%</small>
+                }
+              </div>
+            }
             <button class="button" type="submit" [disabled]="saving()">
               {{ saving() ? 'Menyimpan...' : 'Simpan koleksi' }}
             </button>
+            @if (saving()) {
+              <button class="button button--secondary" type="button" (click)="cancelUpload()">
+                Batalkan unggahan
+              </button>
+            }
             @if (editingId()) {
-              <button class="button button--secondary" type="button" (click)="reset()">
+              <button class="button button--secondary" type="button" (click)="reset()" [disabled]="saving()">
                 Batal ubah
               </button>
             }
@@ -450,9 +498,10 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
 
     .collection-form {
       display: grid;
-      gap: var(--space-5);
+      gap: var(--space-4);
+      min-width: 0;
       margin-top: var(--space-6);
-      padding: var(--space-5);
+      padding: var(--space-4);
       border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-surface);
@@ -461,9 +510,10 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
 
     fieldset {
       display: grid;
-      gap: var(--space-4);
+      gap: var(--space-3);
+      min-width: 0;
       margin: 0;
-      padding: var(--space-4);
+      padding: var(--space-3);
       border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-neutral-surface);
@@ -484,8 +534,10 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
     .field {
       display: grid;
       gap: var(--space-2);
-      color: var(--color-brand-950);
-      font-weight: var(--weight-semibold);
+      min-width: 0;
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
     }
 
     .field.wide {
@@ -509,6 +561,14 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
       resize: vertical;
     }
 
+    input,
+    select,
+    textarea,
+    input::placeholder,
+    textarea::placeholder {
+      font-weight: var(--weight-regular);
+    }
+
     input[aria-invalid='true'],
     select[aria-invalid='true'],
     textarea[aria-invalid='true'] {
@@ -518,17 +578,23 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
 
     .field-helper,
     .field-error,
-    .file-preview small,
+    .file-preview small {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
+      line-height: 1.5;
+    }
+
+    .field-helper,
+    .file-preview small {
+      color: var(--color-text-muted);
+    }
+
     td small {
       display: block;
       font-size: var(--text-sm);
       font-weight: var(--weight-medium);
       line-height: 1.5;
-    }
-
-    .field-helper,
-    .file-preview small,
-    td small {
       color: var(--color-text-muted);
     }
 
@@ -561,6 +627,8 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
       border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-surface);
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
       cursor: pointer;
     }
 
@@ -575,10 +643,14 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
       gap: var(--space-1);
     }
 
+    .check strong {
+      font-weight: var(--weight-regular);
+    }
+
     .check small {
       color: var(--color-text-muted);
-      font-size: var(--text-sm);
-      font-weight: var(--weight-medium);
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
     }
 
     .file-preview {
@@ -590,13 +662,41 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
       border-radius: var(--radius-md);
       background: var(--color-surface);
       color: var(--color-text-muted);
-      font-weight: var(--weight-medium);
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
+    }
+
+    .file-preview strong {
+      font-weight: var(--weight-regular);
     }
 
     .actions,
     .list-head {
       align-items: center;
       margin-top: var(--space-2);
+    }
+
+    .upload-status {
+      display: grid;
+      grid-template-columns: minmax(10rem, 1fr) minmax(7rem, 12rem) auto;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: min(100%, 24rem);
+      color: var(--color-text-muted);
+      font-size: 0.8rem;
+      font-weight: var(--weight-regular);
+    }
+
+    .upload-status progress {
+      width: 100%;
+      min-height: 0.75rem;
+      accent-color: var(--color-brand-700);
+    }
+
+    .upload-status small {
+      min-width: 2.5rem;
+      color: var(--color-text-muted);
+      text-align: right;
     }
 
     .table-wrap {
@@ -734,6 +834,25 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('id-ID', {
         grid-column: auto;
       }
 
+      .collection-form,
+      fieldset {
+        padding: var(--space-3);
+      }
+
+      .upload-status {
+        grid-template-columns: minmax(0, 1fr) auto;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .upload-status > span {
+        grid-column: 1 / -1;
+      }
+
+      .actions .button {
+        width: 100%;
+      }
+
       table,
       thead,
       tbody,
@@ -801,12 +920,17 @@ export class DigitalManagementPage {
   protected readonly COVER_HELPER = COVER_HELPER;
 
   private readonly api = inject(DigitalLibraryApiService);
+  private readonly uploader = inject(DigitalUploadService);
   private readonly masters = inject(MasterDataApiService);
   private readonly auth = inject(AuthStore);
   protected readonly items = signal<DigitalCollection[]>([]);
   protected readonly categories = signal<MasterRow[]>([]);
+  protected readonly authors = signal<MasterRow[]>([]);
+  protected readonly publishers = signal<MasterRow[]>([]);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  protected readonly uploadStage = signal('');
+  protected readonly uploadProgress = signal(0);
   protected readonly deleting = signal(false);
   protected readonly feedback = signal<FeedbackMessage | null>(null);
   protected readonly error = signal('');
@@ -822,6 +946,9 @@ export class DigitalManagementPage {
   protected readonly deleteError = signal('');
   private file: File | null = null;
   private cover: File | null = null;
+  private uploadAbortController: AbortController | null = null;
+  private uploadCancelled = false;
+  private slugEdited = false;
   protected readonly form = new FormGroup({
     title: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     slug: new FormControl('', {
@@ -852,6 +979,22 @@ export class DigitalManagementPage {
         );
       },
     });
+    this.masters.list('authors').subscribe({
+      next: (r) => this.authors.set(r.data),
+      error: (error) => {
+        this.feedback.set(
+          errorFeedback(error, 'Pilihan penulis belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.'),
+        );
+      },
+    });
+    this.masters.list('publishers').subscribe({
+      next: (r) => this.publishers.set(r.data),
+      error: (error) => {
+        this.feedback.set(
+          errorFeedback(error, 'Pilihan penerbit belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.'),
+        );
+      },
+    });
   }
 
   protected canEdit() {
@@ -879,15 +1022,27 @@ export class DigitalManagementPage {
   }
 
   protected suggestSlug() {
-    if (this.form.controls.slug.value) return;
-    this.form.controls.slug.setValue(
-      this.form.controls.title.value
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, ''),
-    );
+    if (this.slugEdited) return;
+
+    const categorySlug = this.categories().find(
+      (category) => category.id === this.form.controls.categoryId.value,
+    )?.slug;
+    const titleSlug = toSlug(this.form.controls.title.value);
+    const slug = [categorySlug, titleSlug].filter(Boolean).join('-');
+    this.form.controls.slug.setValue(slug);
+  }
+
+  protected markSlugEdited() {
+    this.slugEdited = true;
+  }
+
+  protected updateCategorySlug(event: Event) {
+    this.form.controls.categoryId.setValue((event.target as HTMLSelectElement).value);
+    this.suggestSlug();
+  }
+
+  protected hasMasterValue(rows: MasterRow[], value: string) {
+    return rows.some((row) => row.name === value);
   }
 
   protected pickFile(event: Event) {
@@ -918,7 +1073,8 @@ export class DigitalManagementPage {
     }
   }
 
-  protected save() {
+  protected async save() {
+    if (this.saving()) return;
     this.form.markAllAsTouched();
     this.formError.set('');
 
@@ -932,34 +1088,84 @@ export class DigitalManagementPage {
       return;
     }
 
+    const editingId = this.editingId();
+    const controller = new AbortController();
+    let session: DigitalUploadSession | null = null;
+    let finalized = false;
+    this.uploadAbortController = controller;
+    this.uploadCancelled = false;
+    this.uploadProgress.set(0);
+    this.uploadStage.set('Menyiapkan unggahan aman...');
     this.saving.set(true);
-    const payload = toFormData(this.form.getRawValue(), this.file, this.cover);
-    const request = this.editingId()
-      ? this.api.update(this.editingId()!, payload)
-      : this.api.create(payload);
-    request.subscribe({
-      next: () => {
-        const wasEditing = Boolean(this.editingId());
-        this.saving.set(false);
-        this.reset();
-        this.feedback.set({
-          tone: 'success',
-          message: wasEditing ? 'Koleksi berhasil diperbarui.' : 'Koleksi berhasil ditambahkan.',
-        });
-        this.load();
-      },
-      error: (error) => {
+    this.form.disable({ emitEvent: false });
+
+    try {
+      const sessionRequest = this.uploadSessionRequest(editingId);
+      session = (await firstValueFrom(this.api.createUploadSession(sessionRequest))).data;
+      this.throwIfUploadCancelled(controller.signal);
+
+      if (this.file) {
+        if (!session.mainUpload) throw new Error('Target unggahan file utama tidak tersedia.');
+        this.uploadStage.set('Mengunggah file utama...');
+        await this.uploader.uploadMain(this.file, session.mainUpload, (progress) => {
+          this.uploadProgress.set(progress);
+        }, controller.signal);
+      }
+      this.throwIfUploadCancelled(controller.signal);
+
+      if (this.cover) {
+        if (!session.coverUpload) throw new Error('Target unggahan cover tidak tersedia.');
+        this.uploadStage.set('Mengunggah cover...');
+        this.uploadProgress.set(0);
+        await this.uploader.uploadCover(this.cover, session.coverUpload, controller.signal);
+      }
+      this.throwIfUploadCancelled(controller.signal);
+
+      this.uploadProgress.set(100);
+      this.uploadStage.set('Menyimpan metadata koleksi...');
+      await firstValueFrom(this.api.finalizeUploadSession(session.id, this.form.getRawValue()));
+      finalized = true;
+      this.reset();
+      this.feedback.set({
+        tone: 'success',
+        message: editingId ? 'Koleksi berhasil diperbarui.' : 'Koleksi berhasil ditambahkan.',
+      });
+      this.load();
+    } catch (error) {
+      if (session && !finalized) {
+        try {
+          await firstValueFrom(this.api.cancelUploadSession(session.id));
+        } catch {
+          // Sesi yang sudah kedaluwarsa juga dibersihkan oleh maintenance backend.
+        }
+      }
+      if (this.uploadCancelled || controller.signal.aborted) {
+        this.feedback.set({ tone: 'success', message: 'Unggahan dibatalkan.' });
+      } else {
         this.formError.set(
-          apiMessage(error, 'Koleksi gagal disimpan. Periksa format file dan slug.'),
+          apiMessage(error, 'Koleksi gagal disimpan. Periksa koneksi, file, dan slug.'),
         );
-        this.saving.set(false);
         this.focusFirstError();
-      },
-    });
+      }
+    } finally {
+      this.uploadAbortController = null;
+      this.uploadStage.set('');
+      this.uploadProgress.set(0);
+      this.form.enable({ emitEvent: false });
+      this.saving.set(false);
+    }
+  }
+
+  protected cancelUpload() {
+    if (!this.saving()) return;
+    this.uploadCancelled = true;
+    this.uploadStage.set('Membatalkan unggahan...');
+    this.uploadAbortController?.abort();
   }
 
   protected edit(item: DigitalCollection) {
     this.editingId.set(item.id);
+    this.slugEdited = true;
     this.clearFileSelection();
     this.form.setValue({
       title: item.title,
@@ -999,6 +1205,7 @@ export class DigitalManagementPage {
       isDownloadable: true,
       isPublished: false,
     });
+    this.slugEdited = false;
     this.formError.set('');
   }
 
@@ -1085,6 +1292,34 @@ export class DigitalManagementPage {
     this.coverSizeLabel.set('');
   }
 
+  private uploadSessionRequest(editingId: string | null): DigitalUploadSessionRequest {
+    const mediaType = this.form.controls.mediaType.value;
+    const mainFile = this.file ? fileDescriptor(this.file) : undefined;
+    const coverFile = this.cover ? fileDescriptor(this.cover) : undefined;
+    if (editingId) {
+      return {
+        operation: 'update',
+        collectionId: editingId,
+        mediaType,
+        ...(mainFile ? { mainFile } : {}),
+        ...(coverFile ? { coverFile } : {}),
+      };
+    }
+    if (!mainFile) throw new Error('File utama wajib dipilih.');
+    return {
+      operation: 'create',
+      mediaType,
+      mainFile,
+      ...(coverFile ? { coverFile } : {}),
+    };
+  }
+
+  private throwIfUploadCancelled(signal: AbortSignal) {
+    if (this.uploadCancelled || signal.aborted) {
+      throw new DOMException('Unggahan dibatalkan.', 'AbortError');
+    }
+  }
+
   private formatBytes(bytes: number) {
     if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -1095,14 +1330,17 @@ export class DigitalManagementPage {
   }
 }
 
-function toFormData(value: DigitalFormValue, file: File | null, cover: File | null) {
-  const data = new FormData();
-  for (const [key, raw] of Object.entries(value)) {
-    data.set(key, raw === null ? '' : String(raw));
-  }
-  if (file) data.set('file', file);
-  if (cover) data.set('cover', cover);
-  return data;
+function toSlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function fileDescriptor(file: File) {
+  return { name: file.name, mimeType: file.type, size: file.size };
 }
 
 function apiMessage(error: unknown, fallback: string): string {
